@@ -41,7 +41,6 @@ class Validator(BaseValidatorNeuron):
 
         # Load dataset for challenge selection
         self.dataset = load_dataset(HUGGING_REPO, split="test")
-        print(self.dataset)
         # Validator proxy for servicing external requests
         self.validator_proxy = ValidatorProxy(self)
 
