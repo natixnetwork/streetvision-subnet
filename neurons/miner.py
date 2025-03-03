@@ -29,7 +29,8 @@ import sys
 import numpy as np
 
 from base_miner.registry import DETECTOR_REGISTRY
-from base_miner.detectors import RoadworkDetector, ViTImageDetector
+from base_miner.detectors import RoadworkDetector, ViTImageDetector, NPRImageDetector, UCFImageDetector, CAMOImageDetector, TALLVideoDetector
+
 from bitmind.base.miner import BaseMinerNeuron
 from bitmind.protocol import ImageSynapse, VideoSynapse, decode_video_synapse
 from bitmind.utils.config import get_device

@@ -16,13 +16,13 @@ import yaml
 import gc
 
 from base_miner.DFB.config.constants import CONFIGS_DIR, WEIGHTS_DIR
-from base_miner.detectors import DeepfakeDetector
+from base_miner.detectors import FeatureDetector
 from base_miner.DFB.detectors import UCFDetector
 from base_miner.registry import DETECTOR_REGISTRY
 
 
 @DETECTOR_REGISTRY.register_module(module_name='UCF')
-class UCFImageDetector(DeepfakeDetector):
+class UCFImageDetector(FeatureDetector):
     """
     DeepfakeDetector subclass that initializes a pretrained UCF model
     for binary classification of fake and real images.
