@@ -147,14 +147,14 @@ def add_miner_args(cls, parser):
         "--neuron.image_detector_config",
         type=str,
         help=".yaml file name in base_miner/deepfake_detectors/configs/ to load for trained model.",
-        default="camo.yaml",
+        default="roadwork.yaml",
     )
 
     parser.add_argument(
         "--neuron.image_detector",
         type=str,
         help="The DETECTOR_REGISTRY module name of the DeepfakeDetector subclass to use for inference.",
-        default="CAMO",
+        default="ROADWORK",
     )
 
     parser.add_argument(
