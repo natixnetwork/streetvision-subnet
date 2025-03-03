@@ -8,7 +8,7 @@ from base_miner.feature_detectors import FeatureDetector
 
 
 @DETECTOR_REGISTRY.register_module(module_name='ROADWORK')
-class ImageDetector(FeatureDetector):
+class RoadworkDetector(FeatureDetector):
     """
     This DeepfakeDetector subclass implements Content-Aware Model Orchestration
     (CAMO), a mixture-of-experts approach to the binary classification of
