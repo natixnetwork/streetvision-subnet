@@ -176,6 +176,15 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     with Miner() as miner:
         while True:
-            bt.logging.info(f"Miner running | uid {miner.uid} | {time.time()}")
+            log = (
+                "Miner | "
+                f"UID:{miner.uid} | "
+                # f"Block:{self.current_block} | "
+                f"Stake:{miner.metagraph.S[miner.uid]:.3f} | "
+                f"Trust:{miner.metagraph.T[miner.uid]:.3f} | "
+                f"Incentive:{miner.metagraph.I[miner.uid]:.3f} | "
+                f"Emission:{miner.metagraph.E[miner.uid]:.3f}"
+            )
+            bt.logging.info(log)
             time.sleep(5)
 
