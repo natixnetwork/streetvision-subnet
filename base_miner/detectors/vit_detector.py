@@ -22,7 +22,7 @@ from base_miner.registry import DETECTOR_REGISTRY
 
 
 @DETECTOR_REGISTRY.register_module(module_name='ViT')
-class VtTImageDetector(DeepfakeDetector):
+class ViTImageDetector(DeepfakeDetector):
     """
     DeepfakeDetector subclass that initializes a pretrained UCF model
     for binary classification of fake and real images.

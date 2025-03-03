@@ -48,7 +48,7 @@ class RoadworkDetector(FeatureDetector):
             detector_config = detector_info['detector_config']
             if model_name in DETECTOR_REGISTRY:
                 self.detectors[content_type] = DETECTOR_REGISTRY[model_name](
-                    model_name=f'{model_name.lower()}_{content_type}',
+                    model_name=f'{model_name}_{content_type}',
                     config_name=detector_config,
                     device=self.device
                 )
