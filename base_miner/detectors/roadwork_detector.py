@@ -7,7 +7,7 @@ from base_miner.gating_mechanisms import GatingMechanism
 from base_miner.detectors import FeatureDetector
 
 
-@DETECTOR_REGISTRY.register_module(module_name='ROADWORK')
+@DETECTOR_REGISTRY.register_module(module_name='ViT')
 class RoadworkDetector(FeatureDetector):
     """
     This DeepfakeDetector subclass implements Content-Aware Model Orchestration
@@ -26,7 +26,7 @@ class RoadworkDetector(FeatureDetector):
         device (str): The type of device ('cpu' or 'cuda').
     """
 
-    def __init__(self, model_name: str = 'ROADWORK', config_name: str = 'roadwork.yaml', device: str = 'cpu'):
+    def __init__(self, model_name: str = 'ViT', config_name: str = 'roadwork.yaml', device: str = 'cpu'):
         """
         Initialize the Detector with dynamic model selection based on config.
         """
@@ -46,9 +46,6 @@ class RoadworkDetector(FeatureDetector):
         for content_type, detector_info in self.content_type.items():
             model_name = detector_info['model']
             detector_config = detector_info['detector_config']
-            print(f"model_name: {model_name}")
-            print(f"content_type: {content_type.capitalize()}")
-            print(f"detector_config: {detector_config} | device: {self.device}")
             if model_name in DETECTOR_REGISTRY:
                 self.detectors[content_type] = DETECTOR_REGISTRY[model_name](
                     model_name=f'{model_name}_{content_type.capitalize()}',
