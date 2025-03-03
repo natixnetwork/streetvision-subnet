@@ -83,8 +83,8 @@ class Validator(BaseValidatorNeuron):
         }
 
         self.media_cache = {
-            'real': self.real_media_cache,
-            'synthetic': self.synthetic_media_cache,
+            'Roadwork': self.real_media_cache,
+            'None': self.synthetic_media_cache,
         }
 
         self.init_wandb()

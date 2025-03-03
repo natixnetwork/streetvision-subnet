@@ -84,7 +84,9 @@ class ViTImageDetector(FeatureDetector):
         # image_tensor = self.preprocess(image)
         # output = self.infer(image_tensor)
         output = self.model(Image) # pipeline handles preprocessing
-        return output
+        # result eg. [{'label': 'Roadwork', 'score': 0.9815}, {'label': 'None', 'score': 0.0184}]
+        roadwork_prob = output[0]['score'] 
+        return roadwork_prob
     
     def free_memory(self):
         """ Frees up memory by setting model and large data structures to None. """

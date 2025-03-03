@@ -34,7 +34,8 @@ from bitmind.validator.reward import get_rewards
 
 
 def determine_challenge_type(media_cache, fake_prob=0.5):
-    modality = 'video' if np.random.rand() > 0.5 else 'image'
+    # probability of video is 0 for now
+    modality = 'video' if np.random.rand() > 1 else 'image'
     label = 0 if np.random.rand() > fake_prob else 1
     cache = media_cache[CHALLENGE_TYPE[label]][modality]
     task = None

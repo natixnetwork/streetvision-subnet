@@ -24,6 +24,7 @@ from .model_utils import (
 )
 
 
+
 TARGET_IMAGE_SIZE: tuple[int, int] = (256, 256)
 
 MAINNET_UID = 34
@@ -41,8 +42,8 @@ SN34_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 VALIDATOR_INFO_PATH: Path = SN34_CACHE_DIR / 'validator.yaml'
 
-REAL_CACHE_DIR: Path = SN34_CACHE_DIR / 'real'
-SYNTH_CACHE_DIR: Path = SN34_CACHE_DIR / 'synthetic'
+REAL_CACHE_DIR: Path = SN34_CACHE_DIR / 'None'
+SYNTH_CACHE_DIR: Path = SN34_CACHE_DIR / 'Roadwork'
 
 REAL_VIDEO_CACHE_DIR: Path = REAL_CACHE_DIR / 'video'
 REAL_IMAGE_CACHE_DIR: Path = REAL_CACHE_DIR / 'image'
@@ -61,23 +62,29 @@ MAX_COMPRESSED_GB = 100
 MAX_EXTRACTED_GB = 10
 
 CHALLENGE_TYPE = {
-    0: 'real',
-    1: 'synthetic'
+    0: 'None',
+    1: 'Roadwork'
 }
 
 # Image datasets configuration
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
-    "real": [
-        {"path": "bitmind/bm-real"},
-        {"path": "bitmind/open-image-v7-256"},
-        {"path": "bitmind/celeb-a-hq"},
-        {"path": "bitmind/ffhq-256"},
-        {"path": "bitmind/MS-COCO-unique-256"},
-        {"path": "bitmind/AFHQ"},
-        {"path": "bitmind/lfw"},
-        {"path": "bitmind/caltech-256"},
-        {"path": "bitmind/caltech-101"},
-        {"path": "bitmind/dtd"}
+    "Roadwork": [
+        # {"path": "bitmind/bm-real"},
+        # {"path": "bitmind/open-image-v7-256"},
+        # {"path": "bitmind/celeb-a-hq"},
+        # {"path": "bitmind/ffhq-256"},
+        # {"path": "bitmind/MS-COCO-unique-256"},
+        # {"path": "bitmind/AFHQ"},
+        # {"path": "bitmind/lfw"},
+        # {"path": "bitmind/caltech-256"},
+        # {"path": "bitmind/caltech-101"},
+        # {"path": "bitmind/dtd"},
+        {"path": "hayden-yuma/roadwork/train/Roadwork"},
+        {"path": "hayden-yuma/roadwork/test/Roadwork"},
+    ],
+    "None": [
+        {"path": "hayden-yuma/roadwork/train/Clear"},
+        {"path": "hayden-yuma/roadwork/test/Clear"},
     ]
 }
 

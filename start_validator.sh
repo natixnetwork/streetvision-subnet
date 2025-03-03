@@ -69,7 +69,8 @@ pm2 start neurons/validator.py --name $VALIDATOR_PROCESS_NAME -- \
   --wallet.name $WALLET_NAME \
   --wallet.hotkey $WALLET_HOTKEY \
   --axon.port $VALIDATOR_AXON_PORT \
-  --proxy.port $VALIDATOR_PROXY_PORT
+  --proxy.port $VALIDATOR_PROXY_PORT \
+  --wandb.off
 
 echo "Starting real data cache updater process"
 pm2 start bitmind/validator/scripts/run_cache_updater.py --name $CACHE_UPDATE_PROCESS_NAME
