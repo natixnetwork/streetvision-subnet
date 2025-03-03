@@ -48,6 +48,8 @@ class RoadworkDetector(FeatureDetector):
             detector_config = detector_info['detector_config']
             
             if model_name in DETECTOR_REGISTRY:
+                print(f"model_name: {model_name} | content_type: {content_type.capitalize()}")
+                print(f"detector_config: {detector_config} | device: {self.device}")
                 self.detectors[content_type] = DETECTOR_REGISTRY[model_name](
                     model_name=f'{model_name}_{content_type.capitalize()}',
                     config_name=detector_config,

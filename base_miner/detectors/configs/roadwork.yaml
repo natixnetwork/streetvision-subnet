@@ -3,7 +3,7 @@
 content_type:
   roadwork:
     model: 'ViT'
-    detector_config: 'ViT_roadwork.yaml'  # Default model for 'general'
+    detector_config: 'ViT_roadwork.yaml'  # Default model for 'roadwork'
   face:
     model: 'UCF'
     detector_config: 'ucf_face.yaml'  # Default model for 'face'
