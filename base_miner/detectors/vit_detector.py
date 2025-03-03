@@ -48,8 +48,8 @@ class ViTImageDetector(FeatureDetector):
 
     def load_model(self):
         self.model = pipeline("image-classification", 
-                 model=AutoModelForImageClassification.from_pretrained("hayden-yuma/roadwork"),
-                 feature_extractor=AutoImageProcessor.from_pretrained("hayden-yuma/roadwork", use_fast=True),
+                 model=AutoModelForImageClassification.from_pretrained(self.hf_repo),
+                 feature_extractor=AutoImageProcessor.from_pretrained(self.hf_repo, use_fast=True),
                  )
     
     def preprocess(self, image, res=256):
