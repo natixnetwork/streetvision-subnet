@@ -20,6 +20,7 @@ from base_miner.detectors import FeatureDetector
 from base_miner.DFB.detectors import UCFDetector
 from base_miner.registry import DETECTOR_REGISTRY
 
+from transformers import pipeline, AutoModelForImageClassification, AutoImageProcessor
 
 @DETECTOR_REGISTRY.register_module(module_name='ViT')
 class ViTImageDetector(FeatureDetector):
@@ -37,9 +38,6 @@ class ViTImageDetector(FeatureDetector):
     def __init__(self, model_name: str = 'ViT', config_name: str = 'ViT_roadwork.yaml', device: str = 'cpu'):
         super().__init__(model_name, config_name, device)
 
-    def init_cudnn(self):
-        if self.config.get('cudnn'):
-            cudnn.benchmark = True
 
     def init_seed(self):
         seed_value = self.config.get('manualSeed')
@@ -49,38 +47,10 @@ class ViTImageDetector(FeatureDetector):
             torch.cuda.manual_seed_all(seed_value)
 
     def load_model(self):
-        self.init_cudnn()
-        self.init_seed()
-        self.ensure_weights_are_available(WEIGHTS_DIR, self.weights)
-        pretrained = self.config['pretrained']
-        if isinstance(pretrained, dict) and 'filename' in pretrained:
-            pretrained = pretrained['filename']
-        else:
-            pretrained = pretrained.split('/')[-1]
-
-        self.ensure_weights_are_available(WEIGHTS_DIR, pretrained)
-        self.model = UCFDetector(self.config).to(self.device)
-        self.model.eval()
-        weights_path = Path(WEIGHTS_DIR) / self.weights
-        bt.logging.info(f"Loading checkpoint {weights_path}")
-        checkpoint = torch.load(weights_path, map_location=self.device)
-        try:
-            self.model.load_state_dict(checkpoint, strict=True)
-        except RuntimeError as e:
-            if 'size mismatch' in str(e):
-                # Create a custom error message
-                custom_message = (
-                            "\n\n Error: Incorrect specific_task_num in model config. The 'specific_task_num' "
-                            "in 'config_path' yaml should match the value used during training. "
-                            "A mismatch results in an incorrect output layer shape for UCF's learned disentanglement"
-                            " of different forgery methods/sources.\n\n"
-                            "Solution: Use the same config.yaml to intialize UCFDetector ('config_path' arg) "
-                            "as output during training (config.yaml saved alongside weights in the training run's "
-                            "logs directory). Or simply modify your config.yaml to ensure 'specific_task_num' equals "
-                            "the value set during training (defaults to num fake training datasets + 1).\n"
-                        )
-                raise RuntimeError(custom_message) from e
-            else: raise e
+        self.model = pipeline("image-classification", 
+                 model=AutoModelForImageClassification.from_pretrained("hayden-yuma/roadwork"),
+                 feature_extractor=AutoImageProcessor.from_pretrained("hayden-yuma/roadwork", use_fast=True),
+                 )
     
     def preprocess(self, image, res=256):
         """Preprocess the image for model inference.
@@ -111,8 +81,10 @@ class ViTImageDetector(FeatureDetector):
         return self.model.prob[-1]
 
     def __call__(self, image: Image) -> float:
-        image_tensor = self.preprocess(image)
-        return self.infer(image_tensor)
+        # image_tensor = self.preprocess(image)
+        # output = self.infer(image_tensor)
+        output = self.model(Image) # pipeline handles preprocessing
+        return return output
     
     def free_memory(self):
         """ Frees up memory by setting model and large data structures to None. """
