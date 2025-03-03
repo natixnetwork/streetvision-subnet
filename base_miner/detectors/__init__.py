@@ -1,2 +1,2 @@
 from .feature_detector import FeatureDetector
-from .feature_detector import RoadworkDetector
+from .roadwork_detector import RoadworkDetector
