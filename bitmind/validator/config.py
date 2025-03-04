@@ -31,9 +31,11 @@ MAINNET_UID = 34
 TESTNET_UID = 168
 
 # Project constants
-MAINNET_WANDB_PROJECT: str = 'bitmind-subnet'
-TESTNET_WANDB_PROJECT: str = 'bitmind'
-WANDB_ENTITY: str = 'bitmindai'
+MAINNET_WANDB_PROJECT: str = 'test'
+TESTNET_WANDB_PROJECT: str = 'test'
+HUGGINGFACE_REPO: str = "alirezaght/natix"
+WANDB_ENTITY: str ="alirezaght-natix-gmbh"
+
 
 # Cache directories
 HUGGINGFACE_CACHE_DIR: Path = Path.home() / '.cache' / 'huggingface'
