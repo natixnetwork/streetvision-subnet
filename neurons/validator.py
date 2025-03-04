@@ -1,22 +1,3 @@
-# The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# developer: dubm
-# Copyright © 2023 Bitmind
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-# the Software.
-
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
-
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
@@ -24,83 +5,105 @@ import bittensor as bt
 import yaml
 import wandb
 import time
+import base64
+import requests
+from io import BytesIO
+from datasets import load_dataset
+from PIL import Image
 
 from neurons.validator_proxy import ValidatorProxy
-from bitmind.validator.forward import forward
-from bitmind.validator.cache import VideoCache, ImageCache
 from bitmind.base.validator import BaseValidatorNeuron
 from bitmind.validator.config import (
     MAINNET_UID,
-    MAINNET_WANDB_PROJECT,
-    TESTNET_WANDB_PROJECT,
-    WANDB_ENTITY,
-    REAL_VIDEO_CACHE_DIR,
-    REAL_IMAGE_CACHE_DIR,
-    T2I_CACHE_DIR,
-    I2I_CACHE_DIR,
-    T2V_CACHE_DIR,
     VALIDATOR_INFO_PATH
 )
-
 import bitmind
+from bitmind.utils.uids import get_random_uids
+from bitmind.protocol import ImageSynapse 
 
-
+HUGGING_REPO = "alirezaght/natix"
+WANDB_ENTITY="alirezaght-natix-gmbh"
+TESTNET_WANDB_PROJECT="test"
+MAINNET_WANDB_PROJECT="test"
 class Validator(BaseValidatorNeuron):
     """
-    The BitMind Validator's `forward` function sends single-image challenges to miners every 30 seconds, where each
-    image has a 50/50 chance of being real or fake. In service of this task, the Validator class has two key members -
-    self.real_image_datasets and self.synthetic_image_generator. The former is a list of ImageDataset objects, which
-    contain real images. The latter is an ML pipeline that combines an LLM for prompt generation and diffusion
-    models that ingest prompts output by the LLM to produce synthetic images.
-
-    The BitMind Validator also encapsuluates a ValidatorProxy, which is used to service organic requests from
-    our consumer-facing application. If you wish to participate in this system, run your validator with the
-     --proxy.port argument set to an exposed port on your machine.
+    This validator:
+    - Selects an image from a dataset.
+    - Downloads and encodes the image as base64.
+    - Sends the encoded image to miners for classification.
+    - Compares miner responses with the ground-truth label.
+    - Rewards miners based on accuracy.
     """
+
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
-        bt.logging.info("load_state()")
-        self.load_state()
+        bt.logging.info("Initializing validator for construction site classification...")
 
-        self.last_responding_miner_uids = []
+        # Load dataset for challenge selection
+        self.dataset = load_dataset(HUGGING_REPO, split="test")
+        # Validator proxy for servicing external requests
         self.validator_proxy = ValidatorProxy(self)
-
-        # real media caches are updated by the bitmind_cache_updater process (started by start_validator.sh)
-        self.real_media_cache = {
-            'image': ImageCache(REAL_IMAGE_CACHE_DIR),
-            'video': VideoCache(REAL_VIDEO_CACHE_DIR)
-        }
-
-        # synthetic media caches are populated by the SyntheticDataGenerator process (started by start_validator.sh)
-        self.synthetic_media_cache = {
-            'image': {
-                't2i': ImageCache(T2I_CACHE_DIR),
-                'i2i': ImageCache(I2I_CACHE_DIR)
-            },
-            'video': {
-                't2v': VideoCache(T2V_CACHE_DIR)
-            }
-        }
-
-        self.media_cache = {
-            'real': self.real_media_cache,
-            'synthetic': self.synthetic_media_cache,
-        }
 
         self.init_wandb()
         self.store_vali_info()
-        self._fake_prob = self.config.get('fake_prob', 0.5)
+
+    def get_challenge_image(self):
+        sample = self.dataset.shuffle().select(range(1))[0]
+        image_base64 = sample["image_encoded"]  
+        correct_label = sample["label"] 
+
+        return image_base64, correct_label
+
+    def validate_miner_response(self, miner_response, correct_label):
+        return 1.0 if miner_response == correct_label else 0.0
 
     async def forward(self):
-        """
-        Validator forward pass. Consists of:
-        - Generating the query
-        - Querying the miners
-        - Getting the responses
-        - Rewarding the miners
-        - Updating the scores
-        """
-        return await forward(self)
+        challenge_metadata = {}
+        # Get encoded image and correct label
+        image_encoded, correct_label = self.get_challenge_image()
+        challenge_metadata['label'] = correct_label
+        image_bytes = base64.b64decode(image_encoded)
+        challenge_metadata['image'] = wandb.Image(Image.open(BytesIO(image_bytes)))
+        if image_encoded is None:
+            bt.logging.warning("Skipping challenge due to image download failure.")
+            return
+
+        # Log challenge
+        bt.logging.info(f"Sending challenge | Correct Label: {correct_label}")
+
+        # Select miners to challenge
+        miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+        axons = [self.metagraph.axons[uid] for uid in miner_uids]
+        synapse = ImageSynapse(image=image_encoded)
+        
+        # Send challenge to miners (includes full image)
+        bt.logging.info(f"Querying {len(miner_uids)} miners for classification task...")
+        start_time = time.time()
+        responses = await self.dendrite(axons=axons, synapse=synapse, deserialize=True, timeout=9)
+        bt.logging.info(f"Responses received in {time.time() - start_time:.2f}s")
+
+        # Compare responses with correct label
+        rewards = [self.validate_miner_response(response, correct_label) for response in responses]
+
+        # Update miner scores
+        self.update_scores(rewards, miner_uids)
+
+        table = wandb.Table(columns=["Miner UID", "Prediction", "Reward", "Score"])
+        for uid, pred, reward, score in zip(miner_uids, responses, rewards, self.scores):
+            table.add_data(uid, pred, reward, score)
+
+        challenge_metadata['result'] = table
+        
+        # Log results
+        for uid, pred, reward in zip(miner_uids, responses, rewards):
+            bt.logging.success(f"UID: {uid} | Prediction: {pred} | Correct Label: {correct_label} | Reward: {reward}")
+
+        if not self.config.wandb.off:
+            wandb.log(challenge_metadata)
+    
+        # Save validator state
+        self.save_miner_history()
+        
 
     def init_wandb(self):
         if self.config.wandb.off:
@@ -117,7 +120,6 @@ class Validator(BaseValidatorNeuron):
         if self.config.netuid == MAINNET_UID:
             wandb_project = MAINNET_WANDB_PROJECT
 
-        # Initialize the wandb run for the single project
         bt.logging.info(f"Initializing W&B run for '{WANDB_ENTITY}/{wandb_project}'")
         try:
             run = wandb.init(
@@ -133,17 +135,14 @@ class Validator(BaseValidatorNeuron):
             bt.logging.warning("Did you run wandb login?")
             return
 
-        # Sign the run to ensure it's from the correct hotkey
         signature = self.wallet.hotkey.sign(run.id.encode()).hex()
         self.config.signature = signature
         wandb.config.update(self.config, allow_val_change=True)
-
         bt.logging.success(f"Started wandb run {run_name}")
 
     def store_vali_info(self):
         """
-        Stores the uid, hotkey and netuid of the currently running vali instance.
-        The SyntheticDataGenerator process reads this to name its w&b run
+        Stores validator details for tracking.
         """
         validator_info = {
             'uid': self.uid,
@@ -157,7 +156,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info(f"Wrote validator info to {VALIDATOR_INFO_PATH}")
 
 
-# The main function parses the configuration and runs the validator.
+# Run the validator
 if __name__ == "__main__":
     import warnings
     warnings.filterwarnings("ignore")
