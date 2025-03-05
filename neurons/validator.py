@@ -170,5 +170,14 @@ if __name__ == "__main__":
 
     with Validator() as validator:
         while True:
-            bt.logging.info(f"Validator running | uid {validator.uid} | {time.time()}")
+            log = (
+                "Miner | "
+                f"UID:{validator.uid} | "
+                # f"Block:{self.current_block} | "
+                f"Stake:{validator.metagraph.S[validator.uid]:.3f} | "
+                f"VTrust:{validator.metagraph.Tv[validator.uid]:.3f} | "
+                f"Dividend:{validator.metagraph.D[validator.uid]:.3f} | "
+                f"Emission:{validator.metagraph.E[validator.uid]:.3f}"
+            )
+            bt.logging.info(log)
             time.sleep(30)

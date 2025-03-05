@@ -43,22 +43,22 @@ if pm2 list | grep -q "$VALIDATOR_PROCESS_NAME"; then
   pm2 delete $VALIDATOR_PROCESS_NAME
 fi
 
-# STOP REAL DATA CACHE UPDATER PROCESS
-# if pm2 list | grep -q "$CACHE_UPDATE_PROCESS_NAME"; then
-  # echo "Process '$CACHE_UPDATE_PROCESS_NAME' is already running. Deleting it..."
-  # pm2 delete $CACHE_UPDATE_PROCESS_NAME
-# fi
+STOP REAL DATA CACHE UPDATER PROCESS
+if pm2 list | grep -q "$CACHE_UPDATE_PROCESS_NAME"; then
+  echo "Process '$CACHE_UPDATE_PROCESS_NAME' is already running. Deleting it..."
+  pm2 delete $CACHE_UPDATE_PROCESS_NAME
+fi
 
 # STOP SYNTHETIC DATA GENERATOR PROCESS
 # if pm2 list | grep -q "$DATA_GEN_PROCESS_NAME"; then
-  # echo "Process '$DATA_GEN_PROCESS_NAME' is already running. Deleting it..."
-  # pm2 delete $DATA_GEN_PROCESS_NAME
+#   echo "Process '$DATA_GEN_PROCESS_NAME' is already running. Deleting it..."
+#   pm2 delete $DATA_GEN_PROCESS_NAME
 # fi
 
 # echo "Verifying access to synthetic image generation models. This may take a few minutes."
 # if ! python3 bitmind/validator/verify_models.py; then
-  # echo "Failed to verify diffusion models. Please check the configurations or model access permissions."
-  # exit 1
+#   echo "Failed to verify diffusion models. Please check the configurations or model access permissions."
+#   exit 1
 # fi
 
 echo "Starting validator process"
