@@ -77,6 +77,5 @@ class RoadworkDetector(FeatureDetector):
 
         # if len(expert_outputs) == 0:
         #     return self.detectors['general'](image)
-        bt.logging.debug(f"""Content type: {self.content_type}""")
-        pred = self.detectors[content_type](image)
+        pred = self.detectors['roadwork'](image)
         return pred
