@@ -30,7 +30,7 @@ async def main(args):
     if args.mode in ['all', 'image']:
         bt.logging.info("Starting image cache updater")
         roadwork_cache = ImageCache(
-            cache_dir=args.image_cache_dir,
+            cache_dir=args.roadwork_image_cache_dir,
             datasets=IMAGE_DATASETS['Roadwork'],
             parquet_update_interval=args.image_parquet_interval,
             image_update_interval=args.image_interval,
@@ -43,7 +43,7 @@ async def main(args):
         caches.append(roadwork_cache)
 
         clear_cache = ImageCache(
-            cache_dir=args.image_cache_dir,
+            cache_dir=args.clear_image_cache_dir,
             datasets=IMAGE_DATASETS['None'],
             parquet_update_interval=args.image_parquet_interval,
             image_update_interval=args.image_interval,
