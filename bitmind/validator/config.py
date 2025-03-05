@@ -85,12 +85,10 @@ IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
         # {"path": "bitmind/caltech-256"},
         # {"path": "bitmind/caltech-101"},
         # {"path": "bitmind/dtd"},
-        {"path": "hayden-yuma/roadwork/train/Roadwork"},
-        {"path": "hayden-yuma/roadwork/test/Roadwork"},
+        {"path": "natix-network-org/roadwork"},
     ],
     "None": [
-        {"path": "hayden-yuma/roadwork/train/Clear"},
-        {"path": "hayden-yuma/roadwork/test/Clear"},
+        {"path": "natix-network-org/roadwork"},
     ]
 }
 
