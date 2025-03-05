@@ -33,19 +33,19 @@ from bitmind.validator.config import CHALLENGE_TYPE, MAINNET_UID, TARGET_IMAGE_S
 from bitmind.validator.reward import get_rewards
 
 
-def determine_challenge_type(media_cache, fake_prob=0.5):
+def determine_challenge_type(media_cache, roadwork_prob=0.5):
     # probability of video is 0 for now
     modality = 'video' if np.random.rand() > 1 else 'image'
-    label = 0 if np.random.rand() > fake_prob else 1
+    label = 0 if np.random.rand() > roadwork_prob else 1
     cache = media_cache[CHALLENGE_TYPE[label]][modality]
     task = None
-    if label == 1:
-        if modality == 'video':
-            task = 't2v'
-        elif modality == 'image':
-            # 20% chance to use i2i (in-painting)
-            task = 'i2i' if np.random.rand() < 0.2 else 't2i'
-        cache = cache[task]
+    # if label == 1:
+    #     if modality == 'video':
+    #         task = 't2v'
+    #     elif modality == 'image':
+    #         # 20% chance to use i2i (in-painting)
+    #         task = 'i2i' if np.random.rand() < 0.2 else 't2i'
+    #     cache = cache[task]
     return label, modality, task, cache
 
 
@@ -89,7 +89,6 @@ async def forward(self):
     """
     challenge_metadata = {}  # for bookkeeping
     challenge = {}           # for querying miners
-
     label, modality, source_model_task, cache = determine_challenge_type(self.media_cache)
     challenge_metadata['label'] = label
     challenge_metadata['modality'] = modality

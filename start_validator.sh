@@ -8,9 +8,9 @@ set +a
 : ${VALIDATOR_PROXY_PORT:=10913}
 : ${DEVICE:=cuda}
 
-VALIDATOR_PROCESS_NAME="bitmind_validator"
-DATA_GEN_PROCESS_NAME="bitmind_data_generator"
-CACHE_UPDATE_PROCESS_NAME="bitmind_cache_updater"
+VALIDATOR_PROCESS_NAME="natix_validator"
+DATA_GEN_PROCESS_NAME="natix_data_generator"
+CACHE_UPDATE_PROCESS_NAME="natix_cache_updater"
 
 # Clear cache if specified 
 while [[ $# -gt 0 ]]; do
