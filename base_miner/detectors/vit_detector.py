@@ -83,6 +83,7 @@ class ViTImageDetector(FeatureDetector):
     def __call__(self, image: Image) -> float:
         # image_tensor = self.preprocess(image)
         # output = self.infer(image_tensor)
+        bt.logging.debug(f"{Image}")
         output = self.model(Image) # pipeline handles preprocessing
         # result eg. [{'label': 'Roadwork', 'score': 0.9815}, {'label': 'None', 'score': 0.0184}]
         roadwork_prob = output[0]['score'] 
