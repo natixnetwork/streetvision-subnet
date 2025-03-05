@@ -67,15 +67,16 @@ class RoadworkDetector(FeatureDetector):
         Returns:
             float: The prediction score indicating the likelihood of the image being a deepfake.
         """
-        gate_results = self.gating_mechanism(image)
-        bt.logging.debug(f"Gate results: {gate_results}")
-        expert_outputs = {}
-        for content_type, gate_output_image in gate_results.items():
-            pred = self.detectors[content_type](gate_output_image)
-            bt.logging.debug(f"Detector {content_type} output: {pred}")
-            expert_outputs[content_type] = pred
+        # gate_results = self.gating_mechanism(image)
+        # bt.logging.debug(f"Gate results: {gate_results}")
+        # expert_outputs = {}
+        # for content_type, gate_output_image in gate_results.items():
+        #     pred = self.detectors[content_type](gate_output_image)
+        #     bt.logging.debug(f"Detector {content_type} output: {pred}")
+        #     expert_outputs[content_type] = pred
 
-        if len(expert_outputs) == 0:
-            return self.detectors['general'](image)
-
-        return max(expert_outputs.values())
+        # if len(expert_outputs) == 0:
+        #     return self.detectors['general'](image)
+        bt.logging.debug(f"""Content type: {self.content_type}""")
+        pred = self.detectors[content_type](image)
+        return pred
