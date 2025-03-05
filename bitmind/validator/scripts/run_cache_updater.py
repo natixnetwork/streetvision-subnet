@@ -15,8 +15,10 @@ from bitmind.validator.config import (
     VIDEO_CACHE_UPDATE_INTERVAL,
     IMAGE_PARQUET_CACHE_UPDATE_INTERVAL,
     VIDEO_ZIP_CACHE_UPDATE_INTERVAL,
-    REAL_VIDEO_CACHE_DIR,
-    REAL_IMAGE_CACHE_DIR,
+    ROADWORK_VIDEO_CACHE_DIR,
+    ROADWORK_IMAGE_CACHE_DIR,
+    CLEAR_VIDEO_CACHE_DIR,
+    CLEAR_IMAGE_CACHE_DIR,
     MAX_COMPRESSED_GB,
     MAX_EXTRACTED_GB
 )
@@ -67,9 +69,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type=str, default='all', choices=['all', 'video', 'image'],
                       help='Which cache updater(s) to run')
-    parser.add_argument('--video-cache-dir', type=str, default=REAL_VIDEO_CACHE_DIR,
+    parser.add_argument('--video-cache-dir', type=str, default=ROADWORK_VIDEO_CACHE_DIR,
                       help='Directory to cache video data')
-    parser.add_argument('--image-cache-dir', type=str, default=REAL_IMAGE_CACHE_DIR,
+    parser.add_argument('--image-cache-dir', type=str, default=ROADWORK_IMAGE_CACHE_DIR,
+                      help='Directory to cache image data')
+    parser.add_argument('--video-cache-dir', type=str, default=CLEAR_VIDEO_CACHE_DIR,
+                      help='Directory to cache video data')
+    parser.add_argument('--image-cache-dir', type=str, default=CLEAR_IMAGE_CACHE_DIR,
                       help='Directory to cache image data')
     parser.add_argument('--image-interval', type=int, default=IMAGE_CACHE_UPDATE_INTERVAL,
                       help='Update interval for images in hours')
