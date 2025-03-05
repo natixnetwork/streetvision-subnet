@@ -147,6 +147,7 @@ async def forward(self):
 
     # sample miner uids for challenge
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    bt.logging.debug(f"Miner UIDs: {miner_uids}")
     axons = [self.metagraph.axons[uid] for uid in miner_uids]
     challenge_metadata['miner_uids'] = list(miner_uids)
     challenge_metadata['miner_hotkeys'] = list([axon.hotkey for axon in axons])
