@@ -5,7 +5,7 @@ from PIL import Image
 from base_miner.registry import DETECTOR_REGISTRY
 from base_miner.gating_mechanisms import GatingMechanism
 from base_miner.detectors import FeatureDetector
-
+import bittensor as bt
 
 @DETECTOR_REGISTRY.register_module(module_name='ROADWORK')
 class RoadworkDetector(FeatureDetector):
@@ -68,9 +68,11 @@ class RoadworkDetector(FeatureDetector):
             float: The prediction score indicating the likelihood of the image being a deepfake.
         """
         gate_results = self.gating_mechanism(image)
+        bt.logging.debug(f"Gate results: {gate_results}")
         expert_outputs = {}
         for content_type, gate_output_image in gate_results.items():
             pred = self.detectors[content_type](gate_output_image)
+            bt.logging.debug(f"Detector {content_type} output: {pred}")
             expert_outputs[content_type] = pred
 
         if len(expert_outputs) == 0:
