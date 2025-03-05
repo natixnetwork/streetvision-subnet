@@ -110,6 +110,7 @@ class Miner(BaseMinerNeuron):
         else:
             bt.logging.info("Received image challenge!")
             try:
+                bt.logging.debug(f"{synapse.image}")
                 image_bytes = base64.b64decode(synapse.image)
                 image = Image.open(io.BytesIO(image_bytes))
                 bt.logging.debug(f"{image}")
