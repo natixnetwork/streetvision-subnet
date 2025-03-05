@@ -112,6 +112,8 @@ class Miner(BaseMinerNeuron):
             try:
                 image_bytes = base64.b64decode(synapse.image)
                 image = Image.open(io.BytesIO(image_bytes))
+                bt.logging.debug(f"{image}")
+                bt.logging.debug(f"{self.image_detector}")
                 synapse.prediction = self.image_detector(image)
             except Exception as e:
                 bt.logging.error("Error performing inference")
