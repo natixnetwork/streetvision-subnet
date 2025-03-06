@@ -16,7 +16,7 @@ CACHE_UPDATE_PROCESS_NAME="natix_cache_updater"
 while [[ $# -gt 0 ]]; do
   case $1 in
     --clear-cache)
-      rm -rf ~/.cache/sn34
+      rm -rf ~/.cache/natix
       shift
       ;;
     *)

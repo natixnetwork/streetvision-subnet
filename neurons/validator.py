@@ -171,7 +171,7 @@ if __name__ == "__main__":
     with Validator() as validator:
         while True:
             log = (
-                "Miner | "
+                "Validator | "
                 f"UID:{validator.uid} | "
                 # f"Block:{self.current_block} | "
                 f"Stake:{validator.metagraph.S[validator.uid]:.3f} | "

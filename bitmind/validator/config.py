@@ -39,14 +39,14 @@ WANDB_ENTITY: str ="alirezaght-natix-gmbh"
 
 # Cache directories
 HUGGINGFACE_CACHE_DIR: Path = Path.home() / '.cache' / 'huggingface'
-SN34_CACHE_DIR: Path = Path.home() / '.cache' / 'sn34'
-SN34_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+NATIX_CACHE_DIR: Path = Path.home() / '.cache' / 'natix'
+NATIX_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-VALIDATOR_INFO_PATH: Path = SN34_CACHE_DIR / 'validator.yaml'
+VALIDATOR_INFO_PATH: Path = NATIX_CACHE_DIR / 'validator.yaml'
 
-CLEAR_CACHE_DIR: Path = SN34_CACHE_DIR / 'None'
-ROADWORK_CACHE_DIR: Path = SN34_CACHE_DIR / 'Roadwork'
-SYNTH_CACHE_DIR: Path = SN34_CACHE_DIR / 'Synthetic'
+CLEAR_CACHE_DIR: Path = NATIX_CACHE_DIR / 'None'
+ROADWORK_CACHE_DIR: Path = NATIX_CACHE_DIR / 'Roadwork'
+SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / 'Synthetic'
 
 ROADWORK_VIDEO_CACHE_DIR: Path = ROADWORK_CACHE_DIR / 'video'
 ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / 'image'
