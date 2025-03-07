@@ -36,7 +36,7 @@ from bitmind.validator.reward import get_rewards
 def determine_challenge_type(media_cache, roadwork_prob=0.5):
     # probability of video is 0 for now
     modality = 'video' if np.random.rand() > 1 else 'image'
-    label = 0 if np.random.rand() > roadwork_prob else 1
+    label = 0 if np.random.rand() < roadwork_prob else 1
     cache = media_cache[CHALLENGE_TYPE[label]][modality]
     task = None
     # if label == 1:
@@ -100,7 +100,7 @@ async def forward(self):
         challenge = sample_video_frames(
             cache, self.config.neuron.clip_frames_min, self.config.neuron.clip_frames_max)
     elif modality == 'image':
-        challenge = cache.sample()
+        challenge = cache.sample(label)
 
     if challenge is None:
         bt.logging.warning("Waiting for cache to populate. Challenge skipped.")
@@ -152,6 +152,7 @@ async def forward(self):
     challenge_metadata['miner_uids'] = list(miner_uids)
     challenge_metadata['miner_hotkeys'] = list([axon.hotkey for axon in axons])
 
+    bt.logging.debug(f"{input_data}")
     # prepare synapse
     synapse = prepare_synapse(input_data, modality=modality)
     if self.metagraph.netuid != MAINNET_UID:
