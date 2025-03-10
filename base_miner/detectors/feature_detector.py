@@ -11,8 +11,8 @@ from huggingface_hub import hf_hub_download
 from base_miner.DFB.config.constants import CONFIGS_DIR, WEIGHTS_DIR
 
 
-class DeepfakeDetector(ABC):
-    """Abstract base class for detecting deepfake images via binary classification.
+class FeatureDetector(ABC):
+    """Abstract base class for detecting image features via binary classification.
 
     This class is intended to be subclassed by detector implementations
     using different underlying model architectures, routing via gates, or

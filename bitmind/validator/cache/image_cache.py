@@ -89,7 +89,7 @@ class ImageCache(BaseCache):
                 bt.logging.error(f"Error processing parquet file {parquet_file}: {e}")
         return extracted_files
 
-    def sample(self, remove_from_cache=False) -> Optional[Dict[str, Any]]:
+    def sample(self, label = None,remove_from_cache=False) -> Optional[Dict[str, Any]]:
         """
         Sample a random image and its metadata from the cache.
 
@@ -114,8 +114,11 @@ class ImageCache(BaseCache):
             image_path = random.choice(cached_files)
 
             try:
-                image = Image.open(image_path)
                 metadata = json.loads(image_path.with_suffix('.json').read_text())
+                if label is not None:
+                    if metadata['label'] != label:
+                        continue
+                image = Image.open(image_path)
                 if remove_from_cache:
                     try:
                         os.remove(image_path)
@@ -127,7 +130,8 @@ class ImageCache(BaseCache):
                     'path': str(image_path),
                     'dataset': metadata.get('dataset', None),
                     'index': metadata.get('index', None),
-                    'mask_center': metadata.get('mask_center', None)
+                    'mask_center': metadata.get('mask_center', None),
+                    'metadata': metadata
                 }
 
             except Exception as e:

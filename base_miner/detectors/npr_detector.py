@@ -5,13 +5,13 @@ from pathlib import Path
 from huggingface_hub import hf_hub_download
 from base_miner.NPR.networks.resnet import resnet50
 from bitmind.utils.image_transforms import get_base_transforms
-from base_miner.deepfake_detectors import DeepfakeDetector
+from base_miner.detectors import FeatureDetector
 from base_miner.registry import DETECTOR_REGISTRY
 from base_miner.NPR.config.constants import WEIGHTS_DIR
 
 
 @DETECTOR_REGISTRY.register_module(module_name='NPR')
-class NPRImageDetector(DeepfakeDetector):
+class NPRImageDetector(FeatureDetector):
     """
     DeepfakeDetector subclass that initializes a pretrained NPR model
     for binary classification of fake and real images.

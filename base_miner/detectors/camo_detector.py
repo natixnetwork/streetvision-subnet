@@ -4,11 +4,11 @@ import torch
 from PIL import Image
 from base_miner.registry import DETECTOR_REGISTRY
 from base_miner.gating_mechanisms import GatingMechanism
-from base_miner.deepfake_detectors import DeepfakeDetector
+from base_miner.detectors import FeatureDetector
 
 
 @DETECTOR_REGISTRY.register_module(module_name='CAMO')
-class CAMOImageDetector(DeepfakeDetector):
+class CAMOImageDetector(FeatureDetector):
     """
     This DeepfakeDetector subclass implements Content-Aware Model Orchestration
     (CAMO), a mixture-of-experts approach to the binary classification of

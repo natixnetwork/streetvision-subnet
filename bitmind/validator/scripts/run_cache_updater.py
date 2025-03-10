@@ -15,8 +15,10 @@ from bitmind.validator.config import (
     VIDEO_CACHE_UPDATE_INTERVAL,
     IMAGE_PARQUET_CACHE_UPDATE_INTERVAL,
     VIDEO_ZIP_CACHE_UPDATE_INTERVAL,
-    REAL_VIDEO_CACHE_DIR,
-    REAL_IMAGE_CACHE_DIR,
+    ROADWORK_VIDEO_CACHE_DIR,
+    ROADWORK_IMAGE_CACHE_DIR,
+    CLEAR_VIDEO_CACHE_DIR,
+    CLEAR_IMAGE_CACHE_DIR,
     MAX_COMPRESSED_GB,
     MAX_EXTRACTED_GB
 )
@@ -27,9 +29,9 @@ async def main(args):
 
     if args.mode in ['all', 'image']:
         bt.logging.info("Starting image cache updater")
-        image_cache = ImageCache(
-            cache_dir=args.image_cache_dir,
-            datasets=IMAGE_DATASETS['real'],
+        roadwork_cache = ImageCache(
+            cache_dir=args.roadwork_image_cache_dir,
+            datasets=IMAGE_DATASETS['Roadwork'],
             parquet_update_interval=args.image_parquet_interval,
             image_update_interval=args.image_interval,
             num_parquets_per_dataset=5,
@@ -37,8 +39,22 @@ async def main(args):
             max_extracted_size_gb=MAX_EXTRACTED_GB,
             max_compressed_size_gb=MAX_COMPRESSED_GB
         )
-        image_cache.start_updater()
-        caches.append(image_cache)
+        roadwork_cache.start_updater()
+        caches.append(roadwork_cache)
+
+        clear_cache = ImageCache(
+            cache_dir=args.clear_image_cache_dir,
+            datasets=IMAGE_DATASETS['None'],
+            parquet_update_interval=args.image_parquet_interval,
+            image_update_interval=args.image_interval,
+            num_parquets_per_dataset=5,
+            num_images_per_source=100,
+            max_extracted_size_gb=MAX_EXTRACTED_GB,
+            max_compressed_size_gb=MAX_COMPRESSED_GB
+        )
+        clear_cache.start_updater()
+        caches.append(clear_cache)
+
     
     if args.mode in ['all', 'video']:
         bt.logging.info("Starting video cache updater")
@@ -67,9 +83,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type=str, default='all', choices=['all', 'video', 'image'],
                       help='Which cache updater(s) to run')
-    parser.add_argument('--video-cache-dir', type=str, default=REAL_VIDEO_CACHE_DIR,
+    parser.add_argument('--roadwork-video-cache-dir', type=str, default=ROADWORK_VIDEO_CACHE_DIR,
                       help='Directory to cache video data')
-    parser.add_argument('--image-cache-dir', type=str, default=REAL_IMAGE_CACHE_DIR,
+    parser.add_argument('--roadwork-image-cache-dir', type=str, default=ROADWORK_IMAGE_CACHE_DIR,
+                      help='Directory to cache image data')
+    parser.add_argument('--clear-video-cache-dir', type=str, default=CLEAR_VIDEO_CACHE_DIR,
+                      help='Directory to cache video data')
+    parser.add_argument('--clear-image-cache-dir', type=str, default=CLEAR_IMAGE_CACHE_DIR,
                       help='Directory to cache image data')
     parser.add_argument('--image-interval', type=int, default=IMAGE_CACHE_UPDATE_INTERVAL,
                       help='Update interval for images in hours')
@@ -82,7 +102,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     bt.logging.set_info()
-    init_wandb_run(run_base_name='cache-updater', **load_validator_info())
+    # init_wandb_run(run_base_name='cache-updater', **load_validator_info())
 
     try:
         asyncio.run(main(args))

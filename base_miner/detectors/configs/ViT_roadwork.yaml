@@ -1,0 +1,3 @@
+hf_repo: 'hayden-yuma/roadwork'  # Hugging Face repository for downloading model files
+config_name: 'config.yaml'  # pre-trained configuration file in HuggingFace
+weights: 'model.safetensors'  # Model checkpoint in HuggingFace
