@@ -95,7 +95,7 @@ class ViTImageDetector(FeatureDetector):
         output = self.convert_output(output)
         return output['Roadwork']
     
-    def convert_output(result):
+    def convert_output(self, result):
         new_output = {}
         for item in result:
             new_output[item['label']] = item['score']
