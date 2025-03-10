@@ -92,12 +92,15 @@ class ViTImageDetector(FeatureDetector):
         bt.logging.debug(f"{image}")
         output = self.model(image) # pipeline handles preprocessing
         # result eg. [{'label': 'Roadwork', 'score': 0.9815}, {'label': 'None', 'score': 0.0184}]
-        if output[0]['label'] == 'Roadwork':
-            roadwork_prob = output[0]['score'] 
-        else:
-            roadwork_prob = output[1]['score'] 
-        return roadwork_prob
+        output = self.convert_output(output)
+        return output['Roadwork']
     
+    def convert_output(result):
+        new_output = {}
+        for item in result:
+            new_output[item['label']] = item['score']
+        return new_output
+
     def free_memory(self):
         """ Frees up memory by setting model and large data structures to None. """
         if self.model is not None:
