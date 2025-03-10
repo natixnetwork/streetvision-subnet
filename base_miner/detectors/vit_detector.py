@@ -60,12 +60,18 @@ class ViTImageDetector(FeatureDetector):
         """
         # Convert image to RGB format to ensure consistent color handling.
         image = image.convert('RGB')
-    
-        # Define transformation sequence for image preprocessing.
+        if "shortest_edge" in self.model.feature_extractor.size:
+            size = self.model.feature_extractor.size["shortest_edge"]
+        else:
+            (self.model.feature_extractor.size["height"], self.model.feature_extractor.size["width"])
         transform = transforms.Compose([
-            transforms.Resize((res, res), interpolation=Image.LANCZOS),  # Resize image to specified resolution.
-            transforms.ToTensor(),  # Convert the image to a PyTorch tensor.
-            transforms.Normalize(mean=self.config['mean'], std=self.config['std'])  # Normalize the image tensor.
+            transforms.RandomResizedCrop(size),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=self.model.feature_extractor.image_mean, 
+                std=self.model.feature_extractor.image_std
+                )
+
         ])
         
         # Apply transformations and add a batch dimension for model inference.
@@ -86,7 +92,10 @@ class ViTImageDetector(FeatureDetector):
         bt.logging.debug(f"{image}")
         output = self.model(image) # pipeline handles preprocessing
         # result eg. [{'label': 'Roadwork', 'score': 0.9815}, {'label': 'None', 'score': 0.0184}]
-        roadwork_prob = output[0]['score'] 
+        if output[0]['label'] == 'Roadwork':
+            roadwork_prob = output[0]['score'] 
+        else:
+            roadwork_prob = output[1]['score'] 
         return roadwork_prob
     
     def free_memory(self):
