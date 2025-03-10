@@ -93,6 +93,7 @@ class ViTImageDetector(FeatureDetector):
         output = self.model(image) # pipeline handles preprocessing
         # result eg. [{'label': 'Roadwork', 'score': 0.9815}, {'label': 'None', 'score': 0.0184}]
         output = self.convert_output(output)
+        bt.logging.debug(f"Model output: {output}")
         return output['Roadwork']
     
     def convert_output(self, result):
