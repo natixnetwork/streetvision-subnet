@@ -1,0 +1,45 @@
+FROM python:3.9-slim
+
+
+RUN apt-get update && apt-get install -y \
+    wget \
+    bzip2 \
+    curl \
+    git \
+    build-essential \
+    pkg-config \
+    openssl \
+    libssl-dev \
+    libopenblas-dev \
+    liblapack-dev \
+    libx11-dev \
+    cmake \
+    libglib2.0-dev \
+    libgtk-3-dev \
+    libsoup2.4-dev \
+    libwebkit2gtk-4.0-dev \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g pm2
+
+# Install Rust and Cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:$PATH"
+
+WORKDIR /app
+
+COPY requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
+RUN pip install bittensor-cli==9.1.0
+
+
+COPY . /app
+
+ENV PYTHONPATH="/app"
+
+# Make startup scripts executable
+RUN chmod +x start_miner.sh start_validator.sh
+
+ARG START_SCRIPT
+CMD ["/bin/bash", "-c", "./${START_SCRIPT}"]
