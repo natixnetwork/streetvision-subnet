@@ -25,7 +25,7 @@ from .model_utils import (
 
 
 
-TARGET_IMAGE_SIZE: tuple[int, int] = (256, 256)
+TARGET_IMAGE_SIZE: tuple[int, int] = (224, 224)
 
 MAINNET_UID = 34
 TESTNET_UID = 168
@@ -33,7 +33,7 @@ TESTNET_UID = 168
 # Project constants
 MAINNET_WANDB_PROJECT: str = 'test'
 TESTNET_WANDB_PROJECT: str = 'test'
-HUGGINGFACE_REPO: str = "alirezaght/natix"
+HUGGINGFACE_REPO: str = "natix-network-org"
 WANDB_ENTITY: str ="alirezaght-natix-gmbh"
 
 
@@ -48,9 +48,7 @@ CLEAR_CACHE_DIR: Path = NATIX_CACHE_DIR / 'None'
 ROADWORK_CACHE_DIR: Path = NATIX_CACHE_DIR / 'Roadwork'
 SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / 'Synthetic'
 
-ROADWORK_VIDEO_CACHE_DIR: Path = ROADWORK_CACHE_DIR / 'video'
 ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / 'image'
-CLEAR_VIDEO_CACHE_DIR: Path = CLEAR_CACHE_DIR / 'video'
 CLEAR_IMAGE_CACHE_DIR: Path = CLEAR_CACHE_DIR / 'image'
 
 
@@ -68,43 +66,16 @@ MAX_COMPRESSED_GB = 100
 MAX_EXTRACTED_GB = 10
 
 CHALLENGE_TYPE = {
-    0: 'None',
+    0: 'Clear',
     1: 'Roadwork'
 }
 
 # Image datasets configuration
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
     "Roadwork": [
-        # {"path": "bitmind/bm-real"},
-        # {"path": "bitmind/open-image-v7-256"},
-        # {"path": "bitmind/celeb-a-hq"},
-        # {"path": "bitmind/ffhq-256"},
-        # {"path": "bitmind/MS-COCO-unique-256"},
-        # {"path": "bitmind/AFHQ"},
-        # {"path": "bitmind/lfw"},
-        # {"path": "bitmind/caltech-256"},
-        # {"path": "bitmind/caltech-101"},
-        # {"path": "bitmind/dtd"},
         {"path": "natix-network-org/roadwork"},
     ],
-    "None": [
-        {"path": "natix-network-org/roadwork"},
-    ]
 }
-
-VIDEO_DATASETS = {
-    "real": [
-        {
-            "path": "nkp37/OpenVid-1M",
-            "filetype": "zip"
-        },
-        {
-            "path": "shangxd/imagenet-vidvrd",
-            "filetype": "zip"
-    	}
-    ]
-}
-
 
 # Prompt generation model configurations
 IMAGE_ANNOTATION_MODEL: str = "Salesforce/blip2-opt-6.7b-coco"

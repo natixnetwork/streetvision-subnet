@@ -42,7 +42,6 @@ def get_rewards(
     responses: List[float],
     uids: List[int],
     axons: List[bt.axon],
-    challenge_modality: str,
     performance_trackers: Dict[str, Any]
 ) -> Tuple[np.ndarray, List[Dict[str, Dict[str, float]]]]:
     """
@@ -68,37 +67,36 @@ def get_rewards(
         miner_modality_rewards = {}
         miner_modality_metrics = {}
 
-        for modality in ['image', 'video']:
-            tracker = performance_trackers[modality]
-            try:
-                miner_hotkey = axon.hotkey
+        tracker = performance_trackers
+        modality = 'image'
+        try:
+            miner_hotkey = axon.hotkey
 
-                tracked_hotkeys = tracker.miner_hotkeys
-                if uid in tracked_hotkeys and tracked_hotkeys[uid] != miner_hotkey:
-                    bt.logging.info(
-                        f"Miner hotkey changed for UID {uid}. Resetting performance metrics."
-                    )
-                    tracker.reset_miner_history(uid, miner_hotkey)
-
-                if modality == challenge_modality:
-                    performance_trackers[modality].update(
-                        uid, pred_prob, label, miner_hotkey
-                    )
-
-                metrics_100 = tracker.get_metrics(uid, window=100)
-                metrics_10 = tracker.get_metrics(uid, window=10)
-                reward = 0.5 * metrics_100['mcc'] + 0.5 * metrics_10['accuracy']
-                reward *= compute_penalty(pred_prob)
-                miner_modality_rewards[modality] = reward
-                miner_modality_metrics[modality] = metrics_100
-
-            except Exception as e:
-                bt.logging.error(
-                    f"Couldn't calculate reward for miner {uid}, "
-                    f"prediction: {pred_prob}, label: {label}"
+            tracked_hotkeys = tracker.miner_hotkeys
+            if uid in tracked_hotkeys and tracked_hotkeys[uid] != miner_hotkey:
+                bt.logging.info(
+                    f"Miner hotkey changed for UID {uid}. Resetting performance metrics."
                 )
-                bt.logging.exception(e)
-                miner_rewards.append(0.0)
+                tracker.reset_miner_history(uid, miner_hotkey)
+
+            performance_trackers[modality].update(
+                uid, pred_prob, label, miner_hotkey
+            )
+
+            metrics_100 = tracker.get_metrics(uid, window=100)
+            metrics_10 = tracker.get_metrics(uid, window=10)
+            reward = 0.5 * metrics_100['mcc'] + 0.5 * metrics_10['accuracy']
+            reward *= compute_penalty(pred_prob)
+            miner_modality_rewards[modality] = reward
+            miner_modality_metrics[modality] = metrics_100
+
+        except Exception as e:
+            bt.logging.error(
+                f"Couldn't calculate reward for miner {uid}, "
+                f"prediction: {pred_prob}, label: {label}"
+            )
+            bt.logging.exception(e)
+            miner_rewards.append(0.0)
 
         total_reward = (
             0.4 * miner_modality_rewards['video'] +

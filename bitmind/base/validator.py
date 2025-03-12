@@ -56,13 +56,10 @@ class BaseValidatorNeuron(BaseNeuron):
 
         self.performance_trackers = {
             'image': None,
-            'video': None
         }
             
         self.image_history_cache_path = os.path.join(
             self.config.neuron.full_path, "image_miner_performance_tracker.pkl")
-        self.video_history_cache_path = os.path.join(
-            self.config.neuron.full_path, "video_miner_performance_tracker.pkl")
         self.load_miner_history()
 
         # Save a copy of the hotkeys to local memory.

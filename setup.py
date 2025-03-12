@@ -63,9 +63,9 @@ with codecs.open(
     version_string = version_match.group(1)
 
 setup(
-    name="bitmind_subnet",
+    name="natix_subnet",
     version=version_string,
-    description="bitmind_subnet",
+    description="natix_subnet",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/BitMind-AI/bitmind-subnet",

@@ -8,7 +8,7 @@ import bittensor as bt
 from PIL import Image
 from huggingface_hub import hf_hub_download
 
-from base_miner.DFB.config.constants import CONFIGS_DIR, WEIGHTS_DIR
+from base_miner.DFB.config.constants import CONFIGS_DIR
 
 
 class FeatureDetector(ABC):
@@ -20,7 +20,7 @@ class FeatureDetector(ABC):
 
     Attributes:
         model_name (str): Name of the detector instance.
-        config_name (Optional[str]): Name of the YAML file in deepfake_detectors/config/
+        config_name (Optional[str]): Name of the YAML file in detectors/config/
             to load instance attributes from.
         device (str): The type of device ('cpu' or 'cuda').
         hf_repo (str): Hugging Face repository name for model weights.
