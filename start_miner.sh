@@ -4,12 +4,12 @@ set -a
 source miner.env
 set +a
 
-if pm2 list | grep -q "natix_miner"; then
-  echo "Process 'bitmind_miner' is already running. Deleting it..."
-  pm2 delete natix_miner
-fi
+# if pm2 list | grep -q "bitmind_miner"; then
+#   echo "Process 'bitmind_miner' is already running. Deleting it..."
+#   pm2 delete bitmind_miner
+# fi
 
-pm2 start neurons/miner.py --name natix_miner -- \
+python neurons/miner.py \
   --neuron.image_detector ${IMAGE_DETECTOR:-None} \
   --neuron.image_detector_config ${IMAGE_DETECTOR_CONFIG:-None} \
   --neuron.image_detector_device ${IMAGE_DETECTOR_DEVICE:-None} \

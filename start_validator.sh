@@ -38,10 +38,10 @@ if ! huggingface-cli login --token $HUGGING_FACE_TOKEN; then
 fi
 
 # STOP VALIDATOR PROCESS
-if pm2 list | grep -q "$VALIDATOR_PROCESS_NAME"; then
-  echo "Process '$VALIDATOR_PROCESS_NAME' is already running. Deleting it..."
-  pm2 delete $VALIDATOR_PROCESS_NAME
-fi
+# if pm2 list | grep -q "$VALIDATOR_PROCESS_NAME"; then
+#   echo "Process '$VALIDATOR_PROCESS_NAME' is already running. Deleting it..."
+#   pm2 delete $VALIDATOR_PROCESS_NAME
+# fi
 
 STOP REAL DATA CACHE UPDATER PROCESS
 if pm2 list | grep -q "$CACHE_UPDATE_PROCESS_NAME"; then
@@ -62,7 +62,7 @@ fi
 # fi
 
 echo "Starting validator process"
-pm2 start neurons/validator.py --name $VALIDATOR_PROCESS_NAME -- \
+python neurons/validator.py \
   --netuid $NETUID \
   --subtensor.network $SUBTENSOR_NETWORK \
   --subtensor.chain_endpoint $SUBTENSOR_CHAIN_ENDPOINT \

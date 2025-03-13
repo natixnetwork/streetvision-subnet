@@ -39,7 +39,6 @@ COPY . /app
 ENV PYTHONPATH="/app"
 
 # Make startup scripts executable
-RUN chmod +x start_miner.sh start_validator.sh
+RUN chmod +x start_validator.sh
 
-ARG START_SCRIPT
-CMD ["/bin/bash", "-c", "./${START_SCRIPT}"]
+CMD ["/bin/bash", "-c", "/app/start_validator.sh"]
