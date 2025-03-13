@@ -24,28 +24,35 @@ from .model_utils import (
 )
 
 
+
 TARGET_IMAGE_SIZE: tuple[int, int] = (256, 256)
 
 MAINNET_UID = 34
 TESTNET_UID = 168
 
 # Project constants
-MAINNET_WANDB_PROJECT: str = 'bitmind-subnet'
-TESTNET_WANDB_PROJECT: str = 'bitmind'
-WANDB_ENTITY: str = 'bitmindai'
+MAINNET_WANDB_PROJECT: str = 'test'
+TESTNET_WANDB_PROJECT: str = 'test'
+HUGGINGFACE_REPO: str = "alirezaght/natix"
+WANDB_ENTITY: str ="alirezaght-natix-gmbh"
+
 
 # Cache directories
 HUGGINGFACE_CACHE_DIR: Path = Path.home() / '.cache' / 'huggingface'
-SN34_CACHE_DIR: Path = Path.home() / '.cache' / 'sn34'
-SN34_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+NATIX_CACHE_DIR: Path = Path.home() / '.cache' / 'natix'
+NATIX_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-VALIDATOR_INFO_PATH: Path = SN34_CACHE_DIR / 'validator.yaml'
+VALIDATOR_INFO_PATH: Path = NATIX_CACHE_DIR / 'validator.yaml'
 
-REAL_CACHE_DIR: Path = SN34_CACHE_DIR / 'real'
-SYNTH_CACHE_DIR: Path = SN34_CACHE_DIR / 'synthetic'
+CLEAR_CACHE_DIR: Path = NATIX_CACHE_DIR / 'None'
+ROADWORK_CACHE_DIR: Path = NATIX_CACHE_DIR / 'Roadwork'
+SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / 'Synthetic'
 
-REAL_VIDEO_CACHE_DIR: Path = REAL_CACHE_DIR / 'video'
-REAL_IMAGE_CACHE_DIR: Path = REAL_CACHE_DIR / 'image'
+ROADWORK_VIDEO_CACHE_DIR: Path = ROADWORK_CACHE_DIR / 'video'
+ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / 'image'
+CLEAR_VIDEO_CACHE_DIR: Path = CLEAR_CACHE_DIR / 'video'
+CLEAR_IMAGE_CACHE_DIR: Path = CLEAR_CACHE_DIR / 'image'
+
 
 T2V_CACHE_DIR: Path = SYNTH_CACHE_DIR / 't2v' 
 T2I_CACHE_DIR: Path = SYNTH_CACHE_DIR / 't2i'
@@ -61,23 +68,27 @@ MAX_COMPRESSED_GB = 100
 MAX_EXTRACTED_GB = 10
 
 CHALLENGE_TYPE = {
-    0: 'real',
-    1: 'synthetic'
+    0: 'None',
+    1: 'Roadwork'
 }
 
 # Image datasets configuration
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
-    "real": [
-        {"path": "bitmind/bm-real"},
-        {"path": "bitmind/open-image-v7-256"},
-        {"path": "bitmind/celeb-a-hq"},
-        {"path": "bitmind/ffhq-256"},
-        {"path": "bitmind/MS-COCO-unique-256"},
-        {"path": "bitmind/AFHQ"},
-        {"path": "bitmind/lfw"},
-        {"path": "bitmind/caltech-256"},
-        {"path": "bitmind/caltech-101"},
-        {"path": "bitmind/dtd"}
+    "Roadwork": [
+        # {"path": "bitmind/bm-real"},
+        # {"path": "bitmind/open-image-v7-256"},
+        # {"path": "bitmind/celeb-a-hq"},
+        # {"path": "bitmind/ffhq-256"},
+        # {"path": "bitmind/MS-COCO-unique-256"},
+        # {"path": "bitmind/AFHQ"},
+        # {"path": "bitmind/lfw"},
+        # {"path": "bitmind/caltech-256"},
+        # {"path": "bitmind/caltech-101"},
+        # {"path": "bitmind/dtd"},
+        {"path": "natix-network-org/roadwork"},
+    ],
+    "None": [
+        {"path": "natix-network-org/roadwork"},
     ]
 }
 

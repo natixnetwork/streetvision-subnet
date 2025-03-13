@@ -5,12 +5,12 @@ import bittensor as bt
 from base_miner.registry import DETECTOR_REGISTRY
 from base_miner.DFB.config.constants import CONFIGS_DIR, WEIGHTS_DIR
 from base_miner.DFB.detectors import DETECTOR, TALLDetector
-from base_miner.deepfake_detectors import DeepfakeDetector
+from base_miner.detectors import FeatureDetector
 from bitmind.utils.video_utils import pad_frames
 
 
 @DETECTOR_REGISTRY.register_module(module_name="TALL")
-class TALLVideoDetector(DeepfakeDetector):
+class TALLVideoDetector(FeatureDetector):
     def __init__(
         self,
         model_name: str = "TALL",

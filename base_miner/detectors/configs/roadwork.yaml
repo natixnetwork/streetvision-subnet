@@ -1,0 +1,6 @@
+# CAMO Configuration
+
+content_type:
+  roadwork:
+    model: 'ViT'
+    detector_config: 'ViT_roadwork.yaml'  # Default model for 'roadwork'

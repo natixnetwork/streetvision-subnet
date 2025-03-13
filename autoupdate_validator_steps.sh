@@ -6,5 +6,5 @@
 
 echo $CONDA_PREFIX
 ./setup_env.sh
-rm -rf ~/.cache/sn34
+rm -rf ~/.cache/natix
 echo "Autoupdate steps complete :)"
