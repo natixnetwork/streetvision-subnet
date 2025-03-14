@@ -1201,17 +1201,6 @@ files = [
 ]
 
 [[package]]
-name = "dlib"
-version = "19.24.6"
-description = "A toolkit for making real world machine learning and data analysis applications"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "dlib-19.24.6.tar.gz", hash = "sha256:77e3c28ac2c66141514b07cbb74b7c7f80381c019ce5fec99007980bc6490d7d"},
-]
-
-[[package]]
 name = "docker-pycreds"
 version = "0.4.0"
 description = "Python bindings for the docker credentials store API"
@@ -2551,7 +2540,7 @@ files = [
 [package.dependencies]
 numpy = [
     {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
-    {version = ">=1.23.3", markers = "python_version == \"3.11\""},
+    {version = ">=1.23.3", markers = "python_version >= \"3.11\""},
 ]
 
 [package.extras]
@@ -3213,7 +3202,7 @@ files = [
 [package.dependencies]
 numpy = [
     {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
-    {version = ">=1.23.5", markers = "python_version >= \"3.11\""},
+    {version = ">=1.23.5", markers = "python_version == \"3.11\""},
 ]
 
 [[package]]
@@ -6388,4 +6377,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "afd35bad8b19349db1368d85226f6ae14fda8eee8a1cb00deb19799c0b8dec38"
+content-hash = "d9a3bc3587067b1ae75af24ec05dc7491aeceb77b3bbd4c5afd9cedb387a5edd"
