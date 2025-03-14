@@ -6,18 +6,12 @@ import asyncio
 import argparse
 
 from natix.validator.cache.image_cache import ImageCache
-from natix.validator.cache.video_cache import VideoCache
 from natix.validator.scripts.util import load_validator_info, init_wandb_run
 from natix.validator.config import (
     IMAGE_DATASETS, 
-    VIDEO_DATASETS,
     IMAGE_CACHE_UPDATE_INTERVAL,
-    VIDEO_CACHE_UPDATE_INTERVAL,
     IMAGE_PARQUET_CACHE_UPDATE_INTERVAL,
-    VIDEO_ZIP_CACHE_UPDATE_INTERVAL,
-    ROADWORK_VIDEO_CACHE_DIR,
     ROADWORK_IMAGE_CACHE_DIR,
-    CLEAR_VIDEO_CACHE_DIR,
     CLEAR_IMAGE_CACHE_DIR,
     MAX_COMPRESSED_GB,
     MAX_EXTRACTED_GB
@@ -54,22 +48,6 @@ async def main(args):
         )
         clear_cache.start_updater()
         caches.append(clear_cache)
-
-    
-    if args.mode in ['all', 'video']:
-        bt.logging.info("Starting video cache updater")
-        video_cache = VideoCache(
-            cache_dir=args.video_cache_dir,
-            datasets=VIDEO_DATASETS['real'],
-            video_update_interval=args.video_interval,
-            zip_update_interval=args.video_zip_interval,
-            num_zips_per_dataset=2,
-            num_videos_per_zip=50,
-            max_extracted_size_gb=MAX_EXTRACTED_GB,
-            max_compressed_size_gb=MAX_COMPRESSED_GB
-        )
-        video_cache.start_updater()
-        caches.append(video_cache)
     
     if not caches:
         raise ValueError(f"Invalid mode: {args.mode}")
@@ -81,24 +59,16 @@ async def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', type=str, default='all', choices=['all', 'video', 'image'],
+    parser.add_argument('--mode', type=str, default='all', choices=['all', 'image'],
                       help='Which cache updater(s) to run')
-    parser.add_argument('--roadwork-video-cache-dir', type=str, default=ROADWORK_VIDEO_CACHE_DIR,
-                      help='Directory to cache video data')
     parser.add_argument('--roadwork-image-cache-dir', type=str, default=ROADWORK_IMAGE_CACHE_DIR,
                       help='Directory to cache image data')
-    parser.add_argument('--clear-video-cache-dir', type=str, default=CLEAR_VIDEO_CACHE_DIR,
-                      help='Directory to cache video data')
     parser.add_argument('--clear-image-cache-dir', type=str, default=CLEAR_IMAGE_CACHE_DIR,
                       help='Directory to cache image data')
     parser.add_argument('--image-interval', type=int, default=IMAGE_CACHE_UPDATE_INTERVAL,
                       help='Update interval for images in hours')
     parser.add_argument('--image-parquet-interval', type=int, default=IMAGE_PARQUET_CACHE_UPDATE_INTERVAL,
                       help='Update interval for image parquet files in hours')
-    parser.add_argument('--video-interval', type=int, default=VIDEO_CACHE_UPDATE_INTERVAL,
-                      help='Update interval for videos in hours')
-    parser.add_argument('--video-zip-interval', type=int, default=VIDEO_ZIP_CACHE_UPDATE_INTERVAL,
-                      help='Update interval for video zip files in hours')
     args = parser.parse_args()
 
     bt.logging.set_info()

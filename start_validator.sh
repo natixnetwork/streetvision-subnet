@@ -56,7 +56,7 @@ fi
 # fi
 
 # echo "Verifying access to synthetic image generation models. This may take a few minutes."
-# if ! python3 bitmind/validator/verify_models.py; then
+# if ! python3 natix/validator/verify_models.py; then
 #   echo "Failed to verify diffusion models. Please check the configurations or model access permissions."
 #   exit 1
 # fi
@@ -74,8 +74,8 @@ pm2 start neurons/validator.py --name $VALIDATOR_PROCESS_NAME -- \
   --logging.debug
 
 echo "Starting real data cache updater process"
-pm2 start bitmind/validator/scripts/run_cache_updater.py --name $CACHE_UPDATE_PROCESS_NAME
+pm2 start natix/validator/scripts/run_cache_updater.py --name $CACHE_UPDATE_PROCESS_NAME
 
 # echo "Starting synthetic data generation process"
-# pm2 start bitmind/validator/scripts/run_data_generator.py --name $DATA_GEN_PROCESS_NAME -- \
+# pm2 start natix/validator/scripts/run_data_generator.py --name $DATA_GEN_PROCESS_NAME -- \
   # --device $DEVICE
