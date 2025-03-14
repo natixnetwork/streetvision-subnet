@@ -1,7 +1,5 @@
 from PIL import Image
-from _dlib_pybind11 import rectangles
 import numpy as np
-import dlib
 
 from base_miner.gating_mechanisms import Gate
 from base_miner.registry import GATE_REGISTRY
