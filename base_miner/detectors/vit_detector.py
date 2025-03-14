@@ -15,7 +15,7 @@ import torch
 import yaml
 import gc
 
-from base_miner.detectors.config.constants import CONFIGS_DIR, WEIGHTS_DIR
+from base_miner.detectors.configs.constants import CONFIGS_DIR, WEIGHTS_DIR
 from base_miner.detectors import FeatureDetector
 from base_miner.registry import DETECTOR_REGISTRY
 
