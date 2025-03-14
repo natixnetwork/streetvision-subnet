@@ -69,7 +69,7 @@ def get_rewards(
         try:
             miner_hotkey = axon.hotkey
 
-            tracked_hotkeys = tracker.miner_hotkeys
+            tracked_hotkeys = tracker[modality].miner_hotkeys
             if uid in tracked_hotkeys and tracked_hotkeys[uid] != miner_hotkey:
                 bt.logging.info(
                     f"Miner hotkey changed for UID {uid}. Resetting performance metrics."
