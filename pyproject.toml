@@ -1,5 +1,5 @@
 [project]
-name = "natix-subnet"
+name = "natix"
 version = "0.1.0"
 description = ""
 authors = [
