@@ -386,8 +386,6 @@ class BaseValidatorNeuron(BaseNeuron):
     def save_miner_history(self):
         bt.logging.info(f"Saving miner performance history to {self.image_history_cache_path}")
         joblib.dump(self.performance_trackers['image'], self.image_history_cache_path)
-        bt.logging.info(f"Saving miner performance history to {self.video_history_cache_path}")
-        joblib.dump(self.performance_trackers['video'], self.video_history_cache_path)
 
     def load_miner_history(self):
         def load(path):
@@ -415,8 +413,6 @@ class BaseValidatorNeuron(BaseNeuron):
             v1_history_cache_path = os.path.join(
                 self.config.neuron.full_path, "miner_performance_tracker.pkl")
             self.performance_trackers['image'] = load(v1_history_cache_path)
-
-        self.performance_trackers['video'] = load(self.video_history_cache_path)
 
     def save_state(self):
         """Saves the state of the validator to a file."""
