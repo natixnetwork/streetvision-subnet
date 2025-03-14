@@ -8,7 +8,7 @@ import bittensor as bt
 from PIL import Image
 from huggingface_hub import hf_hub_download
 
-from base_miner.DFB.config.constants import CONFIGS_DIR
+from base_miner.detectors.config.constants import CONFIGS_DIR
 
 
 class FeatureDetector(ABC):
