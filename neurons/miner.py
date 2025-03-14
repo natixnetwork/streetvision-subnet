@@ -32,7 +32,7 @@ from base_miner.registry import DETECTOR_REGISTRY
 from base_miner.detectors import RoadworkDetector, ViTImageDetector
 
 from natix.base.miner import BaseMinerNeuron
-from natix.protocol import ImageSynapse, VideoSynapse, decode_video_synapse
+from natix.protocol import ImageSynapse
 from natix.utils.config import get_device
 
 
@@ -45,17 +45,11 @@ class Miner(BaseMinerNeuron):
             forward_fn=self.forward_image,
             blacklist_fn=self.blacklist_image,
             priority_fn=self.priority_image,
-        ).attach(
-            forward_fn=self.forward_video,
-            blacklist_fn=self.blacklist_video,
-            priority_fn=self.priority_video,
         )
         bt.logging.info(f"Axon created: {self.axon}")
 
         bt.logging.info("Loading image detection model if configured")
         self.load_image_detector()
-        bt.logging.info("Loading video detection model if configured")
-        self.load_video_detector()
         
     def load_image_detector(self):
         if (str(self.config.neuron.image_detector).lower() == 'none' or
@@ -73,23 +67,6 @@ class Miner(BaseMinerNeuron):
             device=self.config.neuron.image_detector_device
         )
         bt.logging.info(f"Loaded image detection model: {self.config.neuron.image_detector}")
-
-    def load_video_detector(self):
-        if (str(self.config.neuron.video_detector).lower() == 'none' or
-            str(self.config.neuron.video_detector_config).lower() == 'none'):
-            bt.logging.warning("No video detector configuration provided, skipping.")
-            self.video_detector = None
-            return
-
-        if self.config.neuron.video_detector_device == 'auto':
-            bt.logging.warning("Automatic device configuration enabled for video detector")
-            self.config.neuron.video_detector_device = get_device()
-
-        self.video_detector = DETECTOR_REGISTRY[self.config.neuron.video_detector](
-            config_name=self.config.neuron.video_detector_config,
-            device=self.config.neuron.video_detector_device
-        )
-        bt.logging.info(f"Loaded video detection model: {self.config.neuron.video_detector}")
 
     async def forward_image(
         self, synapse: ImageSynapse
@@ -123,47 +100,10 @@ class Miner(BaseMinerNeuron):
                 bt.logging.info(f"LABEL (testnet only) = {label}")
         return synapse
 
-    async def forward_video(
-        self, synapse: VideoSynapse
-    ) -> VideoSynapse:
-        """
-        Perform inference on video 
-        Args:
-            synapse (bt.Synapse): The synapse object containing the list of b64 encoded images in the
-            'images' field.
-
-        Returns:
-            bt.Synapse: The synapse object with the 'predictions' field populated with a list of probabilities
-
-        """
-        if self.video_detector is None:
-            bt.logging.info("Video detection model not configured; skipping video challenge")
-        else:
-            bt.logging.info("Received video challenge!")
-            try:
-                frames_tensor = decode_video_synapse(synapse)
-                frames_tensor = frames_tensor.to(self.config.neuron.video_detector_device)
-                synapse.prediction = self.video_detector(frames_tensor)
-            except Exception as e:
-                bt.logging.error("Error performing inference")
-                bt.logging.error(e)
-
-            bt.logging.info(f"PREDICTION = {synapse.prediction}")
-            label = synapse.testnet_label
-            if synapse.testnet_label != -1:
-                bt.logging.info(f"LABEL (testnet only) = {label}")
-        return synapse
-
     async def blacklist_image(self, synapse: ImageSynapse) -> typing.Tuple[bool, str]:
         return await self.blacklist(synapse)
 
-    async def blacklist_video(self, synapse: VideoSynapse) -> typing.Tuple[bool, str]:
-        return await self.blacklist(synapse)
-
     async def priority_image(self, synapse: ImageSynapse) -> float:
-        return await self.priority(synapse)
-
-    async def priority_video(self, synapse: VideoSynapse) -> float:
         return await self.priority(synapse)
 
     def save_state(self):
