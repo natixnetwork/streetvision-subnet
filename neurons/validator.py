@@ -26,10 +26,10 @@ import wandb
 import time
 
 from neurons.validator_proxy import ValidatorProxy
-from bitmind.validator.forward import forward
-from bitmind.validator.cache import VideoCache, ImageCache
-from bitmind.base.validator import BaseValidatorNeuron
-from bitmind.validator.config import (
+from natix.validator.forward import forward
+from natix.validator.cache import VideoCache, ImageCache
+from natix.base.validator import BaseValidatorNeuron
+from natix.validator.config import (
     MAINNET_UID,
     MAINNET_WANDB_PROJECT,
     TESTNET_WANDB_PROJECT,
@@ -44,7 +44,7 @@ from bitmind.validator.config import (
     VALIDATOR_INFO_PATH
 )
 
-import bitmind
+import natix
 
 
 class Validator(BaseValidatorNeuron):
@@ -112,11 +112,11 @@ class Validator(BaseValidatorNeuron):
         if self.config.wandb.off:
             return
 
-        run_name = f'validator-{self.uid}-{bitmind.__version__}'
+        run_name = f'validator-{self.uid}-{natix.__version__}'
         self.config.run_name = run_name
         self.config.uid = self.uid
         self.config.hotkey = self.wallet.hotkey.ss58_address
-        self.config.version = bitmind.__version__
+        self.config.version = natix.__version__
         self.config.type = self.neuron_type
 
         wandb_project = TESTNET_WANDB_PROJECT

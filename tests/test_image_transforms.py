@@ -1,6 +1,6 @@
 import pytest
 
-from bitmind.utils.mock import create_random_image
+from natix.utils.mock import create_random_image
 from tests.fixtures.image_transforms import (
     TRANSFORMS,
     TRANSFORM_PIPELINES

@@ -1,8 +1,8 @@
 from functools import partial
 import torchvision.transforms as transforms
 
-from bitmind.validator.config import TARGET_IMAGE_SIZE
-from bitmind.utils.image_transforms import (
+from natix.validator.config import TARGET_IMAGE_SIZE
+from natix.utils.image_transforms import (
     center_crop,
     RandomResizedCropWithParams,
     RandomHorizontalFlipWithParams,

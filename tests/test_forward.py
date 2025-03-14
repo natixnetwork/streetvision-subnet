@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 import pytest
 
-from bitmind.utils.mock import MockValidator
-from bitmind.validator.forward import forward
+from natix.utils.mock import MockValidator
+from natix.validator.forward import forward
 from tests.fixtures import NETUID
 
 

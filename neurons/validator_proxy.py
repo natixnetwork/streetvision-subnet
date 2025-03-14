@@ -20,12 +20,12 @@ import threading
 import socket
 import base64
 
-from bitmind.validator.config import TARGET_IMAGE_SIZE
-from bitmind.utils.image_transforms import get_base_transforms
-from bitmind.protocol import ImageSynapse, prepare_synapse
-from bitmind.utils.uids import get_random_uids
-from bitmind.validator.proxy import ProxyCounter
-import bitmind
+from natix.validator.config import TARGET_IMAGE_SIZE
+from natix.utils.image_transforms import get_base_transforms
+from natix.protocol import ImageSynapse, prepare_synapse
+from natix.utils.uids import get_random_uids
+from natix.validator.proxy import ProxyCounter
+import natix
 
 base_transforms = get_base_transforms(TARGET_IMAGE_SIZE)
 

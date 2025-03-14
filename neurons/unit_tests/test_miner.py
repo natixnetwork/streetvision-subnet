@@ -14,8 +14,8 @@ parent_directory = os.path.dirname(directory)
 sys.path.append(parent_directory)
 
 from miner import Miner
-from bitmind.base.miner import BaseMinerNeuron
-from bitmind.protocol import ImageSynapse
+from natix.base.miner import BaseMinerNeuron
+from natix.protocol import ImageSynapse
 
 class TestMiner(unittest.TestCase):
 

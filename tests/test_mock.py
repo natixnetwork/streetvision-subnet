@@ -1,8 +1,8 @@
 import pytest
 import asyncio
 import bittensor as bt
-from bitmind.protocol import prepare_image_synapse, ImageSynapse
-from bitmind.utils.mock import (
+from natix.protocol import prepare_image_synapse, ImageSynapse
+from natix.utils.mock import (
     MockDendrite,
     MockMetagraph,
     MockSubtensor,

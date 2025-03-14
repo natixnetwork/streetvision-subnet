@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from bitmind.synthetic_data_generation.synthetic_data_generator import SyntheticDataGenerator
-from bitmind.validator.config import T2I_MODEL_NAMES
+from natix.synthetic_data_generation.synthetic_data_generator import SyntheticDataGenerator
+from natix.validator.config import T2I_MODEL_NAMES
 from PIL import Image
 
 

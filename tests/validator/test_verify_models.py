@@ -1,8 +1,8 @@
 import pytest
 import os
 from unittest.mock import patch, MagicMock, call
-from bitmind.validator.verify_models import is_model_cached, main
-from bitmind.validator.config import T2I_MODEL_NAMES, IMAGE_ANNOTATION_MODEL, TEXT_MODERATION_MODEL
+from natix.validator.verify_models import is_model_cached, main
+from natix.validator.config import T2I_MODEL_NAMES, IMAGE_ANNOTATION_MODEL, TEXT_MODERATION_MODEL
 
 @pytest.fixture
 def mock_expanduser():
