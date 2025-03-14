@@ -75,16 +75,6 @@ CHALLENGE_TYPE = {
 # Image datasets configuration
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
     "Roadwork": [
-        # {"path": "bitmind/bm-real"},
-        # {"path": "bitmind/open-image-v7-256"},
-        # {"path": "bitmind/celeb-a-hq"},
-        # {"path": "bitmind/ffhq-256"},
-        # {"path": "bitmind/MS-COCO-unique-256"},
-        # {"path": "bitmind/AFHQ"},
-        # {"path": "bitmind/lfw"},
-        # {"path": "bitmind/caltech-256"},
-        # {"path": "bitmind/caltech-101"},
-        # {"path": "bitmind/dtd"},
         {"path": "natix-network-org/roadwork"},
     ],
     "None": [

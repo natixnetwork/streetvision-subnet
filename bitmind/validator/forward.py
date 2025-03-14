@@ -33,10 +33,10 @@ from bitmind.validator.config import CHALLENGE_TYPE, MAINNET_UID, TARGET_IMAGE_S
 from bitmind.validator.reward import get_rewards
 
 
-def determine_challenge_type(media_cache, roadwork_prob=0.5):
+def determine_challenge_type(media_cache):
     # probability of video is 0 for now
     modality = 'video' if np.random.rand() > 1 else 'image'
-    label = 0 if np.random.rand() < roadwork_prob else 1
+    label = np.random.choice(list(CHALLENGE_TYPE.keys()))
     cache = media_cache[CHALLENGE_TYPE[label]][modality]
     task = None
     # if label == 1:
