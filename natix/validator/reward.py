@@ -50,7 +50,6 @@ def get_rewards(
         responses: List of responses from the miners
         uids: List of miner UIDs
         axons: List of miner axons
-        challenge_modality: Type of challenge ('video' or 'image')
         performance_trackers: Dict mapping modality to performance tracker
 
     Returns:
@@ -96,10 +95,7 @@ def get_rewards(
             bt.logging.exception(e)
             miner_rewards.append(0.0)
 
-        total_reward = (
-            0.4 * miner_modality_rewards['video'] +
-            0.6 * miner_modality_rewards['image']
-        )
+        total_reward = (miner_modality_rewards['image'])
         miner_rewards.append(total_reward)
         miner_metrics.append(miner_modality_metrics)
 
