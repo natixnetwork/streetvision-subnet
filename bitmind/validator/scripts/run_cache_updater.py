@@ -59,7 +59,7 @@ async def main(args):
     if args.mode in ['all', 'video']:
         bt.logging.info("Starting video cache updater")
         video_cache = VideoCache(
-            cache_dir=args.video_cache_dir,
+            cache_dir=args.roadwork_video_cache_dir,
             datasets=VIDEO_DATASETS['real'],
             video_update_interval=args.video_interval,
             zip_update_interval=args.video_zip_interval,
