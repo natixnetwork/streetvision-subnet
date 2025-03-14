@@ -194,7 +194,7 @@ I2I_MODELS: Dict[str, Dict[str, Any]] = {
 I2I_MODEL_NAMES: List[str] = list(I2I_MODELS.keys())
 
 # Combined model configurations
-MODELS: Dict[str, Dict[str, Any]] = {**T2I_MODELS, **I2I_MODELS, **T2V_MODELS}
+MODELS: Dict[str, Dict[str, Any]] = {**T2I_MODELS, **I2I_MODELS}
 MODEL_NAMES: List[str] = list(MODELS.keys())
 
 
