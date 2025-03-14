@@ -27,7 +27,7 @@ import time
 
 from neurons.validator_proxy import ValidatorProxy
 from natix.validator.forward import forward
-from natix.validator.cache import VideoCache, ImageCache
+from natix.validator.cache import ImageCache
 from natix.base.validator import BaseValidatorNeuron
 from natix.validator.config import (
     MAINNET_UID,
