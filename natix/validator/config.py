@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Union, Optional, Any
+from typing import Dict, List, Optional, Any
 
 import numpy as np
 import torch
@@ -7,21 +7,11 @@ from diffusers import (
     StableDiffusionPipeline,    
     StableDiffusionXLPipeline,
     FluxPipeline,
-    CogVideoXPipeline,
-    MochiPipeline,
-    HunyuanVideoPipeline,
-    AnimateDiffPipeline,
-    EulerDiscreteScheduler,
     AutoPipelineForInpainting,
     IFPipeline,
     IFSuperResolutionPipeline
 )
 
-from .model_utils import (
-    load_annimatediff_motion_adapter,
-    load_hunyuanvideo_transformer,
-    JanusWrapper
-)
 
 
 
@@ -181,23 +171,6 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
         ],
         "clear_memory_on_stage_end": True
     },
-    "deepseek-ai/Janus-Pro-7B": {
-        "pipeline_cls": JanusWrapper,
-        "from_pretrained_args": {
-            "torch_dtype": torch.bfloat16,
-            "use_safetensors": True,
-        },
-        "generate_args": {
-            "temperature": 1.0,
-            "parallel_size": 4,
-            "cfg_weight": 5.0,
-            "image_token_num_per_image": 576,
-            "img_size": 384,
-            "patch_size": 16
-        },
-        "use_autocast": False,
-        "enable_model_cpu_offload": False
-    },
 }
 T2I_MODEL_NAMES: List[str] = list(T2I_MODELS.keys())
 
@@ -220,115 +193,18 @@ I2I_MODELS: Dict[str, Dict[str, Any]] = {
 }
 I2I_MODEL_NAMES: List[str] = list(I2I_MODELS.keys())
 
-# Text-to-video model configurations
-T2V_MODELS: Dict[str, Dict[str, Any]] = {
-    "tencent/HunyuanVideo": {
-        "pipeline_cls": HunyuanVideoPipeline,
-        "from_pretrained_args": {
-            "model_id": "tencent/HunyuanVideo",
-            "transformer": (  # custom functions supplied as tuple of (fn, args)
-                load_hunyuanvideo_transformer,
-                { 
-                    "model_id": "tencent/HunyuanVideo",
-                    "subfolder": "transformer",
-                    "torch_dtype": torch.bfloat16,
-                    "revision": 'refs/pr/18'
-                }
-            ),
-            "revision": 'refs/pr/18',
-            "torch_dtype": torch.bfloat16
-        },
-        "generate_args": {
-            "num_frames": {"min": 61, "max": 129},
-            "resolution": {"options": [
-                [720, 1280], [1280, 720], [1104, 832], [832,1104], [960,960],
-                [544, 960], [960, 544],	[624, 832], [832, 624],	[720, 720]
-            ]},
-            "num_inference_steps": {"min": 30, "max": 50},
-        },
-        "save_args": {"fps": 30},
-        "use_autocast": False,
-        "vae_enable_tiling": True
-    },
-    "genmo/mochi-1-preview": {
-        "pipeline_cls": MochiPipeline,
-        "from_pretrained_args": {
-            "variant": "bf16", 
-            "torch_dtype": torch.bfloat16
-        },
-        "generate_args": {
-            "num_frames": 84,
-            "num_inference_steps": {"min": 30, "max": 65},
-            "resolution": [480, 848]
-        },
-        "save_args": {"fps": 30},
-        "vae_enable_tiling": True
-    },
-    'THUDM/CogVideoX-5b': {
-        "pipeline_cls": CogVideoXPipeline,
-        "from_pretrained_args": {
-            "use_safetensors": True,
-            "torch_dtype": torch.bfloat16
-        },
-        "generate_args": {
-            "guidance_scale": 2,
-            "num_videos_per_prompt": 1,
-            "num_inference_steps": {"min": 50, "max": 125},
-            "num_frames": 48
-        },
-        "save_args": {"fps": 8},
-        "enable_model_cpu_offload": True,
-        #"enable_sequential_cpu_offload": True,
-        "vae_enable_slicing": True,
-        "vae_enable_tiling": True
-    },
-    'ByteDance/AnimateDiff-Lightning': {
-        "pipeline_cls": AnimateDiffPipeline,
-        "from_pretrained_args": {
-            "model_id": "emilianJR/epiCRealism",
-            "torch_dtype": torch.bfloat16,
-            "motion_adapter": (
-                load_annimatediff_motion_adapter,
-                {"step": 4}
-            )
-        },
-        "generate_args": {
-            "guidance_scale": 2,
-            "num_inference_steps": {"min": 50, "max": 125},
-            "resolution": {"options": [
-                [512, 512], [512, 768], [512, 1024],
-                [768, 512], [768, 768], [768, 1024],
-                [1024, 512], [1024, 768], [1024, 1024]
-            ]}
-        },
-        "save_args": {"fps": 15},
-        "scheduler": {
-            "cls": EulerDiscreteScheduler,
-            "from_config_args": {
-                "timestep_spacing": "trailing",
-                "beta_schedule": "linear"
-            }
-        }
-    }
-}
-T2V_MODEL_NAMES: List[str] = list(T2V_MODELS.keys())
-
 # Combined model configurations
 MODELS: Dict[str, Dict[str, Any]] = {**T2I_MODELS, **I2I_MODELS, **T2V_MODELS}
 MODEL_NAMES: List[str] = list(MODELS.keys())
 
 
 def get_modality(model_name):
-     if model_name in T2V_MODEL_NAMES:
-        return 'video'
-     elif model_name in T2I_MODEL_NAMES + I2I_MODEL_NAMES:
+     if model_name in T2I_MODEL_NAMES + I2I_MODEL_NAMES:
         return 'image'   
 
 
 def get_task(model_name):
-    if model_name in T2V_MODEL_NAMES:
-        return 't2v'
-    elif model_name in T2I_MODEL_NAMES:
+    if model_name in T2I_MODEL_NAMES:
         return 't2i'
     elif model_name in I2I_MODEL_NAMES:
         return 'i2i'
@@ -354,8 +230,6 @@ def select_random_model(task: Optional[str] = None) -> str:
 
     if task == 't2i':
         return np.random.choice(T2I_MODEL_NAMES)
-    elif task == 't2v':
-        return np.random.choice(T2V_MODEL_NAMES)
     elif task == 'i2i':
         return np.random.choice(I2I_MODEL_NAMES)
     else:
