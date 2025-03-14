@@ -74,14 +74,14 @@ def get_rewards(
                 bt.logging.info(
                     f"Miner hotkey changed for UID {uid}. Resetting performance metrics."
                 )
-                tracker.reset_miner_history(uid, miner_hotkey)
+                tracker[modality].reset_miner_history(uid, miner_hotkey)
 
             performance_trackers[modality].update(
                 uid, pred_prob, label, miner_hotkey
             )
 
-            metrics_100 = tracker.get_metrics(uid, window=100)
-            metrics_10 = tracker.get_metrics(uid, window=10)
+            metrics_100 = tracker[modality].get_metrics(uid, window=100)
+            metrics_10 = tracker[modality].get_metrics(uid, window=10)
             reward = 0.5 * metrics_100['mcc'] + 0.5 * metrics_10['accuracy']
             reward *= compute_penalty(pred_prob)
             miner_modality_rewards[modality] = reward
