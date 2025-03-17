@@ -1,10 +1,10 @@
-from pathlib import Path
-from typing import Union, Callable
-from zipfile import ZipFile, BadZipFile
 from enum import Enum, auto
-import asyncio
-import pyarrow.parquet as pq
+from pathlib import Path
+from typing import Callable, Union
+from zipfile import BadZipFile, ZipFile
+
 import bittensor as bt
+import pyarrow.parquet as pq
 
 
 def seconds_to_str(seconds):
@@ -57,21 +57,20 @@ def is_zip_complete(zip_path: Union[str, Path], testzip=False) -> bool:
     except (BadZipFile, Exception) as e:
         bt.logging.error(f"Zip file {zip_path} is invalid: {e}")
         return False
-        
+
 
 def is_parquet_complete(path: Path) -> bool:
-    """    
+    """
     Args:
         path: Path to the parquet file
-        
+
     Returns:
         bool: True if file is valid, False otherwise
     """
     try:
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             pq.read_metadata(f)
         return True
     except Exception as e:
         bt.logging.error(f"Parquet file {path} is incomplete or corrupted: {e}")
         return False
-

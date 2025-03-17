@@ -24,7 +24,7 @@ The Natix Subnet is designed to be the backbone of the first decentralized smart
         🤗 <a href="https://huggingface.co/natix-network-org">Natix Huggingface</a><br>
         📊 <a href="https://wandb.ai/bitmindai/bitmind-subnet">TODO Mainnet XX W&B</a> | <a href="https://wandb.ai/bitmindai/bitmind">Testnet 323 W&B</a><br>
         📖 <a href="docs/Glossary.md">Project Structure and Terminology</a><br>
-        <a href="https://docs.bittensor.com/learn/bittensor-building-blocks">🧠 Bittensor Introduction</a><br> 
+        <a href="https://docs.bittensor.com/learn/bittensor-building-blocks">🧠 Bittensor Introduction</a><br>
       </td>
     </tr>
   </tbody>
@@ -32,19 +32,19 @@ The Natix Subnet is designed to be the backbone of the first decentralized smart
 
 
 ## Decentralized Detection of Driving Qualia
-Who hasn't been late to work for reasons outside of your control? Roadwork, lane closures, accidents, weather, and other unforeseen circumstances can cause any number of annoyances. Centralized map providers cannot be everywhere at once, and they 
+Who hasn't been late to work for reasons outside of your control? Roadwork, lane closures, accidents, weather, and other unforeseen circumstances can cause any number of annoyances. Centralized map providers cannot be everywhere at once, and they
 
 
 ## Core Components
 
-> This documentation assumes basic familiarity with Bittensor concepts. For an introduction, please check out the docs: https://docs.bittensor.com/learn/bittensor-building-blocks. 
+> This documentation assumes basic familiarity with Bittensor concepts. For an introduction, please check out the docs: https://docs.bittensor.com/learn/bittensor-building-blocks.
 
-**Miners** 
-- Miners are tasked with running binary classifiers that discern between images with and without roadwork, and are rewarded based on their accuracy. 
+**Miners**
+- Miners are tasked with running binary classifiers that discern between images with and without roadwork, and are rewarded based on their accuracy.
 - Miners predict a float value in [0., 1.], with values greater than 0.5 indicating the image contains roadwork.
 
 
-**Validators** 
+**Validators**
 - Validators challenge miners with a balanced mix of real and synthetic media drawn from a diverse pool of sources.
 - We continually add new datasets and generative models to our validators in order to maximize coverage of the types of diverse data. Models and datasets are defined in  `natix/validator/config.py`.
 

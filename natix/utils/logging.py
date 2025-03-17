@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 from logging.handlers import RotatingFileHandler
 
 EVENTS_LEVEL_NUM = 38
@@ -33,4 +33,3 @@ def setup_events_logger(full_path, events_retention_size):
     logger.addHandler(file_handler)
 
     return logger
-

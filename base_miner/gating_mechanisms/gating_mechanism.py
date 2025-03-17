@@ -1,4 +1,5 @@
 from PIL import Image
+
 from base_miner.registry import GATE_REGISTRY
 
 
@@ -11,11 +12,9 @@ class GatingMechanism:
     trained to handle different content types in a mixture-of-experts
     framework such as Content-Aware Model Orchestration (CAMO).
     """
+
     def __init__(self, gate_names: list):
-        self.gates = {
-            gate: GATE_REGISTRY[gate.upper()]()
-            for gate in gate_names
-        }
+        self.gates = {gate: GATE_REGISTRY[gate.upper()]() for gate in gate_names}
 
     def __call__(self, image: Image):
         gate_results = {}

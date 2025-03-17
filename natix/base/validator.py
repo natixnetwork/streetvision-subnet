@@ -17,26 +17,24 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from traceback import print_exception
-from typing import List, Union
-import bittensor as bt
-import numpy as np
-import threading
 import argparse
 import asyncio
-import joblib
-import time
 import copy
 import os
+import threading
+import time
+from traceback import print_exception
+from typing import List, Union
 
-from natix.validator.miner_performance_tracker import MinerPerformanceTracker
+import bittensor as bt
+import joblib
+import numpy as np
+
+from natix.base.neuron import BaseNeuron
+from natix.base.utils.weight_utils import convert_weights_and_uids_for_emit, process_weights_for_netuid
 from natix.utils.config import add_validator_args
 from natix.utils.mock import MockDendrite
-from natix.base.neuron import BaseNeuron
-from natix.base.utils.weight_utils import (
-    process_weights_for_netuid,
-    convert_weights_and_uids_for_emit,
-)
+from natix.validator.miner_performance_tracker import MinerPerformanceTracker
 
 
 class BaseValidatorNeuron(BaseNeuron):
@@ -55,11 +53,10 @@ class BaseValidatorNeuron(BaseNeuron):
         super().__init__(config=config)
 
         self.performance_trackers = {
-            'image': None,
+            "image": None,
         }
-            
-        self.image_history_cache_path = os.path.join(
-            self.config.neuron.full_path, "image_miner_performance_tracker.pkl")
+
+        self.image_history_cache_path = os.path.join(self.config.neuron.full_path, "image_miner_performance_tracker.pkl")
         self.load_miner_history()
 
         # Save a copy of the hotkeys to local memory.
@@ -107,7 +104,11 @@ class BaseValidatorNeuron(BaseNeuron):
                     axon=self.axon,
                 )
                 bt.logging.info(
-                    f"Running validator {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
+                    (
+                        f"Running validator {self.axon} ",
+                        f"on network: {self.config.subtensor.chain_endpoint} ",
+                        f"with netuid: {self.config.netuid}",
+                    )
                 )
             except Exception as e:
                 bt.logging.error(f"Failed to serve Axon with exception: {e}")
@@ -118,21 +119,21 @@ class BaseValidatorNeuron(BaseNeuron):
             pass
 
     async def concurrent_forward(self):
-        coroutines = [
-            self.forward() for _ in range(self.config.neuron.num_concurrent_forwards)
-        ]
+        coroutines = [self.forward() for _ in range(self.config.neuron.num_concurrent_forwards)]
         await asyncio.gather(*coroutines)
 
     def run(self):
         """
-        Initiates and manages the main loop for the miner on the Bittensor network. The main loop handles graceful shutdown on keyboard interrupts and logs unforeseen errors.
+        Initiates and manages the main loop for the miner on the Bittensor network.
+        The main loop handles graceful shutdown on keyboard interrupts and logs unforeseen errors.
 
         This function performs the following primary tasks:
         1. Check for registration on the Bittensor network.
-        2. Continuously forwards queries to the miners on the network, rewarding their responses and updating the scores accordingly.
+        2. Continuously forwards queries to the miners on the network, rewarding their responses and updating the scores.
         3. Periodically resynchronizes with the chain; updating the metagraph with the latest network state and setting weights.
 
-        The essence of the validator's operations is in the forward function, which is called every step. The forward function is responsible for querying the network and scoring the responses.
+        The essence of the validator's operations is in the forward function, which is called every step.
+        The forward function is responsible for querying the network and scoring the responses.
 
         Note:
             - The function leverages the global configurations set during the initialization of the miner.
@@ -156,9 +157,7 @@ class BaseValidatorNeuron(BaseNeuron):
                 if self.config.proxy.port:
                     try:
                         self.validator_proxy.get_credentials()
-                        bt.logging.info(
-                            "Validator proxy ping to proxy-client successfully"
-                        )
+                        bt.logging.info("Validator proxy ping to proxy-client successfully")
                     except Exception as e:
                         bt.logging.warning(e)
                         bt.logging.warning("Warning, proxy can't ping to proxy-client.")
@@ -236,13 +235,15 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def set_weights(self):
         """
-        Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners. The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
+        Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners.
+        The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
         """
 
         # Check if self.scores contains any NaN values and log a warning if it does.
         if np.isnan(self.scores).any():
             bt.logging.warning(
-                f"Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
+                "Scores contain NaN values. "
+                "This may be due to a lack of responses from miners, or a bug in your reward functions."
             )
 
         # Calculate the average reward for each uid across non-zero values.
@@ -277,9 +278,7 @@ class BaseValidatorNeuron(BaseNeuron):
         (
             uint_uids,
             uint_weights,
-        ) = convert_weights_and_uids_for_emit(
-            uids=processed_weight_uids, weights=processed_weights
-        )
+        ) = convert_weights_and_uids_for_emit(uids=processed_weight_uids, weights=processed_weights)
         bt.logging.debug("uint_weights", uint_weights)
         bt.logging.debug("uint_uids", uint_uids)
 
@@ -312,9 +311,7 @@ class BaseValidatorNeuron(BaseNeuron):
         if previous_metagraph.axons == self.metagraph.axons:
             return
 
-        bt.logging.info(
-            "Metagraph updated, re-syncing hotkeys, dendrite pool and moving averages"
-        )
+        bt.logging.info("Metagraph updated, re-syncing hotkeys, dendrite pool and moving averages")
         # Zero out all hotkeys that have been replaced.
         for uid, hotkey in enumerate(self.hotkeys):
             if hotkey != self.metagraph.hotkeys[uid]:
@@ -353,9 +350,7 @@ class BaseValidatorNeuron(BaseNeuron):
         # Handle edge case: If either rewards or uids_array is empty.
         if rewards.size == 0 or uids_array.size == 0:
             bt.logging.info(f"rewards: {rewards}, uids_array: {uids_array}")
-            bt.logging.warning(
-                "Either rewards or uids_array is empty. No updates will be performed."
-            )
+            bt.logging.warning("Either rewards or uids_array is empty. No updates will be performed.")
             return
 
         # Check if sizes of rewards and uids_array match.
@@ -369,11 +364,11 @@ class BaseValidatorNeuron(BaseNeuron):
         # shape: [ metagraph.n ]
         scattered_rewards: np.ndarray = np.full_like(self.scores, 0.5)
         vali_uids = [
-            uid for uid in range(len(scattered_rewards)) if
-            self.metagraph.validator_permit[uid] and 
-            self.metagraph.S[uid] > self.config.neuron.vpermit_tao_limit
+            uid
+            for uid in range(len(scattered_rewards))
+            if self.metagraph.validator_permit[uid] and self.metagraph.S[uid] > self.config.neuron.vpermit_tao_limit
         ]
-        scattered_rewards[vali_uids] = 0.
+        scattered_rewards[vali_uids] = 0.0
         scattered_rewards[uids_array] = rewards
         bt.logging.debug(f"Scattered rewards: {rewards}")
 
@@ -385,7 +380,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def save_miner_history(self):
         bt.logging.info(f"Saving miner performance history to {self.image_history_cache_path}")
-        joblib.dump(self.performance_trackers['image'], self.image_history_cache_path)
+        joblib.dump(self.performance_trackers["image"], self.image_history_cache_path)
 
     def load_miner_history(self):
         def load(path):
@@ -393,13 +388,16 @@ class BaseValidatorNeuron(BaseNeuron):
                 bt.logging.info(f"Loading miner performance history from {path}")
                 try:
                     tracker = joblib.load(path)
-                    num_miners_history = len([
-                        uid for uid in tracker.prediction_history
-                        if len([p for p in tracker.prediction_history[uid] if p != -1]) > 0
-                    ])
+                    num_miners_history = len(
+                        [
+                            uid
+                            for uid in tracker.prediction_history
+                            if len([p for p in tracker.prediction_history[uid] if p != -1]) > 0
+                        ]
+                    )
                     bt.logging.info(f"Loaded history for {num_miners_history} miners")
                 except Exception as e:
-                    bt.logging.error(f'Error loading miner performance tracker: {e}')
+                    bt.logging.error(f"Error loading miner performance tracker: {e}")
                     tracker = MinerPerformanceTracker()
             else:
                 bt.logging.info(f"No miner performance history found at {path} - starting fresh!")
@@ -407,12 +405,11 @@ class BaseValidatorNeuron(BaseNeuron):
             return tracker
 
         try:
-            self.performance_trackers['image'] = load(self.image_history_cache_path)
-        except Exception as e:
+            self.performance_trackers["image"] = load(self.image_history_cache_path)
+        except Exception:
             # just for 2.0.0 upgrade for miner performance to carry over
-            v1_history_cache_path = os.path.join(
-                self.config.neuron.full_path, "miner_performance_tracker.pkl")
-            self.performance_trackers['image'] = load(v1_history_cache_path)
+            v1_history_cache_path = os.path.join(self.config.neuron.full_path, "miner_performance_tracker.pkl")
+            self.performance_trackers["image"] = load(v1_history_cache_path)
 
     def save_state(self):
         """Saves the state of the validator to a file."""

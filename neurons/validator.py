@@ -18,30 +18,30 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
-
-import bittensor as bt
-import yaml
-import wandb
 import time
 
-from neurons.validator_proxy import ValidatorProxy
-from natix.validator.forward import forward
-from natix.validator.cache import ImageCache
-from natix.base.validator import BaseValidatorNeuron
-from natix.validator.config import (
-    MAINNET_UID,
-    MAINNET_WANDB_PROJECT,
-    TESTNET_WANDB_PROJECT,
-    WANDB_ENTITY,
-    ROADWORK_IMAGE_CACHE_DIR,
-    CLEAR_IMAGE_CACHE_DIR,
-    T2I_CACHE_DIR,
-    I2I_CACHE_DIR,
-    VALIDATOR_INFO_PATH
-)
+import bittensor as bt
+import wandb
+import yaml
 
 import natix
+from natix.base.validator import BaseValidatorNeuron
+from natix.validator.cache import ImageCache
+from natix.validator.config import (
+    CLEAR_IMAGE_CACHE_DIR,
+    I2I_CACHE_DIR,
+    MAINNET_UID,
+    MAINNET_WANDB_PROJECT,
+    ROADWORK_IMAGE_CACHE_DIR,
+    T2I_CACHE_DIR,
+    TESTNET_WANDB_PROJECT,
+    VALIDATOR_INFO_PATH,
+    WANDB_ENTITY,
+)
+from natix.validator.forward import forward
+from neurons.validator_proxy import ValidatorProxy
+
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 
 class Validator(BaseValidatorNeuron):
@@ -56,6 +56,7 @@ class Validator(BaseValidatorNeuron):
     our consumer-facing application. If you wish to participate in this system, run your validator with the
      --proxy.port argument set to an exposed port on your machine.
     """
+
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
         bt.logging.info("load_state()")
@@ -66,29 +67,26 @@ class Validator(BaseValidatorNeuron):
 
         # real media caches are updated by the natix_cache_updater process (started by start_validator.sh)
         self.roadwork_media_cache = {
-            'image': ImageCache(ROADWORK_IMAGE_CACHE_DIR),
+            "image": ImageCache(ROADWORK_IMAGE_CACHE_DIR),
         }
         self.clear_road_media_cache = {
-            'image': ImageCache(CLEAR_IMAGE_CACHE_DIR),
+            "image": ImageCache(CLEAR_IMAGE_CACHE_DIR),
         }
 
         # synthetic media caches are populated by the SyntheticDataGenerator process (started by start_validator.sh)
         self.synthetic_media_cache = {
-            'image': {
-                't2i': ImageCache(T2I_CACHE_DIR),
-                'i2i': ImageCache(I2I_CACHE_DIR)
-            },
+            "image": {"t2i": ImageCache(T2I_CACHE_DIR), "i2i": ImageCache(I2I_CACHE_DIR)},
         }
 
         self.media_cache = {
-            'None': self.clear_road_media_cache,
-            'Roadwork': self.roadwork_media_cache,
+            "None": self.clear_road_media_cache,
+            "Roadwork": self.roadwork_media_cache,
         }
 
         self.init_wandb()
         self.store_vali_info()
-        self._fake_prob = self.config.get('fake_prob', 0.5)
-    
+        self._fake_prob = self.config.get("fake_prob", 0.5)
+
     async def forward(self):
         """
         Validator forward pass. Consists of:
@@ -104,7 +102,7 @@ class Validator(BaseValidatorNeuron):
         if self.config.wandb.off:
             return
 
-        run_name = f'validator-{self.uid}-{natix.__version__}'
+        run_name = f"validator-{self.uid}-{natix.__version__}"
         self.config.run_name = run_name
         self.config.uid = self.uid
         self.config.hotkey = self.wallet.hotkey.ss58_address
@@ -124,7 +122,7 @@ class Validator(BaseValidatorNeuron):
                 entity=WANDB_ENTITY,
                 config=self.config,
                 dir=self.config.full_path,
-                reinit=True
+                reinit=True,
             )
         except wandb.UsageError as e:
             bt.logging.warning(e)
@@ -144,12 +142,12 @@ class Validator(BaseValidatorNeuron):
         The SyntheticDataGenerator process reads this to name its w&b run
         """
         validator_info = {
-            'uid': self.uid,
-            'hotkey': self.wallet.hotkey.ss58_address,
-            'netuid': self.config.netuid,
-            'full_path': self.config.neuron.full_path
+            "uid": self.uid,
+            "hotkey": self.wallet.hotkey.ss58_address,
+            "netuid": self.config.netuid,
+            "full_path": self.config.neuron.full_path,
         }
-        with open(VALIDATOR_INFO_PATH, 'w') as f:
+        with open(VALIDATOR_INFO_PATH, "w") as f:
             yaml.safe_dump(validator_info, f, indent=4)
 
         bt.logging.info(f"Wrote validator info to {VALIDATOR_INFO_PATH}")
@@ -158,6 +156,7 @@ class Validator(BaseValidatorNeuron):
 # The main function parses the configuration and runs the validator.
 if __name__ == "__main__":
     import warnings
+
     warnings.filterwarnings("ignore")
 
     with Validator() as validator:

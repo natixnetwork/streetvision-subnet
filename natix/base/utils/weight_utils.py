@@ -1,15 +1,14 @@
-import numpy as np
-from typing import Tuple, List, Union, Any
+from typing import Any, List, Tuple, Union
+
 import bittensor
-from numpy import ndarray, dtype, floating, complexfloating
+import numpy as np
+from numpy import complexfloating, dtype, floating, ndarray
 
 U32_MAX = 4294967295
 U16_MAX = 65535
 
 
-def normalize_max_weight(
-        x: np.ndarray, limit: float = 0.1
-) -> np.ndarray:
+def normalize_max_weight(x: np.ndarray, limit: float = 0.1) -> np.ndarray:
     r"""Normalizes the numpy array x so that sum(x) = 1 and the max value is not greater than the limit.
     Args:
         x (:obj:`np.ndarray`):
@@ -37,15 +36,11 @@ def normalize_max_weight(
         cumsum = np.cumsum(estimation, 0)
 
         # Determine the index of cutoff
-        estimation_sum = np.array(
-            [(len(values) - i - 1) * estimation[i] for i in range(len(values))]
-        )
+        estimation_sum = np.array([(len(values) - i - 1) * estimation[i] for i in range(len(values))])
         n_values = (estimation / (estimation_sum + cumsum + epsilon) < limit).sum()
 
         # Determine the cutoff based on the index
-        cutoff_scale = (limit * cumsum[n_values - 1] - epsilon) / (
-                1 - (limit * (len(estimation) - n_values))
-        )
+        cutoff_scale = (limit * cumsum[n_values - 1] - epsilon) / (1 - (limit * (len(estimation) - n_values)))
         cutoff = cutoff_scale * values.sum()
 
         # Applying the cutoff
@@ -56,9 +51,7 @@ def normalize_max_weight(
         return y
 
 
-def convert_weights_and_uids_for_emit(
-        uids: np.ndarray, weights: np.ndarray
-) -> Tuple[List[int], List[int]]:
+def convert_weights_and_uids_for_emit(uids: np.ndarray, weights: np.ndarray) -> Tuple[List[int], List[int]]:
     r"""Converts weights into integer u32 representation that sum to MAX_INT_WEIGHT.
     Args:
         uids (:obj:`np.ndarray,`):
@@ -86,33 +79,23 @@ def convert_weights_and_uids_for_emit(
     bittensor.logging.debug(f"non_zero_weight_uids: {non_zero_weight_uids}")
 
     if np.min(weights) < 0:
-        raise ValueError(
-            "Passed weight is negative cannot exist on chain {}".format(weights)
-        )
+        raise ValueError("Passed weight is negative cannot exist on chain {}".format(weights))
     if np.min(uids) < 0:
         raise ValueError("Passed uid is negative cannot exist on chain {}".format(uids))
     if len(uids) != len(weights):
-        raise ValueError(
-            "Passed weights and uids must have the same length, got {} and {}".format(
-                len(uids), len(weights)
-            )
-        )
+        raise ValueError("Passed weights and uids must have the same length, got {} and {}".format(len(uids), len(weights)))
     if np.sum(weights) == 0:
         bittensor.logging.debug("nothing to set on chain")
         return [], []  # Nothing to set on chain.
     else:
         max_weight = float(np.max(weights))
-        weights = [
-            float(value) / max_weight for value in weights
-        ]  # max-upscale values (max_weight = 1).
+        weights = [float(value) / max_weight for value in weights]  # max-upscale values (max_weight = 1).
         bittensor.logging.debug(f"setting on chain max: {max_weight} and weights: {weights}")
 
     weight_vals = []
     weight_uids = []
     for i, (weight_i, uid_i) in enumerate(list(zip(weights, uids))):
-        uint16_val = round(
-            float(weight_i) * int(U16_MAX)
-        )  # convert to int representation.
+        uint16_val = round(float(weight_i) * int(U16_MAX))  # convert to int representation.
 
         # Filter zeros
         if uint16_val != 0:  # Filter zeros
@@ -123,15 +106,20 @@ def convert_weights_and_uids_for_emit(
 
 
 def process_weights_for_netuid(
-        uids,
-        weights: np.ndarray,
-        netuid: int,
-        subtensor: "bittensor.subtensor",
-        metagraph: "bittensor.metagraph" = None,
-        exclude_quantile: int = 0,
-) -> Union[tuple[ndarray[Any, dtype[Any]], Union[
-    Union[ndarray[Any, dtype[floating[Any]]], ndarray[Any, dtype[complexfloating[Any, Any]]]], Any]], tuple[
-    ndarray[Any, dtype[Any]], ndarray], tuple[Any, ndarray]]:
+    uids,
+    weights: np.ndarray,
+    netuid: int,
+    subtensor: "bittensor.subtensor",
+    metagraph: "bittensor.metagraph" = None,
+    exclude_quantile: int = 0,
+) -> Union[
+    tuple[
+        ndarray[Any, dtype[Any]],
+        Union[Union[ndarray[Any, dtype[floating[Any]]], ndarray[Any, dtype[complexfloating[Any, Any]]]], Any],
+    ],
+    tuple[ndarray[Any, dtype[Any]], ndarray],
+    tuple[Any, ndarray],
+]:
     bittensor.logging.debug("process_weights_for_netuid()")
     bittensor.logging.debug("weights", weights)
     bittensor.logging.debug("netuid", netuid)
@@ -169,25 +157,17 @@ def process_weights_for_netuid(
         return np.arange(len(final_weights)), final_weights
 
     elif non_zero_weights.size < min_allowed_weights:
-        bittensor.logging.warning(
-            "No non-zero weights less then min allowed weight, returning all ones."
-        )
-        weights = (
-                np.ones(metagraph.n) * 1e-5
-        )  # creating minimum even non-zero weights
+        bittensor.logging.warning("No non-zero weights less then min allowed weight, returning all ones.")
+        weights = np.ones(metagraph.n) * 1e-5  # creating minimum even non-zero weights
         weights[non_zero_weight_idx] += non_zero_weights
         bittensor.logging.debug("final_weights", weights)
-        normalized_weights = normalize_max_weight(
-            x=weights, limit=max_weight_limit
-        )
+        normalized_weights = normalize_max_weight(x=weights, limit=max_weight_limit)
         return np.arange(len(normalized_weights)), normalized_weights
 
     bittensor.logging.debug("non_zero_weights", non_zero_weights)
 
     # Compute the exclude quantile and find the weights in the lowest quantile
-    max_exclude = max(0, len(non_zero_weights) - min_allowed_weights) / len(
-        non_zero_weights
-    )
+    max_exclude = max(0, len(non_zero_weights) - min_allowed_weights) / len(non_zero_weights)
     exclude_quantile = min([quantile, max_exclude])
     lowest_quantile = np.quantile(non_zero_weights, exclude_quantile)
     bittensor.logging.debug("max_exclude", max_exclude)
@@ -201,9 +181,7 @@ def process_weights_for_netuid(
     bittensor.logging.debug("non_zero_weights", non_zero_weights)
 
     # Normalize weights and return.
-    normalized_weights = normalize_max_weight(
-        x=non_zero_weights, limit=max_weight_limit
-    )
+    normalized_weights = normalize_max_weight(x=non_zero_weights, limit=max_weight_limit)
     bittensor.logging.debug("final_weights", normalized_weights)
 
     return non_zero_weight_uids, normalized_weights

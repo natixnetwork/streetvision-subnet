@@ -135,7 +135,7 @@ Benefits
 
 Commit messages like "fix", "fix2", or "fix3" don't provide any context or clear understanding of what changes the commit introduces. Here are some examples of good vs. bad commit messages:
 
-**Bad Commit Message:** 
+**Bad Commit Message:**
 
     $ git commit -m "fix"
 
@@ -147,7 +147,7 @@ Commit messages like "fix", "fix2", or "fix3" don't provide any context or clear
 
 #### 2. Separate subject from body with a blank line
 
-Not every commit requires both a subject and a body. Sometimes a single line is fine, especially when the change is so simple that no further context is necessary. 
+Not every commit requires both a subject and a body. Sometimes a single line is fine, especially when the change is so simple that no further context is necessary.
 
 For example:
 
@@ -175,9 +175,9 @@ In any case, the separation of subject from body pays off when browsing the log.
     commit 42e769bdf4894310333942ffc5a15151222a87be
     Author: Kevin Flynn <kevin@flynnsarcade.com>
     Date:   Fri Jan 01 00:00:00 1982 -0200
-    
+
      Derezz the master control program
-    
+
      MCP turned out to be evil and had become intent on world domination.
      This commit throws Tron's disc into MCP (causing its deresolution)
      and turns it back into a chess game.
@@ -290,7 +290,7 @@ The future maintainer that thanks you may be yourself!
 
 ##### Using `--fixup`
 
-If you've made a commit and then realize you've missed something or made a minor mistake, you can use the `--fixup` option. 
+If you've made a commit and then realize you've missed something or made a minor mistake, you can use the `--fixup` option.
 
 For example, suppose you've made a commit with a hash `9fceb02`. Later, you realize you've left a debug statement in your code. Instead of making a new commit titled "remove debug statement" or "fix", you can do the following:
 
@@ -332,10 +332,10 @@ In this context, an atomic commit message could look like:
 ```
 Add feature X
 
-This commit introduces feature X which does A, B, and C. It adds 
+This commit introduces feature X which does A, B, and C. It adds
 new files for layout, updates the code behind the file, and introduces
-new resources. This change is important because it allows users to 
-perform task Y more efficiently. 
+new resources. This change is important because it allows users to
+perform task Y more efficiently.
 
 It includes:
 - Creation of new layout file
@@ -345,4 +345,4 @@ It includes:
 Resolves: #123
 ```
 
-In your PRs, remember to detail what the PR is introducing or fixing. This will be helpful for reviewers to understand the context and the reason behind the changes. 
+In your PRs, remember to detail what the PR is introducing or fixing. This will be helpful for reviewers to understand the context and the reason behind the changes.

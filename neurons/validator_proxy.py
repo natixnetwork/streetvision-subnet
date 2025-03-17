@@ -1,31 +1,26 @@
-from fastapi import FastAPI, HTTPException, Depends, Request
-from concurrent.futures import ThreadPoolExecutor
-from starlette.concurrency import run_in_threadpool
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-from cryptography.exceptions import InvalidSignature
-from PIL import Image
-from io import BytesIO
-import bittensor as bt
-import pandas as pd
-import numpy as np
-import uvicorn
+import asyncio
 import base64
-import json
 import os
 import random
-import asyncio
-import traceback
-import httpx
-import threading
 import socket
-import base64
+import traceback
+from concurrent.futures import ThreadPoolExecutor
+from io import BytesIO
 
-from natix.validator.config import TARGET_IMAGE_SIZE
+import bittensor as bt
+import httpx
+import numpy as np
+import uvicorn
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from fastapi import Depends, FastAPI, HTTPException, Request
+from PIL import Image
+
+from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import get_base_transforms
-from natix.protocol import ImageSynapse, prepare_synapse
 from natix.utils.uids import get_random_uids
+from natix.validator.config import TARGET_IMAGE_SIZE
 from natix.validator.proxy import ProxyCounter
-import natix
 
 base_transforms = get_base_transforms(TARGET_IMAGE_SIZE)
 
@@ -61,9 +56,7 @@ class ValidatorProxy:
         )
 
         self.loop = asyncio.get_event_loop()
-        self.proxy_counter = ProxyCounter(
-            os.path.join(self.validator.config.neuron.full_path, "proxy_counter.json")
-        )
+        self.proxy_counter = ProxyCounter(os.path.join(self.validator.config.neuron.full_path, "proxy_counter.json"))
         if self.validator.config.proxy.port:
             self.start_server()
 
@@ -73,9 +66,7 @@ class ValidatorProxy:
                 f"{self.validator.config.proxy.proxy_client_url}/get-credentials",
                 json={
                     "postfix": (
-                        f":{self.validator.config.proxy.port}/validator_proxy"
-                        if self.validator.config.proxy.port
-                        else ""
+                        f":{self.validator.config.proxy.port}/validator_proxy" if self.validator.config.proxy.port else ""
                     ),
                     "uid": self.validator.uid,
                 },
@@ -97,9 +88,7 @@ class ValidatorProxy:
 
     def start_server(self):
         self.executor = ThreadPoolExecutor(max_workers=1)
-        self.executor.submit(
-            uvicorn.run, self.app, host="0.0.0.0", port=self.validator.config.proxy.port
-        )
+        self.executor.submit(uvicorn.run, self.app, host="0.0.0.0", port=self.validator.config.proxy.port)
 
     def authenticate_token(self, public_key_bytes):
         public_key_bytes = base64.b64decode(public_key_bytes)
@@ -110,9 +99,7 @@ class ValidatorProxy:
         except Exception as e:
             bt.logging.error(f"Exception occured in authenticating token: {e}")
             bt.logging.error(traceback.print_exc())
-            raise HTTPException(
-                status_code=401, detail="Error getting authentication token"
-            )
+            raise HTTPException(status_code=401, detail="Error getting authentication token")
 
     async def healthcheck(self, request: Request):
         authorization: str = request.headers.get("authorization")
@@ -121,7 +108,7 @@ class ValidatorProxy:
             raise HTTPException(status_code=401, detail="Authorization header missing")
 
         self.authenticate_token(authorization)
-        return {'status': 'healthy'}
+        return {"status": "healthy"}
 
     async def forward(self, request: Request):
         authorization: str = request.headers.get("authorization")
@@ -141,18 +128,18 @@ class ValidatorProxy:
             bt.logging.warning("[ORGANIC] No recent miner uids found, sampling random uids")
             miner_uids = get_random_uids(self.validator, k=self.validator.config.neuron.sample_size)
 
-        image = preprocess_image(payload['image'])
+        image = preprocess_image(payload["image"])
 
         bt.logging.info(f"[ORGANIC] Querying {len(miner_uids)} miners...")
         predictions = await self.dendrite(
             axons=[metagraph.axons[uid] for uid in miner_uids],
-    	    synapse=prepare_synapse(image, modality='image'),
+            synapse=prepare_synapse(image, modality="image"),
             deserialize=True,
-            timeout=9
+            timeout=9,
         )
 
         bt.logging.info(f"[ORGANIC] {predictions}")
-        valid_pred_idx = np.array([i for i, v in enumerate(predictions) if v != -1.])
+        valid_pred_idx = np.array([i for i, v in enumerate(predictions) if v != -1.0])
         if len(valid_pred_idx) > 0:
             valid_preds = np.array(predictions)[valid_pred_idx]
             valid_pred_uids = np.array(miner_uids)[valid_pred_idx]
@@ -160,19 +147,16 @@ class ValidatorProxy:
                 self.proxy_counter.update(is_success=True)
                 self.proxy_counter.save()
 
-                data = {
-                    'preds': [float(p) for p in list(valid_preds)],
-                    'fqdn': socket.getfqdn()
-                }
+                data = {"preds": [float(p) for p in list(valid_preds)], "fqdn": socket.getfqdn()}
 
                 rich_response: bool = payload.get("rich", "false").lower() == "true"
                 if rich_response:
-                    data['uids'] = [int(uid) for uid in valid_pred_uids],
-                    data['ranks'] = [float(metagraph.R[uid]) for uid in valid_pred_uids],
-                    data['incentives'] = [float(metagraph.I[uid]) for uid in valid_pred_uids]
-                    data['emissions'] = [float(metagraph.E[uid]) for uid in valid_pred_uids]
-                    data['hotkeys'] = [str(metagraph.hotkeys[uid]) for uid in valid_pred_uids]
-                    data['coldkeys'] = [str(metagraph.coldkeys[uid]) for uid in valid_pred_uids]
+                    data["uids"] = ([int(uid) for uid in valid_pred_uids],)
+                    data["ranks"] = ([float(metagraph.R[uid]) for uid in valid_pred_uids],)
+                    data["incentives"] = [float(metagraph.I[uid]) for uid in valid_pred_uids]
+                    data["emissions"] = [float(metagraph.E[uid]) for uid in valid_pred_uids]
+                    data["hotkeys"] = [str(metagraph.hotkeys[uid]) for uid in valid_pred_uids]
+                    data["coldkeys"] = [str(metagraph.coldkeys[uid]) for uid in valid_pred_uids]
 
                 return data
 

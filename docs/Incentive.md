@@ -1,6 +1,6 @@
 # Bitmind Subnet Incentive Mechanism
 
-This document covers the current state of SN34's incentive mechanism. 
+This document covers the current state of SN34's incentive mechanism.
 1. [Overview](#overview)
 2. [Rewards](#rewards)
 3. [Scores](#scores)
@@ -11,7 +11,7 @@ This document covers the current state of SN34's incentive mechanism.
 
 Miner rewards are a weighted combination of their performance on video and image detection challenges.
 
-Performance on video and image challenges are computed separately -- each is a weighted combination of the MCC of the last 100 predictions and the accuracy of the last 10. 
+Performance on video and image challenges are computed separately -- each is a weighted combination of the MCC of the last 100 predictions and the accuracy of the last 10.
 
 Validators keep track of miner performance using a score vector, which is updated using an exponential moving average. The weights assigned by validators determine the distribution of rewards among miners, incentivizing high-quality predictions and consistent performance.
 
@@ -25,26 +25,26 @@ Validators keep track of miner performance using a score vector, which is update
 
 
 ## Rewards
-> Total rewards are a weighted combination of video and image rewards. Rewards for both image and video challenges are the [Matthews Correlation Coefficient (MCC)](https://en.wikipedia.org/wiki/Phi_coefficient) of (up to) a miner's last 100 predictions, combined with the accuracy of their last 10. 
+> Total rewards are a weighted combination of video and image rewards. Rewards for both image and video challenges are the [Matthews Correlation Coefficient (MCC)](https://en.wikipedia.org/wiki/Phi_coefficient) of (up to) a miner's last 100 predictions, combined with the accuracy of their last 10.
 
 Total rewards
 
-$$ 
-C_{total} = 0.6 \cdot C_{image} + 0.4 \cdot C_{video} 
+$$
+C_{total} = 0.6 \cdot C_{image} + 0.4 \cdot C_{video}
 $$
 
 Rewards for modality *m*
 
-$$ 
+$$
 C_m = 0.5 \cdot MCC_m + 0.5 \cdot Accuracy_m
 $$
 
 
 ## Scores
 
->Validators set weights based on historical miner performances, tracked by their score vector. 
+>Validators set weights based on historical miner performances, tracked by their score vector.
 
-For each challenge *t*, a validator will randomly sample 50 miners, send them an image/video, and compute their rewards *C* as described above. These reward values are then used to update the validator's score vector *V* using an exponential moving average (EMA) with *&alpha;* = 0.02. 
+For each challenge *t*, a validator will randomly sample 50 miners, send them an image/video, and compute their rewards *C* as described above. These reward values are then used to update the validator's score vector *V* using an exponential moving average (EMA) with *&alpha;* = 0.02.
 
 $$
 V_t = 0.02 \cdot C_t + 0.98 \cdot V_{t-1}
@@ -69,10 +69,6 @@ Specifically, for each miner *j*, incentive is a function of rank *R*:
 
 $$I_j = \frac{R_j}{\sum_k R_k}$$
 
-where rank *R* is *W* (a matrix of validator weight vectors) weighted by validator stake vector *S*. 
+where rank *R* is *W* (a matrix of validator weight vectors) weighted by validator stake vector *S*.
 
 $$R_k = \sum_i S_i \cdot W_{ik}$$
-
-
-
-

@@ -15,19 +15,18 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from typing import List
-from pydantic import BaseModel, Field
-from torchvision import transforms
-from io import BytesIO
-from PIL import Image
-import bittensor as bt
 import base64
+from io import BytesIO
+
+import bittensor as bt
 import pydantic
 import torch
-import zlib
+from PIL import Image
+from torchvision import transforms
 
-from natix.validator.config import TARGET_IMAGE_SIZE
 from natix.utils.image_transforms import get_base_transforms
+from natix.validator.config import TARGET_IMAGE_SIZE
+
 base_transforms = get_base_transforms(TARGET_IMAGE_SIZE)
 
 # ---- validator ---
@@ -37,6 +36,7 @@ base_transforms = get_base_transforms(TARGET_IMAGE_SIZE)
 #   predictions = dendrite.query( ImageSynapse( images = b64_images ) )
 #   assert len(predictions) == len(b64_images)
 
+
 def prepare_synapse(input_data, modality):
     if isinstance(input_data, torch.Tensor):
         input_data = transforms.ToPILImage()(input_data.cpu().detach())
@@ -44,9 +44,9 @@ def prepare_synapse(input_data, modality):
         for i, img in enumerate(input_data):
             input_data[i] = transforms.ToPILImage()(img.cpu().detach())
 
-    if modality == 'image':
+    if modality == "image":
         return prepare_image_synapse(input_data)
-    elif modality == 'video':
+    elif modality == "video":
         bt.logging.error("Video synapse not implemented yet")
     else:
         raise NotImplementedError(f"Unsupported modality: {modality}")
@@ -82,19 +82,14 @@ class ImageSynapse(bt.Synapse):
     testnet_label: int = -1  # for easier miner eval on testnet
 
     # Required request input, filled by sending dendrite caller.
-    image: str = pydantic.Field(
-        title="Image",
-        description="A base64 encoded image",
-        default="",
-        frozen=False
-    )
+    image: str = pydantic.Field(title="Image", description="A base64 encoded image", default="", frozen=False)
 
     # Optional request output, filled by receiving axon.
     prediction: float = pydantic.Field(
         title="Prediction",
         description="Probability that the image is AI generated/modified",
-        default=-1.,
-        frozen=False
+        default=-1.0,
+        frozen=False,
     )
 
     def deserialize(self) -> float:

@@ -16,20 +16,15 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from PIL import Image
-import bittensor as bt
-import torch
 import base64
+import io
 import time
 import typing
-import io
-import os
-import sys
-import numpy as np
+
+import bittensor as bt
+from PIL import Image
 
 from base_miner.registry import DETECTOR_REGISTRY
-from base_miner.detectors import RoadworkDetector, ViTImageDetector
-
 from natix.base.miner import BaseMinerNeuron
 from natix.protocol import ImageSynapse
 from natix.utils.config import get_device
@@ -49,27 +44,26 @@ class Miner(BaseMinerNeuron):
 
         bt.logging.info("Loading image detection model if configured")
         self.load_image_detector()
-        
+
     def load_image_detector(self):
-        if (str(self.config.neuron.image_detector).lower() == 'none' or
-            str(self.config.neuron.image_detector_config).lower() == 'none'):
+        if (
+            str(self.config.neuron.image_detector).lower() == "none"
+            or str(self.config.neuron.image_detector_config).lower() == "none"
+        ):
             bt.logging.warning("No image detector configuration provided, skipping.")
             self.image_detector = None
             return
 
-        if self.config.neuron.image_detector_device == 'auto':
+        if self.config.neuron.image_detector_device == "auto":
             bt.logging.warning("Automatic device configuration enabled for image detector")
             self.config.neuron.image_detector_device = get_device()
-            
+
         self.image_detector = DETECTOR_REGISTRY[self.config.neuron.image_detector](
-            config_name=self.config.neuron.image_detector_config,
-            device=self.config.neuron.image_detector_device
+            config_name=self.config.neuron.image_detector_config, device=self.config.neuron.image_detector_device
         )
         bt.logging.info(f"Loaded image detection model: {self.config.neuron.image_detector}")
 
-    async def forward_image(
-        self, synapse: ImageSynapse
-    ) -> ImageSynapse:
+    async def forward_image(self, synapse: ImageSynapse) -> ImageSynapse:
         """
         Perform inference on image
 
@@ -112,6 +106,7 @@ class Miner(BaseMinerNeuron):
 # This is the main function, which runs the miner.
 if __name__ == "__main__":
     import warnings
+
     warnings.filterwarnings("ignore")
     with Miner() as miner:
         while True:
@@ -126,4 +121,3 @@ if __name__ == "__main__":
             )
             bt.logging.info(log)
             time.sleep(5)
-

@@ -1,19 +1,16 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import torch
 from diffusers import (
-    StableDiffusionPipeline,    
-    StableDiffusionXLPipeline,
-    FluxPipeline,
     AutoPipelineForInpainting,
+    FluxPipeline,
     IFPipeline,
-    IFSuperResolutionPipeline
+    IFSuperResolutionPipeline,
+    StableDiffusionPipeline,
+    StableDiffusionXLPipeline,
 )
-
-
-
 
 TARGET_IMAGE_SIZE: tuple[int, int] = (224, 224)
 
@@ -21,30 +18,30 @@ MAINNET_UID = 34
 TESTNET_UID = 168
 
 # Project constants
-MAINNET_WANDB_PROJECT: str = 'test'
-TESTNET_WANDB_PROJECT: str = 'test'
+MAINNET_WANDB_PROJECT: str = "test"
+TESTNET_WANDB_PROJECT: str = "test"
 HUGGINGFACE_REPO: str = "natix-network-org"
-WANDB_ENTITY: str ="alirezaght-natix-gmbh"
+WANDB_ENTITY: str = "alirezaght-natix-gmbh"
 
 
 # Cache directories
-HUGGINGFACE_CACHE_DIR: Path = Path.home() / '.cache' / 'huggingface'
-NATIX_CACHE_DIR: Path = Path.home() / '.cache' / 'natix'
+HUGGINGFACE_CACHE_DIR: Path = Path.home() / ".cache" / "huggingface"
+NATIX_CACHE_DIR: Path = Path.home() / ".cache" / "natix"
 NATIX_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-VALIDATOR_INFO_PATH: Path = NATIX_CACHE_DIR / 'validator.yaml'
+VALIDATOR_INFO_PATH: Path = NATIX_CACHE_DIR / "validator.yaml"
 
-CLEAR_CACHE_DIR: Path = NATIX_CACHE_DIR / 'None'
-ROADWORK_CACHE_DIR: Path = NATIX_CACHE_DIR / 'Roadwork'
-SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / 'Synthetic'
+CLEAR_CACHE_DIR: Path = NATIX_CACHE_DIR / "None"
+ROADWORK_CACHE_DIR: Path = NATIX_CACHE_DIR / "Roadwork"
+SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / "Synthetic"
 
-ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / 'image'
-CLEAR_IMAGE_CACHE_DIR: Path = CLEAR_CACHE_DIR / 'image'
+ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / "image"
+CLEAR_IMAGE_CACHE_DIR: Path = CLEAR_CACHE_DIR / "image"
 
 
-T2V_CACHE_DIR: Path = SYNTH_CACHE_DIR / 't2v' 
-T2I_CACHE_DIR: Path = SYNTH_CACHE_DIR / 't2i'
-I2I_CACHE_DIR: Path = SYNTH_CACHE_DIR / 'i2i'
+T2V_CACHE_DIR: Path = SYNTH_CACHE_DIR / "t2v"
+T2I_CACHE_DIR: Path = SYNTH_CACHE_DIR / "t2i"
+I2I_CACHE_DIR: Path = SYNTH_CACHE_DIR / "i2i"
 
 # Update intervals in hours
 IMAGE_PARQUET_CACHE_UPDATE_INTERVAL = 2
@@ -53,10 +50,7 @@ IMAGE_CACHE_UPDATE_INTERVAL = 1
 MAX_COMPRESSED_GB = 100
 MAX_EXTRACTED_GB = 10
 
-CHALLENGE_TYPE = {
-    0: 'Clear',
-    1: 'Roadwork'
-}
+CHALLENGE_TYPE = {0: "Clear", 1: "Roadwork"}
 
 # Image datasets configuration
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
@@ -73,27 +67,16 @@ TEXT_MODERATION_MODEL: str = "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit"
 T2I_MODELS: Dict[str, Dict[str, Any]] = {
     "stabilityai/stable-diffusion-xl-base-1.0": {
         "pipeline_cls": StableDiffusionXLPipeline,
-        "from_pretrained_args": {
-            "use_safetensors": True,
-            "torch_dtype": torch.float16,
-            "variant": "fp16"
-        },
-        "use_autocast": False
+        "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
+        "use_autocast": False,
     },
     "SG161222/RealVisXL_V4.0": {
         "pipeline_cls": StableDiffusionXLPipeline,
-        "from_pretrained_args": {
-            "use_safetensors": True,
-            "torch_dtype": torch.float16,
-            "variant": "fp16"
-        }
+        "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
     },
     "Corcelio/mobius": {
         "pipeline_cls": StableDiffusionXLPipeline,
-        "from_pretrained_args": {
-            "use_safetensors": True,
-            "torch_dtype": torch.float16
-        }
+        "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16},
     },
     "black-forest-labs/FLUX.1-dev": {
         "pipeline_cls": FluxPipeline,
@@ -105,16 +88,16 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
             "guidance_scale": 2,
             "num_inference_steps": {"min": 50, "max": 125},
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
-            "resolution": [512, 768]
+            "resolution": [512, 768],
         },
-        "enable_model_cpu_offload": False
+        "enable_model_cpu_offload": False,
     },
-    "prompthero/openjourney-v4" : {
+    "prompthero/openjourney-v4": {
         "pipeline_cls": StableDiffusionPipeline,
         "from_pretrained_args": {
             "use_safetensors": True,
             "torch_dtype": torch.float16,
-        }
+        },
     },
     "cagliostrolab/animagine-xl-3.1": {
         "pipeline_cls": StableDiffusionXLPipeline,
@@ -124,10 +107,7 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
         },
     },
     "DeepFloyd/IF": {
-        "pipeline_cls": {
-            "stage1": IFPipeline,
-            "stage2": IFSuperResolutionPipeline
-        },
+        "pipeline_cls": {"stage1": IFPipeline, "stage2": IFSuperResolutionPipeline},
         "from_pretrained_args": {
             "stage1": {
                 "base": "DeepFloyd/IF-I-XL-v1.0",
@@ -135,7 +115,7 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
                 "variant": "fp16",
                 "clean_caption": False,
                 "watermarker": None,
-                "requires_safety_checker": False
+                "requires_safety_checker": False,
             },
             "stage2": {
                 "base": "DeepFloyd/IF-II-L-v1.0",
@@ -143,33 +123,26 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
                 "variant": "fp16",
                 "text_encoder": None,
                 "watermarker": None,
-                "requires_safety_checker": False
-            }
+                "requires_safety_checker": False,
+            },
         },
         "pipeline_stages": [
             {
                 "name": "stage1",
-                "args": {
-                    "output_type": "pt",
-                    "num_images_per_prompt": 1,
-                    "return_dict": True
-                },
+                "args": {"output_type": "pt", "num_images_per_prompt": 1, "return_dict": True},
                 "output_attr": "images",
                 "output_transform": lambda x: x[0].unsqueeze(0),
-                "save_prompt_embeds": True
+                "save_prompt_embeds": True,
             },
             {
                 "name": "stage2",
                 "input_key": "image",
-                "args": {
-                    "output_type": "pil",
-                    "num_images_per_prompt": 1
-                },
+                "args": {"output_type": "pil", "num_images_per_prompt": 1},
                 "output_attr": "images",
-                "use_prompt_embeds": True
-            }
+                "use_prompt_embeds": True,
+            },
         ],
-        "clear_memory_on_stage_end": True
+        "clear_memory_on_stage_end": True,
     },
 }
 T2I_MODEL_NAMES: List[str] = list(T2I_MODELS.keys())
@@ -178,17 +151,13 @@ T2I_MODEL_NAMES: List[str] = list(T2I_MODELS.keys())
 I2I_MODELS: Dict[str, Dict[str, Any]] = {
     "diffusers/stable-diffusion-xl-1.0-inpainting-0.1": {
         "pipeline_cls": AutoPipelineForInpainting,
-        "from_pretrained_args": {
-            "use_safetensors": True,
-            "torch_dtype": torch.float16,
-            "variant": "fp16"
-        },
+        "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
         "generate_args": {
             "guidance_scale": 7.5,
             "num_inference_steps": 50,
             "strength": 0.99,
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
-        }
+        },
     }
 }
 I2I_MODEL_NAMES: List[str] = list(I2I_MODELS.keys())
@@ -199,15 +168,15 @@ MODEL_NAMES: List[str] = list(MODELS.keys())
 
 
 def get_modality(model_name):
-     if model_name in T2I_MODEL_NAMES + I2I_MODEL_NAMES:
-        return 'image'   
+    if model_name in T2I_MODEL_NAMES + I2I_MODEL_NAMES:
+        return "image"
 
 
 def get_task(model_name):
     if model_name in T2I_MODEL_NAMES:
-        return 't2i'
+        return "t2i"
     elif model_name in I2I_MODEL_NAMES:
-        return 'i2i'
+        return "i2i"
 
 
 def select_random_model(task: Optional[str] = None) -> str:
@@ -225,12 +194,12 @@ def select_random_model(task: Optional[str] = None) -> str:
     Raises:
         NotImplementedError: If the specified modality is not supported.
     """
-    if task is None or task == 'random':
-        task = np.random.choice(['t2i', 'i2i', 't2v'])
+    if task is None or task == "random":
+        task = np.random.choice(["t2i", "i2i", "t2v"])
 
-    if task == 't2i':
+    if task == "t2i":
         return np.random.choice(T2I_MODEL_NAMES)
-    elif task == 'i2i':
+    elif task == "i2i":
         return np.random.choice(I2I_MODEL_NAMES)
     else:
         raise NotImplementedError(f"Unsupported task: {task}")

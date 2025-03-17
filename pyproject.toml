@@ -57,7 +57,7 @@ hypothesis = "^6.12.2"
 flake8-pyproject = "~1.2.3"
 
 [tool.black]
-line-length = 120
+line-length = 130
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -76,7 +76,7 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
-line_length = 120
+line_length = 130
 skip_gitignore = true
 skip = [
     ".venv",
@@ -108,18 +108,12 @@ exclude = [
     ".mypy_cache/*",
     "build/*",
     "dist/*",
-    ".vscode/*"
+    ".vscode/*",
+    "__init__.py"
 ]
-max-complexity = 10
-max-line-length = 120
+max-complexity = 15
+max-line-length = 130
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-
-
-
-
-
-

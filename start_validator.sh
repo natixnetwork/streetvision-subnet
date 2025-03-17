@@ -12,7 +12,7 @@ VALIDATOR_PROCESS_NAME="natix_validator"
 DATA_GEN_PROCESS_NAME="natix_data_generator"
 CACHE_UPDATE_PROCESS_NAME="natix_cache_updater"
 
-# Clear cache if specified 
+# Clear cache if specified
 while [[ $# -gt 0 ]]; do
   case $1 in
     --clear-cache)

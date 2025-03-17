@@ -1,8 +1,8 @@
-import os
 import json
+import os
 import random
 from pathlib import Path
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
 
 import bittensor as bt
 from PIL import Image
@@ -15,12 +15,12 @@ from .util import is_parquet_complete
 class ImageCache(BaseCache):
     """
     A class to manage image caching from parquet files.
-    
+
     This class handles the caching, updating, and sampling of images stored
     in parquet files. It maintains both a compressed cache of parquet files
     and an extracted cache of images ready for processing.
     """
-    
+
     def __init__(
         self,
         cache_dir: Union[str, Path],
@@ -30,9 +30,9 @@ class ImageCache(BaseCache):
         num_parquets_per_dataset: int = 5,
         num_images_per_source: int = 100,
         max_compressed_size_gb: int = 100,
-        max_extracted_size_gb: int = 10
+        max_extracted_size_gb: int = 10,
     ) -> None:
-        """        
+        """
         Args:
             cache_dir: Path to store extracted images
             parquet_update_interval: Hours between parquet cache updates
@@ -45,27 +45,27 @@ class ImageCache(BaseCache):
             extracted_update_interval=image_update_interval,
             compressed_update_interval=parquet_update_interval,
             num_sources_per_dataset=num_parquets_per_dataset,
-            file_extensions=['.jpg', '.jpeg', '.png'],
-            compressed_file_extension='.parquet',
+            file_extensions=[".jpg", ".jpeg", ".png"],
+            compressed_file_extension=".parquet",
             max_compressed_size_gb=max_compressed_size_gb,
-            max_extracted_size_gb=max_extracted_size_gb
+            max_extracted_size_gb=max_extracted_size_gb,
         )
         self.num_images_per_source = num_images_per_source
-                
+
     def _clear_incomplete_sources(self) -> None:
         """Remove any incomplete or corrupted parquet files."""
         for path in self._get_compressed_files():
-            if path.suffix == '.parquet' and not is_parquet_complete(path):
+            if path.suffix == ".parquet" and not is_parquet_complete(path):
                 try:
                     path.unlink()
                     bt.logging.warning(f"Removed incomplete parquet file {path}")
                 except Exception as e:
                     bt.logging.error(f"Error removing incomplete parquet {path}: {e}")
-    
+
     def _extract_random_items(self, n_items_per_source: Optional[int] = None) -> List[Path]:
         """
         Extract random videos from zip files in compressed directory.
-        
+
         Returns:
             List of paths to extracted video files.
         """
@@ -80,16 +80,12 @@ class ImageCache(BaseCache):
 
         for parquet_file in parquet_files:
             try:
-                extracted_files += extract_images_from_parquet(
-                    parquet_file,
-                    self.cache_dir,
-                    n_items_per_source
-                )
+                extracted_files += extract_images_from_parquet(parquet_file, self.cache_dir, n_items_per_source)
             except Exception as e:
                 bt.logging.error(f"Error processing parquet file {parquet_file}: {e}")
         return extracted_files
 
-    def sample(self, label = None,remove_from_cache=False) -> Optional[Dict[str, Any]]:
+    def sample(self, label=None, remove_from_cache=False) -> Optional[Dict[str, Any]]:
         """
         Sample a random image and its metadata from the cache.
 
@@ -114,24 +110,24 @@ class ImageCache(BaseCache):
             image_path = random.choice(cached_files)
 
             try:
-                metadata = json.loads(image_path.with_suffix('.json').read_text())
+                metadata = json.loads(image_path.with_suffix(".json").read_text())
                 if label is not None:
-                    if metadata['label'] != label:
+                    if metadata["label"] != label:
                         continue
                 image = Image.open(image_path)
                 if remove_from_cache:
                     try:
                         os.remove(image_path)
-                        os.remove(image_path.with_suffix('.json'))
+                        os.remove(image_path.with_suffix(".json"))
                     except Exception as e:
                         bt.logging.warning(f"Failed to remove files for {image_path}: {e}")
                 return {
-                    'image': image,
-                    'path': str(image_path),
-                    'dataset': metadata.get('dataset', None),
-                    'index': metadata.get('index', None),
-                    'mask_center': metadata.get('mask_center', None),
-                    'metadata': metadata
+                    "image": image,
+                    "path": str(image_path),
+                    "dataset": metadata.get("dataset", None),
+                    "index": metadata.get("index", None),
+                    "mask_center": metadata.get("mask_center", None),
+                    "metadata": metadata,
                 }
 
             except Exception as e:

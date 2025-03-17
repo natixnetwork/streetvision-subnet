@@ -1,9 +1,10 @@
-import time
 import asyncio
 import random
+import time
+from typing import List
+
 import bittensor as bt
 import numpy as np
-from typing import List
 from PIL import Image
 
 from natix.validator.config import MODEL_NAMES
@@ -17,12 +18,13 @@ def create_random_image():
 
 class MockImageDataset:
     def __init__(
-            self,
-            huggingface_dataset_path: str,
-            huggingface_datset_split: str = 'train',
-            huggingface_datset_name: str = None,
-            create_splits: bool = False,
-            download_mode: str = None):
+        self,
+        huggingface_dataset_path: str,
+        huggingface_datset_split: str = "train",
+        huggingface_datset_name: str = None,
+        create_splits: bool = False,
+        download_mode: str = None,
+    ):
 
         self.huggingface_dataset_path = huggingface_dataset_path
         self.huggingface_dataset_name = huggingface_datset_name
@@ -30,11 +32,7 @@ class MockImageDataset:
         self.sampled_images_idx = []
 
     def __getitem__(self, index: int) -> dict:
-        return {
-            'image': create_random_image(),
-            'id': index,
-            'source': self.huggingface_dataset_path
-        }
+        return {"image": create_random_image(), "id": index, "source": self.huggingface_dataset_path}
 
     def __len__(self):
         return 100  # mock length
@@ -49,23 +47,19 @@ class MockSyntheticDataGenerator:
         self.t2v_model_name = t2v_model_name
         self.use_random_t2v_model = use_random_t2v_model
 
-    def generate(self, k=1, real_images=None, modality='image'):
+    def generate(self, k=1, real_images=None, modality="image"):
         if self.use_random_t2v_model:
-            self.load_t2v_model('random')
+            self.load_t2v_model("random")
         else:
             self.load_t2v_model(self.t2v_model_name)
 
-        return [{
-            'prompt': f'mock {self.prompt_type} prompt',
-            'image': create_random_image(),
-            'id': i
-        } for i in range(k)]
+        return [{"prompt": f"mock {self.prompt_type} prompt", "image": create_random_image(), "id": i} for i in range(k)]
 
     def load_diffuser(self, t2v_model_name) -> None:
         """
         loads a huggingface diffuser model.
         """
-        if t2v_model_name == 'random':
+        if t2v_model_name == "random":
             t2v_model_name = np.random.choice(MODEL_NAMES, 1)[0]
         self.t2v_model_name = t2v_model_name
 
@@ -77,21 +71,12 @@ class MockValidator:
 
         self.performance_tracker = MinerPerformanceTracker()
 
-        self.metagraph = MockMetagraph(
-            netuid=config.netuid,
-            subtensor=subtensor
-        )
+        self.metagraph = MockMetagraph(netuid=config.netuid, subtensor=subtensor)
         self.dendrite = MockDendrite(bt.MockWallet())
-        self.real_image_datasets = [
-            MockImageDataset(
-                f"fake-path/dataset-{i}",
-                'train',
-                None,
-                False)
-            for i in range(3)
-        ]
+        self.real_image_datasets = [MockImageDataset(f"fake-path/dataset-{i}", "train", None, False) for i in range(3)]
         self.synthetic_data_generator = MockSyntheticDataGenerator(
-            prompt_type='annotation', use_random_diffuser=True, diffuser_name=None)
+            prompt_type="annotation", use_random_diffuser=True, diffuser_name=None
+        )
         self.total_real_images = sum([len(ds) for ds in self.real_image_datasets])
         self.scores = np.zeros(self.metagraph.n, dtype=np.float32)
         self._fake_prob = config.fake_prob
@@ -158,7 +143,8 @@ class MockMetagraph(bt.metagraph):
 
 class MockDendrite(bt.dendrite):
     """
-    Replaces a real bittensor network request with a mock request that just returns some static response for all axons that are passed and adds some random delay.
+    Replaces a real bittensor network request with a mock request that just returns some static response
+    for all axons that are passed and adds some random delay.
     """
 
     def __init__(self, wallet):
@@ -208,12 +194,7 @@ class MockDendrite(bt.dendrite):
                 else:
                     return s
 
-            return await asyncio.gather(
-                *(
-                    single_axon_response(i, target_axon)
-                    for i, target_axon in enumerate(axons)
-                )
-            )
+            return await asyncio.gather(*(single_axon_response(i, target_axon) for i, target_axon in enumerate(axons)))
 
         return await query_all_axons(streaming)
 

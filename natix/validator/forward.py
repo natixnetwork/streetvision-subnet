@@ -17,14 +17,12 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import random
-import time
 import re
+import time
 
-import numpy as np
-import pandas as pd
-import wandb
 import bittensor as bt
+import numpy as np
+import wandb
 
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
@@ -34,9 +32,9 @@ from natix.validator.reward import get_rewards
 
 
 def determine_challenge_type(media_cache, roadwork_prob=0.5):
-    modality = 'image'
+    modality = "image"
     label = 0 if np.random.rand() < roadwork_prob else 1
-    cache = media_cache['Roadwork'][modality]
+    cache = media_cache["Roadwork"][modality]
     task = None
     # if label == 1:
     #     if modality == 'video':
@@ -66,17 +64,17 @@ async def forward(self):
 
     """
     challenge_metadata = {}  # for bookkeeping
-    challenge = {}           # for querying miners
+    challenge = {}  # for querying miners
     label, modality, source_model_task, cache = determine_challenge_type(self.media_cache)
-    challenge_metadata['label'] = label
-    challenge_metadata['modality'] = modality
-    challenge_metadata['source_model_task'] = source_model_task
+    challenge_metadata["label"] = label
+    challenge_metadata["modality"] = modality
+    challenge_metadata["source_model_task"] = source_model_task
 
     bt.logging.info(f"Sampling data from {modality} cache")
 
-    if modality == 'video':
+    if modality == "video":
         bt.logging.error("Video challenges are not supported")
-    elif modality == 'image':
+    elif modality == "image":
         challenge = cache.sample(label)
 
     if challenge is None:
@@ -85,39 +83,37 @@ async def forward(self):
 
     # prepare metadata for logging
     try:
-        if modality == 'video':
+        if modality == "video":
             bt.logging.error("Video challenges are not supported")
-        elif modality == 'image':
-            challenge_metadata['image'] = wandb.Image(challenge['image'])
+        elif modality == "image":
+            challenge_metadata["image"] = wandb.Image(challenge["image"])
     except Exception as e:
         bt.logging.error(e)
         bt.logging.error(f"{modality} is truncated or corrupt. Challenge skipped.")
         return
 
     # update logging dict with everything except image data
-    challenge_metadata.update({
-        k: v for k, v in challenge.items() 
-        if re.match(r'^(?!image$|video$|videos$|video_\d+$).+', k)
-    })
+    challenge_metadata.update({k: v for k, v in challenge.items() if re.match(r"^(?!image$|video$|videos$|video_\d+$).+", k)})
     input_data = challenge[modality]  # extract image
 
     # apply data augmentation pipeline
     try:
         input_data, level, data_aug_params = apply_augmentation_by_level(
-            input_data, TARGET_IMAGE_SIZE, challenge.get('mask_center', None))
+            input_data, TARGET_IMAGE_SIZE, challenge.get("mask_center", None)
+        )
     except Exception as e:
         level, data_aug_params = -1, {}
         bt.logging.error(f"Unable to apply augmentations: {e}")
 
-    challenge_metadata['data_aug_params'] = data_aug_params
-    challenge_metadata['data_aug_level'] = level
+    challenge_metadata["data_aug_params"] = data_aug_params
+    challenge_metadata["data_aug_level"] = level
 
     # sample miner uids for challenge
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
     bt.logging.debug(f"Miner UIDs: {miner_uids}")
     axons = [self.metagraph.axons[uid] for uid in miner_uids]
-    challenge_metadata['miner_uids'] = list(miner_uids)
-    challenge_metadata['miner_hotkeys'] = list([axon.hotkey for axon in axons])
+    challenge_metadata["miner_uids"] = list(miner_uids)
+    challenge_metadata["miner_hotkeys"] = list([axon.hotkey for axon in axons])
 
     bt.logging.debug(f"{input_data}")
     # prepare synapse
@@ -125,32 +121,24 @@ async def forward(self):
 
     bt.logging.info(f"Sending {modality} challenge to {len(miner_uids)} miners")
     start = time.time()
-    responses = await self.dendrite(
-        axons=axons,
-        synapse=synapse,
-        deserialize=True,
-        timeout=9
-    )
+    responses = await self.dendrite(axons=axons, synapse=synapse, deserialize=True, timeout=9)
     bt.logging.info(f"Responses received in {time.time() - start}s")
     bt.logging.success(f"Roadwork {modality} challenge complete!")
-    bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ('miner_uids', 'miner_hotkeys')})
+    bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ("miner_uids", "miner_hotkeys")})
 
-    bt.logging.info(f"Scoring responses")
+    bt.logging.info("Scoring responses")
     rewards, metrics = get_rewards(
-        label=label,
-        responses=responses,
-        uids=miner_uids,
-        axons=axons,
-        performance_trackers=self.performance_trackers)
+        label=label, responses=responses, uids=miner_uids, axons=axons, performance_trackers=self.performance_trackers
+    )
 
     self.update_scores(rewards, miner_uids)
 
     for metric_name in list(metrics[0][modality].keys()):
-        challenge_metadata[f'miner_{modality}_{metric_name}'] = [m[modality][metric_name] for m in metrics]
+        challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
 
-    challenge_metadata['predictions'] = responses
-    challenge_metadata['rewards'] = rewards
-    challenge_metadata['scores'] = list(self.scores)
+    challenge_metadata["predictions"] = responses
+    challenge_metadata["rewards"] = rewards
+    challenge_metadata["scores"] = list(self.scores)
 
     for uid, pred, reward in zip(miner_uids, responses, rewards):
         if pred != -1:

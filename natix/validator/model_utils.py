@@ -1,18 +1,17 @@
-import torch
+from typing import Any, Dict, Optional
+
+import bittensor as bt
 import numpy as np
-from diffusers import MotionAdapter,  DiffusionPipeline
+import PIL.Image
+import torch
+from diffusers import DiffusionPipeline, MotionAdapter
 from huggingface_hub import hf_hub_download
+from janus.models import VLChatProcessor
 from safetensors.torch import load_file
 from transformers import AutoModelForCausalLM
-from janus.models import VLChatProcessor
-import PIL.Image
-from typing import Dict, Any, Any, Optional
-import bittensor as bt
 
 
-def load_annimatediff_motion_adapter(
-    step: int = 4
-) -> MotionAdapter:
+def load_annimatediff_motion_adapter(step: int = 4) -> MotionAdapter:
     """
     Load a motion adapter model for AnimateDiff.
 
@@ -34,12 +33,7 @@ def load_annimatediff_motion_adapter(
 
     repo = "ByteDance/AnimateDiff-Lightning"
     ckpt = f"animatediff_lightning_{step}step_diffusers.safetensors"
-    adapter.load_state_dict(
-        load_file(
-            hf_hub_download(repo, ckpt),
-            device=device
-        )
-    )
+    adapter.load_state_dict(load_file(hf_hub_download(repo, ckpt), device=device))
     return adapter
 
 
@@ -49,11 +43,7 @@ class JanusWrapper(DiffusionPipeline):
         self.model = model
         self.processor = processor
         self.tokenizer = self.processor.tokenizer
-        self.register_modules(
-            model=model,
-            processor=processor,
-            tokenizer=self.processor.tokenizer
-        )
+        self.register_modules(model=model, processor=processor, tokenizer=self.processor.tokenizer)
 
     @torch.inference_mode()
     def __call__(
@@ -65,7 +55,7 @@ class JanusWrapper(DiffusionPipeline):
         image_token_num_per_image: int = 576,
         img_size: int = 384,
         patch_size: int = 16,
-        **kwargs
+        **kwargs,
     ):
         conversation = [
             {
@@ -85,8 +75,8 @@ class JanusWrapper(DiffusionPipeline):
         input_ids = self.processor.tokenizer.encode(prompt)
         input_ids = torch.LongTensor(input_ids).to(self.device)
 
-        tokens = torch.zeros((parallel_size*2, len(input_ids)), dtype=torch.int).to(self.device)
-        for i in range(parallel_size*2):
+        tokens = torch.zeros((parallel_size * 2, len(input_ids)), dtype=torch.int).to(self.device)
+        for i in range(parallel_size * 2):
             tokens[i, :] = input_ids
             if i % 2 != 0:
                 tokens[i, 1:-1] = self.processor.pad_id
@@ -97,17 +87,15 @@ class JanusWrapper(DiffusionPipeline):
 
         for i in range(image_token_num_per_image):
             outputs = self.model.language_model.model(
-                inputs_embeds=inputs_embeds, 
-                use_cache=True, 
-                past_key_values=outputs.past_key_values if i != 0 else None
+                inputs_embeds=inputs_embeds, use_cache=True, past_key_values=outputs.past_key_values if i != 0 else None
             )
             hidden_states = outputs.last_hidden_state
-            
+
             logits = self.model.gen_head(hidden_states[:, -1, :])
             logit_cond = logits[0::2, :]
             logit_uncond = logits[1::2, :]
-            
-            logits = logit_uncond + cfg_weight * (logit_cond-logit_uncond)
+
+            logits = logit_uncond + cfg_weight * (logit_cond - logit_uncond)
             probs = torch.softmax(logits / temperature, dim=-1)
 
             next_token = torch.multinomial(probs, num_samples=1)
@@ -118,8 +106,8 @@ class JanusWrapper(DiffusionPipeline):
             inputs_embeds = img_embeds.unsqueeze(dim=1)
 
         dec = self.model.gen_vision_model.decode_code(
-            generated_tokens.to(dtype=torch.int), 
-            shape=[parallel_size, 8, img_size//patch_size, img_size//patch_size]
+            generated_tokens.to(dtype=torch.int),
+            shape=[parallel_size, 8, img_size // patch_size, img_size // patch_size],
         )
         dec = dec.to(torch.float32).cpu().numpy().transpose(0, 2, 3, 1)
         dec = np.clip((dec + 1) / 2 * 255, 0, 255)
@@ -127,7 +115,7 @@ class JanusWrapper(DiffusionPipeline):
         images = []
         for i in range(parallel_size):
             images.append(PIL.Image.fromarray(dec[i].astype(np.uint8)))
-            
+
         # Return object with images attribute
         class Output:
             def __init__(self, images):
@@ -139,7 +127,7 @@ class JanusWrapper(DiffusionPipeline):
     def from_pretrained(cls, model_path, **kwargs):
         model, processor = load_janus_model(model_path, **kwargs)
         return cls(model=model, processor=processor)
-        
+
     def to(self, device):
         self.model = self.model.to(device)
         return self
@@ -147,85 +135,83 @@ class JanusWrapper(DiffusionPipeline):
 
 def load_janus_model(model_path: str, **kwargs):
     processor = VLChatProcessor.from_pretrained(model_path)
-    
+
     # Filter kwargs to only include what Janus expects
-    janus_kwargs = {
-        'trust_remote_code': True,
-        'torch_dtype': kwargs.get('torch_dtype', torch.bfloat16)
-    }
-    
+    janus_kwargs = {"trust_remote_code": True, "torch_dtype": kwargs.get("torch_dtype", torch.bfloat16)}
+
     # Let device placement be handled by diffusers like other models
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path, 
-        **janus_kwargs
-    ).eval()
-    
+    model = AutoModelForCausalLM.from_pretrained(model_path, **janus_kwargs).eval()
+
     return model, processor
 
 
 def create_pipeline_generator(model_config: Dict[str, Any], model: Any) -> callable:
     """
     Creates a generator function based on pipeline configuration.
-    
+
     Args:
         model_config: Model configuration dictionary
         model: Loaded model instance(s)
-            
+
     Returns:
         Callable that handles the generation process for the model
     """
-    if isinstance(model_config.get('pipeline_stages'), list):
+    if isinstance(model_config.get("pipeline_stages"), list):
+
         def generate(prompt: str, **kwargs):
             output = None
             prompt_embeds = None
             negative_embeds = None
-            
-            for stage in model_config['pipeline_stages']:
+
+            for stage in model_config["pipeline_stages"]:
                 stage_args = {**kwargs}  # Copy base args
-                
+
                 # Add stage-specific args
-                if stage.get('input_key') and output is not None:
-                    stage_args[stage['input_key']] = output
-                
+                if stage.get("input_key") and output is not None:
+                    stage_args[stage["input_key"]] = output
+
                 # Add any stage-specific generation args
-                if stage.get('args'):
-                    stage_args.update(stage['args'])
-                
+                if stage.get("args"):
+                    stage_args.update(stage["args"])
+
                 # Handle prompt embeddings
-                if stage.get('use_prompt_embeds') and prompt_embeds is not None:
-                    stage_args['prompt_embeds'] = prompt_embeds
-                    stage_args['negative_prompt_embeds'] = negative_embeds
-                    stage_args.pop('prompt', None)
-                elif stage.get('save_prompt_embeds'):
+                if stage.get("use_prompt_embeds") and prompt_embeds is not None:
+                    stage_args["prompt_embeds"] = prompt_embeds
+                    stage_args["negative_prompt_embeds"] = negative_embeds
+                    stage_args.pop("prompt", None)
+                elif stage.get("save_prompt_embeds"):
                     # Get embeddings directly from encode_prompt
-                    prompt_embeds, negative_embeds = model[stage['name']].encode_prompt(
+                    prompt_embeds, negative_embeds = model[stage["name"]].encode_prompt(
                         prompt=prompt,
-                        device=model[stage['name']].device,
-                        num_images_per_prompt=stage_args.get('num_images_per_prompt', 1),
+                        device=model[stage["name"]].device,
+                        num_images_per_prompt=stage_args.get("num_images_per_prompt", 1),
                     )
-                    stage_args['prompt_embeds'] = prompt_embeds
-                    stage_args['negative_prompt_embeds'] = negative_embeds
-                    stage_args.pop('prompt', None)
+                    stage_args["prompt_embeds"] = prompt_embeds
+                    stage_args["negative_prompt_embeds"] = negative_embeds
+                    stage_args.pop("prompt", None)
                 else:
-                    stage_args['prompt'] = prompt
-                
+                    stage_args["prompt"] = prompt
+
                 # Run stage
-                result = model[stage['name']](**stage_args)
-                
+                result = model[stage["name"]](**stage_args)
+
                 # Extract output based on stage config
-                output = getattr(result, stage.get('output_attr', 'images'))
-                
+                output = getattr(result, stage.get("output_attr", "images"))
+
                 # Clear memory if configured
-                if model_config.get('clear_memory_on_stage_end'):
+                if model_config.get("clear_memory_on_stage_end"):
                     import gc
+
                     import torch
+
                     if torch.cuda.is_available():
                         torch.cuda.empty_cache()
                     gc.collect()
-                    
+
             return result
+
         return generate
-    
+
     # Default single-stage pipeline
     return lambda prompt, **kwargs: model(prompt=prompt, **kwargs)
 
@@ -242,7 +228,7 @@ def enable_model_optimizations(
 ) -> None:
     """
     Enables various model optimizations for better memory usage and performance.
-    
+
     Args:
         model: The model to optimize
         device: Device to move model to ('cuda', 'cpu', etc)
@@ -254,7 +240,7 @@ def enable_model_optimizations(
         stage_name: Optional name of pipeline stage for logging
     """
     model_name = f"{stage_name} " if stage_name else ""
-    
+
     if disable_progress_bar:
         bt.logging.info(f"Disabling progress bar for {model_name}model")
         model.set_progress_bar_config(disable=True)

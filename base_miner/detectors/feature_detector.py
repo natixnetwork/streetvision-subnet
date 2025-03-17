@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional
 
+import bittensor as bt
 import torch
 import yaml
-import bittensor as bt
-from PIL import Image
 from huggingface_hub import hf_hub_download
+from PIL import Image
 
 from base_miner.detectors.configs.constants import CONFIGS_DIR
 
@@ -26,12 +26,7 @@ class FeatureDetector(ABC):
         hf_repo (str): Hugging Face repository name for model weights.
     """
 
-    def __init__(
-        self,
-        model_name: str,
-        config_name: Optional[str] = None,
-        device: str = 'cpu'
-    ) -> None:
+    def __init__(self, model_name: str, config_name: Optional[str] = None, device: str = "cpu") -> None:
         """Initialize the DeepfakeDetector.
 
         Args:
@@ -40,9 +35,7 @@ class FeatureDetector(ABC):
             device: Device to run the model on ('cpu' or 'cuda').
         """
         self.model_name = model_name
-        self.device = torch.device(
-            device if device == 'cuda' and torch.cuda.is_available() else 'cpu'
-        )
+        self.device = torch.device(device if device == "cuda" and torch.cuda.is_available() else "cpu")
 
         if config_name:
             print(f"Configuring with {config_name}")
@@ -97,12 +90,10 @@ class FeatureDetector(ABC):
         if Path(detector_config).exists():
             detector_config_file = Path(detector_config)
         else:
-            detector_config_file = (
-                Path(__file__).resolve().parent / Path('configs/' + detector_config)
-            )
+            detector_config_file = Path(__file__).resolve().parent / Path("configs/" + detector_config)
 
         try:
-            with open(detector_config_file, 'r', encoding='utf-8') as file:
+            with open(detector_config_file, "r", encoding="utf-8") as file:
                 config_dict = yaml.safe_load(file)
 
             # Set class attributes dynamically from the config dictionary
@@ -113,11 +104,7 @@ class FeatureDetector(ABC):
             print(f"Error loading detector configurations from {detector_config_file}: {e}")
             raise
 
-    def ensure_weights_are_available(
-        self,
-        weights_dir: str,
-        weights_filename: str
-    ) -> None:
+    def ensure_weights_are_available(self, weights_dir: str, weights_filename: str) -> None:
         """Ensure model weights are downloaded and available locally.
 
         Downloads weights from Hugging Face Hub if not found locally.
@@ -131,8 +118,7 @@ class FeatureDetector(ABC):
             Path(weights_dir).mkdir(parents=True, exist_ok=True)
 
         if not destination_path.exists():
-            print(f"Downloading {weights_filename} from {self.hf_repo} "
-                  f"to {weights_dir}")
+            print(f"Downloading {weights_filename} from {self.hf_repo} " f"to {weights_dir}")
             hf_hub_download(self.hf_repo, weights_filename, local_dir=weights_dir)
 
     def load_model_config(self):
@@ -141,13 +127,13 @@ class FeatureDetector(ABC):
             if not destination_path.exists():
                 local_config_path = hf_hub_download(self.hf_repo, self.config_name, local_dir=CONFIGS_DIR)
                 print(f"Downloaded {self.hf_repo}/{self.config_name} to {local_config_path}")
-                with Path(local_config_path).open('r') as f:
+                with Path(local_config_path).open("r") as f:
                     self.config = yaml.safe_load(f)
             else:
                 print(f"Loading local config from {destination_path}")
-                with destination_path.open('r') as f:
+                with destination_path.open("r") as f:
                     self.config = yaml.safe_load(f)
                 print(f"Loaded: {self.config}")
-        except Exception as e:
+        except Exception:
             # some models such as NPR don't have an additional config file
             bt.logging.warning("No additional train config loaded.")

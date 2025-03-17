@@ -1,7 +1,9 @@
 import os
-from natix.synthetic_data_generation import SyntheticDataGenerator
-from natix.validator.config import MODEL_NAMES, IMAGE_ANNOTATION_MODEL, TEXT_MODERATION_MODEL
+
 import bittensor as bt
+
+from natix.synthetic_data_generation import SyntheticDataGenerator
+from natix.validator.config import IMAGE_ANNOTATION_MODEL, MODEL_NAMES, TEXT_MODERATION_MODEL
 
 
 def is_model_cached(model_name):
@@ -14,7 +16,7 @@ def is_model_cached(model_name):
     Returns:
         bool: True if the model is cached, False otherwise.
     """
-    cache_dir = os.path.expanduser('~/.cache/huggingface/')
+    cache_dir = os.path.expanduser("~/.cache/huggingface/")
     # Format the directory name correctly by replacing each slash with double dashes
     model_dir = f"models--{model_name.replace('/', '--')}"
 
@@ -38,11 +40,7 @@ def main():
     It also initializes and loads diffusers for uncached models.
     """
     bt.logging.info("Verifying validator model downloads....")
-    synthetic_image_generator = SyntheticDataGenerator(
-        prompt_type='annotation',
-        image_cache='test',
-        use_random_model=True
-    )
+    synthetic_image_generator = SyntheticDataGenerator(prompt_type="annotation", image_cache="test", use_random_model=True)
 
     # Check and load annotation and moderation models if not cached
     if not is_model_cached(IMAGE_ANNOTATION_MODEL) or not is_model_cached(TEXT_MODERATION_MODEL):
@@ -52,11 +50,7 @@ def main():
     # Initialize and load diffusers if not cached
     for model_name in MODEL_NAMES:
         if not is_model_cached(model_name):
-            synthetic_image_generator = SyntheticDataGenerator(
-                prompt_type=None,
-                use_random_model=False,
-                model_name=model_name
-            )
+            synthetic_image_generator = SyntheticDataGenerator(prompt_type=None, use_random_model=False, model_name=model_name)
             synthetic_image_generator.load_model(model_name)
             synthetic_image_generator.clear_gpu()
 

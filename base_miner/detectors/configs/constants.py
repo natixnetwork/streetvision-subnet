@@ -5,7 +5,7 @@ BASE_PATH = os.path.abspath(os.path.join(CONFIGS_DIR, ".."))  # Points to bitmin
 WEIGHTS_DIR = os.path.join(BASE_PATH, "weights")
 
 CONFIG_PATHS = {
-    'Roadwork': os.path.join(CONFIGS_DIR, "roadwork.yaml"),
+    "Roadwork": os.path.join(CONFIGS_DIR, "roadwork.yaml"),
 }
 
 HF_REPOS = {

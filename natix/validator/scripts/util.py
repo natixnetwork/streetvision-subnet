@@ -1,23 +1,18 @@
 import time
+
+import bittensor as bt
+import wandb
 import yaml
 
-import wandb
-import bittensor as bt
-
 import natix
-from natix.validator.config import (    
-    WANDB_ENTITY,
-    TESTNET_WANDB_PROJECT,
-    MAINNET_WANDB_PROJECT,
-    MAINNET_UID,
-    VALIDATOR_INFO_PATH
-)
+from natix.validator.config import MAINNET_UID, MAINNET_WANDB_PROJECT, TESTNET_WANDB_PROJECT, VALIDATOR_INFO_PATH, WANDB_ENTITY
+
 
 def load_validator_info(max_wait: int = 300):
     start_time = time.time()
     while True:
         try:
-            with open(VALIDATOR_INFO_PATH, 'r') as f:
+            with open(VALIDATOR_INFO_PATH, "r") as f:
                 validator_info = yaml.safe_load(f)
             bt.logging.info(f"Loaded validator info from {VALIDATOR_INFO_PATH}")
             return validator_info
@@ -31,14 +26,14 @@ def load_validator_info(max_wait: int = 300):
         except yaml.YAMLError:
             bt.logging.error(f"Could not parse validator info at {VALIDATOR_INFO_PATH}")
             validator_info = {
-                'uid': 'ParseError',
-                'hotkey': 'ParseError',
-                'full_path': 'ParseError',
-                'netuid': TESTNET_WANDB_PROJECT
+                "uid": "ParseError",
+                "hotkey": "ParseError",
+                "full_path": "ParseError",
+                "netuid": TESTNET_WANDB_PROJECT,
             }
             return validator_info
 
- 
+
 def init_wandb_run(run_base_name: str, uid: str, hotkey: str, netuid: int, full_path: str) -> None:
     """
     Initialize a Weights & Biases run for tracking the validator.
@@ -47,20 +42,15 @@ def init_wandb_run(run_base_name: str, uid: str, hotkey: str, netuid: int, full_
         vali_uid: The validator's uid
         vali_hotkey: The validator's hotkey address
         netuid: The network ID (mainnet or testnet)
-        vali_full_path: Validator's bittensor directory 
+        vali_full_path: Validator's bittensor directory
 
     Returns:
         None
     """
-    run_name = f'{run_base_name}-{uid}-{natix.__version__}'
-    
-    config = {
-        'run_name': run_name,
-        'uid': uid,
-        'hotkey': hotkey,
-        'version': natix.__version__
-    }
-    
+    run_name = f"{run_base_name}-{uid}-{natix.__version__}"
+
+    config = {"run_name": run_name, "uid": uid, "hotkey": hotkey, "version": natix.__version__}
+
     wandb_project = TESTNET_WANDB_PROJECT
     if netuid == MAINNET_UID:
         wandb_project = MAINNET_WANDB_PROJECT
@@ -68,14 +58,7 @@ def init_wandb_run(run_base_name: str, uid: str, hotkey: str, netuid: int, full_
     # Initialize the wandb run for the single project
     bt.logging.info(f"Initializing W&B run for '{WANDB_ENTITY}/{wandb_project}'")
     try:
-        return wandb.init(
-            name=run_name,
-            project=wandb_project,
-            entity=WANDB_ENTITY,
-            config=config,
-            dir=full_path,
-            reinit=True
-        )
+        return wandb.init(name=run_name, project=wandb_project, entity=WANDB_ENTITY, config=config, dir=full_path, reinit=True)
     except wandb.UsageError as e:
         bt.logging.warning(e)
         bt.logging.warning("Did you run wandb login?")

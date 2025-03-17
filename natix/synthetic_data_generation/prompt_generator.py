@@ -1,20 +1,13 @@
 import gc
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
-import torch
-from PIL import Image
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    Blip2ForConditionalGeneration,
-    Blip2Processor,
-    pipeline,
-    logging as transformers_logging,
-)
-from transformers.utils.logging import disable_progress_bar
 
 import bittensor as bt
+import torch
+from PIL import Image
+from transformers import AutoModelForCausalLM, AutoTokenizer, Blip2ForConditionalGeneration, Blip2Processor
+from transformers import logging as transformers_logging
+from transformers import pipeline
+from transformers.utils.logging import disable_progress_bar
+
 from natix.validator.config import HUGGINGFACE_CACHE_DIR
 
 disable_progress_bar()
@@ -33,7 +26,7 @@ class PromptGenerator:
         self,
         vlm_name: str,
         llm_name: str,
-        device: str = 'cuda',
+        device: str = "cuda",
     ) -> None:
         """
         Initialize the ImageAnnotationGenerator with specific models and device settings.
@@ -62,38 +55,22 @@ class PromptGenerator:
         the specified device.
         """
         if self.are_models_loaded():
-            bt.logging.warning(f"Models already loaded")
+            bt.logging.warning("Models already loaded")
             return
 
         bt.logging.info(f"Loading caption generation model {self.vlm_name}")
-        self.vlm_processor = Blip2Processor.from_pretrained(
-            self.vlm_name,
-            cache_dir=HUGGINGFACE_CACHE_DIR
-        )
+        self.vlm_processor = Blip2Processor.from_pretrained(self.vlm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
         self.vlm = Blip2ForConditionalGeneration.from_pretrained(
-            self.vlm_name,
-            torch_dtype=torch.float16,
-            cache_dir=HUGGINGFACE_CACHE_DIR
+            self.vlm_name, torch_dtype=torch.float16, cache_dir=HUGGINGFACE_CACHE_DIR
         )
         self.vlm.to(self.device)
         bt.logging.info(f"Loaded image annotation model {self.vlm_name}")
 
         bt.logging.info(f"Loading caption moderation model {self.llm_name}")
-        llm = AutoModelForCausalLM.from_pretrained(
-            self.llm_name,
-            torch_dtype=torch.bfloat16,
-            cache_dir=HUGGINGFACE_CACHE_DIR
-        )
-        tokenizer = AutoTokenizer.from_pretrained(
-            self.llm_name,
-            cache_dir=HUGGINGFACE_CACHE_DIR
-        )
+        llm = AutoModelForCausalLM.from_pretrained(self.llm_name, torch_dtype=torch.bfloat16, cache_dir=HUGGINGFACE_CACHE_DIR)
+        tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
         llm = llm.to(self.device)
-        self.llm_pipeline = pipeline(
-            "text-generation",
-            model=llm,
-            tokenizer=tokenizer
-        )
+        self.llm_pipeline = pipeline("text-generation", model=llm, tokenizer=tokenizer)
         bt.logging.info(f"Loaded caption moderation model {self.llm_name}")
 
     def clear_gpu(self) -> None:
@@ -103,24 +80,19 @@ class PromptGenerator:
         """
         bt.logging.info("Clearing GPU memory after prompt generation")
         if self.vlm:
-            self.vlm.to('cpu')
+            self.vlm.to("cpu")
             del self.vlm
             self.vlm = None
 
         if self.llm_pipeline:
-            self.llm_pipeline.model.to('cpu')
+            self.llm_pipeline.model.to("cpu")
             del self.llm_pipeline
             self.llm_pipeline = None
 
         gc.collect()
         torch.cuda.empty_cache()
 
-    def generate(
-        self,
-        image: Image.Image,
-        max_new_tokens: int = 20,
-        verbose: bool = False
-    ) -> str:
+    def generate(self, image: Image.Image, max_new_tokens: int = 20, verbose: bool = False) -> str:
         """
         Generate a string description for a given image using prompt-based
         captioning and building conversational context.
@@ -138,29 +110,14 @@ class PromptGenerator:
             transformers_logging.set_verbosity_error()
 
         description = ""
-        prompts = [
-            "An image of",
-            "The setting is",
-            "The background is",
-            "The image type/style is"
-        ]
+        prompts = ["An image of", "The setting is", "The background is", "The image type/style is"]
 
         for i, prompt in enumerate(prompts):
-            description += prompt + ' '
-            inputs = self.vlm_processor(
-                image,
-                text=description,
-                return_tensors="pt"
-            ).to(self.device, torch.float16)
+            description += prompt + " "
+            inputs = self.vlm_processor(image, text=description, return_tensors="pt").to(self.device, torch.float16)
 
-            generated_ids = self.vlm.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens
-            )
-            answer = self.vlm_processor.batch_decode(
-                generated_ids,
-                skip_special_tokens=True
-            )[0].strip()
+            generated_ids = self.vlm.generate(**inputs, max_new_tokens=max_new_tokens)
+            answer = self.vlm_processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
 
             if verbose:
                 bt.logging.info(f"{i}. Prompt: {prompt}")
@@ -168,21 +125,21 @@ class PromptGenerator:
 
             if answer:
                 answer = answer.rstrip(" ,;!?")
-                if not answer.endswith('.'):
-                    answer += '.'
-                description += answer + ' '
+                if not answer.endswith("."):
+                    answer += "."
+                description += answer + " "
             else:
-                description = description[:-len(prompt) - 1]
+                description = description[: -len(prompt) - 1]
 
         if not verbose:
             transformers_logging.set_verbosity_info()
 
         if description.startswith(prompts[0]):
-            description = description[len(prompts[0]):]
+            description = description[len(prompts[0]) :]  # noqa: E203
 
         description = description.strip()
-        if not description.endswith('.'):
-            description += '.'
+        if not description.endswith("."):
+            description += "."
 
         moderated_description = self.moderate(description)
         return self.enhance(moderated_description)
@@ -209,21 +166,18 @@ class PromptGenerator:
                     "eliminate redundancy, and remove all specific references to "
                     "individuals by name. You do not respond with anything other "
                     "than the revised description.[/INST]"
-                )
+                ),
             },
-            {
-                "role": "user",
-                "content": description
-            }
+            {"role": "user", "content": description},
         ]
         try:
             moderated_text = self.llm_pipeline(
                 messages,
                 max_new_tokens=max_new_tokens,
                 pad_token_id=self.llm_pipeline.tokenizer.eos_token_id,
-                return_full_text=False
+                return_full_text=False,
             )
-            return moderated_text[0]['generated_text']
+            return moderated_text[0]["generated_text"]
 
         except Exception as e:
             bt.logging.error(f"An error occurred during moderation: {e}", exc_info=True)
@@ -262,12 +216,9 @@ class PromptGenerator:
                     "7. Keep the description concise but descriptive\n"
                     "8. Focus on gradual, natural transitions\n"
                     "Only respond with the enhanced description.[/INST]"
-                )
+                ),
             },
-            {
-                "role": "user",
-                "content": description
-            }
+            {"role": "user", "content": description},
         ]
 
         try:
@@ -275,9 +226,9 @@ class PromptGenerator:
                 messages,
                 max_new_tokens=max_new_tokens,
                 pad_token_id=self.llm_pipeline.tokenizer.eos_token_id,
-                return_full_text=False
+                return_full_text=False,
             )
-            return enhanced_text[0]['generated_text']
+            return enhanced_text[0]["generated_text"]
 
         except Exception as e:
             print(f"An error occurred during motion enhancement: {e}")

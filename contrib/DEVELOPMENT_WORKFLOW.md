@@ -55,7 +55,7 @@ General workflow:
 
 - Branch off from: `main` or `staging`
 - Merge back into: `staging` then `main`
-- Naming convention: `hotfix/<version>/<descriptive-message>/<creator's-name>` 
+- Naming convention: `hotfix/<version>/<descriptive-message>/<creator's-name>`
 
 Hotfix branches are meant for quick fixes in the production environment. When a critical bug in a production version must be resolved immediately, a hotfix branch is created.
 
@@ -135,7 +135,7 @@ Finally, we remove the temporary branch:
 - `git branch -d hotfix/3.3.4/optional-descriptive-message`
 ## Continuous Integration (CI) and Continuous Deployment (CD)
 
-Continuous Integration (CI) is a software development practice where members of a team integrate their work frequently. Each integration is verified by an automated build and test process to detect integration errors as quickly as possible. 
+Continuous Integration (CI) is a software development practice where members of a team integrate their work frequently. Each integration is verified by an automated build and test process to detect integration errors as quickly as possible.
 
 Continuous Deployment (CD) is a software engineering approach in which software functionalities are delivered frequently through automated deployments.
 
@@ -145,7 +145,7 @@ Continuous Deployment (CD) is a software engineering approach in which software 
 
 ## Versioning and Release Notes
 
-Semantic versioning helps keep track of the different versions of the software. When code is merged into main, generate a new version. 
+Semantic versioning helps keep track of the different versions of the software. When code is merged into main, generate a new version.
 
 Release notes provide documentation for each version released to the users, highlighting the new features, improvements, and bug fixes. When merged into main, generate GitHub release and release notes.
 
@@ -158,7 +158,7 @@ Follow these steps when you are contributing to the bittensor subnet:
     - Document not released developments
     - When merged into staging, generate information about what's merged into staging but not released.
     - When merged into main, generate GitHub release and release notes.
-- CircleCI jobs 
+- CircleCI jobs
     - Merge staging into main and release version (needed to release code)
     - Build and Test Bittensor (needed to merge PRs)
 

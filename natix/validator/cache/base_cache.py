@@ -1,27 +1,25 @@
-from abc import ABC, abstractmethod
 import asyncio
-from datetime import datetime
-from pathlib import Path
 import time
+from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import bittensor as bt
-import huggingface_hub as hf_hub
 import numpy as np
 
-from .util import get_most_recent_update_time, seconds_to_str
 from .download import download_files, list_hf_files
+from .util import get_most_recent_update_time, seconds_to_str
 
 
 class BaseCache(ABC):
     """
     Abstract base class for managing file caches with compressed sources.
-    
+
     This class provides the basic infrastructure for maintaining both a compressed
-    source cache and an extracted cache, with automatic refresh intervals and 
+    source cache and an extracted cache, with automatic refresh intervals and
     background update tasks.
     """
-    
+
     def __init__(
         self,
         cache_dir: Union[str, Path],
@@ -36,7 +34,7 @@ class BaseCache(ABC):
     ) -> None:
         """
         Initialize the base cache infrastructure.
-        
+
         Args:
             cache_dir: Path to store extracted files
             extracted_update_interval: Hours between extracted cache updates
@@ -48,7 +46,7 @@ class BaseCache(ABC):
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(exist_ok=True, parents=True)
 
-        self.compressed_dir = self.cache_dir / 'sources'
+        self.compressed_dir = self.cache_dir / "sources"
         self.compressed_dir.mkdir(exist_ok=True, parents=True)
 
         self.datasets = datasets
@@ -87,24 +85,17 @@ class BaseCache(ABC):
             self._refresh_extracted_cache()
 
         # Start background tasks
-        bt.logging.info(f"Starting background tasks")
-        self._compressed_updater_task = self.loop.create_task(
-            self._run_compressed_updater()
-        )
-        self._extracted_updater_task = self.loop.create_task(
-            self._run_extracted_updater()
-        )
+        bt.logging.info("Starting background tasks")
+        self._compressed_updater_task = self.loop.create_task(self._run_compressed_updater())
+        self._extracted_updater_task = self.loop.create_task(self._run_extracted_updater())
 
     def _get_cached_files(self) -> List[Path]:
         """Get list of all extracted files in cache directory."""
-        return [
-            f for f in self.cache_dir.iterdir() 
-            if f.is_file() and f.suffix.lower() in self.file_extensions
-        ]
+        return [f for f in self.cache_dir.iterdir() if f.is_file() and f.suffix.lower() in self.file_extensions]
 
     def _get_compressed_files(self) -> List[Path]:
         """Get list of all compressed files in compressed directory."""
-        return list(self.compressed_dir.glob(f'*{self.compressed_file_extension}'))
+        return list(self.compressed_dir.glob(f"*{self.compressed_file_extension}"))
 
     def _extracted_cache_empty(self) -> bool:
         """Check if extracted cache directory is empty."""
@@ -118,7 +109,9 @@ class BaseCache(ABC):
         """Check compressed cache size and remove oldest files if over limit."""
         files = self._get_compressed_files()
         total_size = sum(f.stat().st_size for f in files)
-        bt.logging.info(f"Compressed cache size: {len(files)} files | {total_size / (1024*1024*1024):.4f} GB [{self.compressed_dir}]")
+        bt.logging.info(
+            f"Compressed cache size: {len(files)} files | {total_size / (1024*1024*1024):.4f} GB [{self.compressed_dir}]"
+        )
         while total_size > self.max_compressed_size_bytes:
             compressed_files = self._get_compressed_files()
             if not compressed_files:
@@ -129,7 +122,9 @@ class BaseCache(ABC):
 
             oldest_file.unlink()
             total_size -= file_size
-            bt.logging.info(f"Removed {oldest_file.name} to stay under size limit - new cache size is  {total_size / (1024*1024*1024):.4f} GB")
+            bt.logging.info(
+                f"Removed {oldest_file.name} to stay under size limit - new cache size is  {total_size / (1024*1024*1024):.4f} GB"
+            )
 
     def _prune_extracted_cache(self) -> None:
         """Check extracted cache size and remove oldest files if over limit."""
@@ -145,11 +140,13 @@ class BaseCache(ABC):
             file_size = oldest_file.stat().st_size
 
             oldest_file.unlink()
-            json_file = oldest_file.with_suffix('.json')
+            json_file = oldest_file.with_suffix(".json")
             if json_file.exists():
                 json_file.unlink()
             total_size -= file_size
-            bt.logging.info(f"Removed {oldest_file.name} to stay under size limit - new cache size is  {total_size / (1024*1024*1024):.4f} GB")
+            bt.logging.info(
+                f"Removed {oldest_file.name} to stay under size limit - new cache size is  {total_size / (1024*1024*1024):.4f} GB"
+            )
 
     async def _run_extracted_updater(self) -> None:
         """Asynchronously refresh extracted files according to update interval."""
@@ -192,11 +189,7 @@ class BaseCache(ABC):
                 bt.logging.error(f"Error in compressed cache update: {e}")
                 await asyncio.sleep(60)
 
-    def _refresh_compressed_cache(
-        self,
-        n_sources_per_dataset: Optional[int] = None,
-        n_datasets: Optional[int] = None
-    ) -> None:
+    def _refresh_compressed_cache(self, n_sources_per_dataset: Optional[int] = None, n_datasets: Optional[int] = None) -> None:
         """
         Refresh the compressed file cache with new downloads.
         """
@@ -208,17 +201,12 @@ class BaseCache(ABC):
 
             new_files: List[Path] = []
             for dataset in self.datasets[:n_datasets]:
-                filenames = list_hf_files(
-                    repo_id=dataset['path'], 
-                    extension=self.compressed_file_extension)
-                remote_paths = [
-                    f"https://huggingface.co/datasets/{dataset['path']}/resolve/main/{f}"
-                    for f in filenames
-                ]
+                filenames = list_hf_files(repo_id=dataset["path"], extension=self.compressed_file_extension)
+                remote_paths = [f"https://huggingface.co/datasets/{dataset['path']}/resolve/main/{f}" for f in filenames]
                 bt.logging.info(f"Downloading {n_sources_per_dataset} from {dataset['path']} to {self.compressed_dir}")
                 new_files += download_files(
-                    urls=np.random.choice(remote_paths, n_sources_per_dataset),
-                    output_dir=self.compressed_dir)
+                    urls=np.random.choice(remote_paths, n_sources_per_dataset), output_dir=self.compressed_dir
+                )
 
             if new_files:
                 bt.logging.info(f"{len(new_files)} new files added to {self.compressed_dir}")
@@ -255,7 +243,7 @@ class BaseCache(ABC):
 
     def __del__(self) -> None:
         """Cleanup background tasks on deletion."""
-        if hasattr(self, '_extracted_updater_task'):
+        if hasattr(self, "_extracted_updater_task"):
             self._extracted_updater_task.cancel()
-        if hasattr(self, '_compressed_updater_task'):
+        if hasattr(self, "_compressed_updater_task"):
             self._compressed_updater_task.cancel()

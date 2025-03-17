@@ -1,14 +1,16 @@
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, matthews_corrcoef, roc_auc_score
-from typing import Dict, List
 from collections import deque
+from typing import Dict
+
 import bittensor as bt
 import numpy as np
+from sklearn.metrics import accuracy_score, f1_score, matthews_corrcoef, precision_score, recall_score, roc_auc_score
 
 
 class MinerPerformanceTracker:
     """
     Tracks all recent miner performance to facilitate reward computation.
     """
+
     def __init__(self, store_last_n_predictions: int = 100):
         self.prediction_history: Dict[int, deque] = {}
         self.label_history: Dict[int, deque] = {}
@@ -41,7 +43,7 @@ class MinerPerformanceTracker:
 
         Args:
         - uid (int): The unique identifier of the miner
-        - window (int, optional): The number of recent predictions to consider. 
+        - window (int, optional): The number of recent predictions to consider.
         - If None, all stored predictions are used.
 
         Returns:
@@ -75,30 +77,16 @@ class MinerPerformanceTracker:
             mcc = max(0, matthews_corrcoef(labels, predictions)) if len(np.unique(labels)) > 1 else 0.0
             auc = roc_auc_score(labels, pred_probs) if len(np.unique(labels)) > 1 else 0.0
         except Exception as e:
-            bt.logging.warning(f'Error in reward computation: {e}')
+            bt.logging.warning(f"Error in reward computation: {e}")
             return self._empty_metrics()
 
-        return {
-            'accuracy': accuracy,
-            'precision': precision,
-            'recall': recall,
-            'f1_score': f1,
-            'mcc': mcc,
-            'auc': auc
-        }
+        return {"accuracy": accuracy, "precision": precision, "recall": recall, "f1_score": f1, "mcc": mcc, "auc": auc}
 
     def _empty_metrics(self):
         """
         Return a dictionary of empty metrics
         """
-        return {
-            'accuracy': 0,
-            'precision': 0,
-            'recall': 0,
-            'f1_score': 0,
-            'mcc': 0,
-            'auc': 0
-        }
+        return {"accuracy": 0, "precision": 0, "recall": 0, "f1_score": 0, "mcc": 0, "auc": 0}
 
     def get_prediction_count(self, uid: int) -> int:
         """

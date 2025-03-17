@@ -10,6 +10,8 @@
 # The above copyright notice and this permission notice shall be included in all copies or substantial portions of
 # the Software.
 
+import argparse
+
 # THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
 # THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 # THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
@@ -17,8 +19,9 @@
 # DEALINGS IN THE SOFTWARE.
 import os
 import subprocess
-import argparse
+
 import bittensor as bt
+
 from natix.utils.logging import setup_events_logger
 
 
@@ -69,9 +72,7 @@ def check_config(cls, config: "bt.Config"):
 
     if not config.neuron.dont_save_events:
         # Add custom event logger for the events.
-        events_logger = setup_events_logger(
-            config.neuron.full_path, config.neuron.events_retention_size
-        )
+        events_logger = setup_events_logger(config.neuron.full_path, config.neuron.events_retention_size)
         bt.logging.register_primary_logger(events_logger.name)
         if config.logging.debug:
             bt.logging.enable_debug()
@@ -235,7 +236,7 @@ def add_validator_args(cls, parser):
         "--neuron.prompt_type",
         type=str,
         help="Choose 'annotation' to generate prompts from BLIP-2 annotations of real images, or 'random' for arbitrary prompts.",
-        default='annotation',
+        default="annotation",
     )
 
     parser.add_argument(
@@ -325,18 +326,13 @@ def add_validator_args(cls, parser):
         default="opentensor-dev",
     )
 
-    parser.add_argument(
-        "--proxy.port",
-        type=int,
-        help="The port to run the proxy on.",
-        default=10913
-    )
+    parser.add_argument("--proxy.port", type=int, help="The port to run the proxy on.", default=10913)
 
     parser.add_argument(
         "--proxy.proxy_client_url",
         type=str,
         help="The url initialize credentials for proxy.",
-        default="https://subnet-api.bitmindlabs.ai"
+        default="https://subnet-api.bitmindlabs.ai",
     )
 
 
