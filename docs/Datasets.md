@@ -1,35 +1,24 @@
 # Datasets README
 
-This document provides an overview of the datasets used within the BitMind Subnet, including descriptions and links to their sources and access points on Hugging Face. Each dataset is under its own license, and users are encouraged to review these licenses before use. 
-
-Details on decentralized data storage access points, which will serve as another way to facilitate the utilization of our datasets, will be provided soon. Stay tuned for updates on how to access these resources efficiently and securely.
+This document provides an overview of the datasets used within the Natix Network, including descriptions and links to their sources and access points on Hugging Face.
 
 ## Dataset Categories
 
-### Third-Party Real Image Datasets
+### Construction Site Image Datasets
 
-These datasets consist of authentic images sourced from various real-world scenarios. They are necessary for training our models to recognize genuine content.
+These datasets contain images of construction sites, including road signs, hazard markings, and construction materials. They are essential for training models to detect construction site elements accurately.
 
 #### Dataset Name
-**Description**: Brief description of what the dataset includes and its purpose.
+**Description**: Dataset includes images of real-world construction sites for model training.
 **Hugging Face Link**: [Dataset on Hugging Face](#)
 **Original Source**: [Dataset Source](#)
 
-### Third-Party Synthetic Image Datasets
+### Synthetic Datasets
 
-These datasets contain images that are artificially created to simulate different imaging conditions and scenarios, aiding in model training against synthetic manipulations.
-
-#### Dataset Name
-**Description**: Brief description of what the dataset includes and its purpose.
-**Hugging Face Link**: [Dataset on Hugging Face](#)
-**Original Source**: [Dataset Source](#)
-
-### Synthetic Datasets Generated via Image-to-Text Annotation Models
-
-These datasets are created by annotating a third-party real image dataset using an image-to-text annotation model like BLIP-2, followed by generating corresponding images through a diffusion model. This approach ensures that the synthetic data mirrors the distribution of our real image datasets 1 to 1, providing a balanced training ground for our models.
+These datasets are artificially generated to simulate construction site conditions and scenarios, aiding in model training against diverse environmental factors.
 
 #### Dataset Name
-**Description**: Brief description of how the dataset was created and its purpose.
+**Description**: Generated images that simulate construction site environments.
 **Hugging Face Link**: [Dataset on Hugging Face](#)
 **Original Source**: [Dataset Source](#)
 
@@ -37,4 +26,4 @@ These datasets are created by annotating a third-party real image dataset using 
 
 Please ensure to adhere to the licensing agreements specified for each dataset. These licenses dictate how the datasets can be used, shared, and modified. For detailed licensing information, refer to the respective dataset links provided.
 
-For any further questions or clarifications, please contact the project maintainers or visit our [community Discord](https://discord.gg/bitmind).
+For any further questions or clarifications, please contact the project maintainers or visit our [community Discord](https://discord.gg/natixnetwork).

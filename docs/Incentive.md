@@ -1,78 +1,36 @@
-# Bitmind Subnet Incentive Mechanism
+# Natix Network Incentive Mechanism
 
-This document covers the current state of SN34's incentive mechanism. 
-1. [Overview](#overview)
-2. [Rewards](#rewards)
-3. [Scores](#scores)
-4. [Weights](#weights)
-5. [Incentive](#incentives)
+This document covers the current state of the Natix Network's incentive mechanism, designed to encourage high-quality performance and continuous improvement among miners and validators.
 
-## TLDR
+## Overview
 
-Miner rewards are a weighted combination of their performance on video and image detection challenges.
+The Natix Network employs a dynamic reward system to incentivize miners to continuously improve their models for detecting construction site elements in images. Validators play a crucial role in maintaining the integrity and accuracy of the network.
 
-Performance on video and image challenges are computed separately -- each is a weighted combination of the MCC of the last 100 predictions and the accuracy of the last 10. 
+## Rewards for Miners
 
-Validators keep track of miner performance using a score vector, which is updated using an exponential moving average. The weights assigned by validators determine the distribution of rewards among miners, incentivizing high-quality predictions and consistent performance.
+Miners are rewarded based on their performance in detecting construction site elements. Their success rate, which determines their rank, is assessed by validators through a mix of organic tasks and tasks with known outcomes. This process ensures that miner models are accurately evaluated for their task performance.
 
+- **Model Submission and Reward Period:**
+  - Miners must submit at least one model to a publicly accessible repository, such as Hugging Face.
+  - For the first 45 days after a model is submitted, miners receive the full reward for task performance.
+  - After 45 days, the reward gradually decreases towards zero, encouraging miners to submit enhanced models.
 
-<p align="center">
-  <img src="../static/incentive.gif" alt="Incentive Mechanism">
-</p>
-<p align="center"><em>Simulation applying our latest iteration of our incentive mechanism on historical subnet data. Note that this graphic shows incentive changes at a much more granular timescale (one timestep per challenge) than that of actual weight setting (once per 360 blocks)<br><a href=https://github.com/BitMind-AI/incentive-simulator>incentive-simulator repository</a>
-</em></p>
+- **Model Improvement and Evaluation:**
+  - Miners can submit a new model at any time to reset the reward period for another 90 days.
+  - The new model is evaluated against a set of known tests to ensure it performs better than the previous version.
 
+## Rewards for Validators
 
+Validators are rewarded for their role in safeguarding the network by assessing the accuracy of miners' work. They ensure fairness and precision in ranking miners, which directly influences the distribution of rewards.
 
-## Rewards
-> Total rewards are a weighted combination of video and image rewards. Rewards for both image and video challenges are the [Matthews Correlation Coefficient (MCC)](https://en.wikipedia.org/wiki/Phi_coefficient) of (up to) a miner's last 100 predictions, combined with the accuracy of their last 10. 
+## Ranking and Incentives
 
-Total rewards
-
-$$ 
-C_{total} = 0.6 \cdot C_{image} + 0.4 \cdot C_{video} 
-$$
-
-Rewards for modality *m*
-
-$$ 
-C_m = 0.5 \cdot MCC_m + 0.5 \cdot Accuracy_m
-$$
-
-
-## Scores
-
->Validators set weights based on historical miner performances, tracked by their score vector. 
-
-For each challenge *t*, a validator will randomly sample 50 miners, send them an image/video, and compute their rewards *C* as described above. These reward values are then used to update the validator's score vector *V* using an exponential moving average (EMA) with *&alpha;* = 0.02. 
-
-$$
-V_t = 0.02 \cdot C_t + 0.98 \cdot V_{t-1}
-$$
-
-A low *&alpha;* value places emphasis on a miner's historical performance, adding additional smoothing to avoid having a single prediction cause significant score fluctuations.
-
-
-## Weights
-
-> Validators set weights around once per tempo (360 blocks) by sending a normalized score vector to the Bittensor blockchain (in `UINT16` representation).
-
-Weight normalization by L1 norm:
-
-$$w = \frac{\text{V}}{\lVert\text{V}\rVert_1}$$
-
+- **Ranking System:**
+  - Validators rank miners based on the accuracy of their model predictions in mixed task scenarios.
+  - The rank assigned by validators determines the distribution of rewards among miners, incentivizing high-quality predictions and consistent performance.
 
 ## Incentives
-> The [Yuma Consensus algorithm](https://docs.bittensor.com/yuma-consensus) translates the weight matrix *W* into incentives for the subnet miners and dividends for the subnet validators
 
-Specifically, for each miner *j*, incentive is a function of rank *R*:
+The [Yuma Consensus algorithm](https://docs.bittensor.com/yuma-consensus) is used to translate the rank and performance data into incentives for subnet miners and dividends for validators. This mechanism ensures that rewards are fairly distributed based on performance metrics, encouraging continued participation and model refinement.
 
-$$I_j = \frac{R_j}{\sum_k R_k}$$
-
-where rank *R* is *W* (a matrix of validator weight vectors) weighted by validator stake vector *S*. 
-
-$$R_k = \sum_i S_i \cdot W_{ik}$$
-
-
-
-
+By maintaining a focus on model improvement and task accuracy, the Natix Network aims to foster a robust and efficient system for detecting construction site elements, supporting both innovation and reliability within the network.
