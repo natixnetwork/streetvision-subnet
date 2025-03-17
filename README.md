@@ -51,7 +51,7 @@ A unique feature of the Natix Network is its dynamic reward system. Miners must 
 
 ## Subnet Architecture
 
-![Subnet Architecture](static/Subnet-Arch.png)
+![Subnet Architecture](static/natix-bittensor-subnet-achitecture.png)
 
 <details>
 <summary align=center><i>Figure 1 (above): Ecosystem Overview</i></summary>
