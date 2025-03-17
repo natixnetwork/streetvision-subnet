@@ -54,8 +54,8 @@ def test_is_model_cached(mock_expanduser, mock_isdir):
     mock_isdir.return_value = False
     assert is_model_cached('test/model') == False
 
-@patch('bitmind.validator.verify_models.SyntheticImageGenerator')
-@patch('bitmind.validator.verify_models.is_model_cached')
+@patch('natix.validator.verify_models.SyntheticImageGenerator')
+@patch('natix.validator.verify_models.is_model_cached')
 def test_main(mock_is_model_cached, MockSyntheticImageGenerator):
     """
     Test the main function of the verify_models module.

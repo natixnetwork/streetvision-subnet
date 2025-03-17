@@ -23,7 +23,8 @@ sudo apt install -y \
     libopenblas-dev \
     liblapack-dev \
     libx11-dev \
-    libgtk-3-dev
+    libgtk-3-dev \
+    libjxl-dev
 
 # Install process manager
 sudo npm install -g pm2@latest

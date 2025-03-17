@@ -1,7 +1,7 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
+# Copyright © 2023 Yuma
 # developer: dubm
-# Copyright © 2023 Bitmind
+# Copyright © 2023 Natix
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -46,13 +46,13 @@ import natix
 
 class Validator(BaseValidatorNeuron):
     """
-    The BitMind Validator's `forward` function sends single-image challenges to miners every 30 seconds, where each
+    The Natix Validator's `forward` function sends single-image challenges to miners every 30 seconds, where each
     image has a 50/50 chance of being real or fake. In service of this task, the Validator class has two key members -
     self.real_image_datasets and self.synthetic_image_generator. The former is a list of ImageDataset objects, which
     contain real images. The latter is an ML pipeline that combines an LLM for prompt generation and diffusion
     models that ingest prompts output by the LLM to produce synthetic images.
 
-    The BitMind Validator also encapsuluates a ValidatorProxy, which is used to service organic requests from
+    The Natix Validator also encapsuluates a ValidatorProxy, which is used to service organic requests from
     our consumer-facing application. If you wish to participate in this system, run your validator with the
      --proxy.port argument set to an exposed port on your machine.
     """
@@ -64,7 +64,7 @@ class Validator(BaseValidatorNeuron):
         self.last_responding_miner_uids = []
         self.validator_proxy = ValidatorProxy(self)
 
-        # real media caches are updated by the bitmind_cache_updater process (started by start_validator.sh)
+        # real media caches are updated by the natix_cache_updater process (started by start_validator.sh)
         self.roadwork_media_cache = {
             'image': ImageCache(ROADWORK_IMAGE_CACHE_DIR),
         }

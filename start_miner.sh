@@ -5,7 +5,7 @@ source miner.env
 set +a
 
 if pm2 list | grep -q "natix_miner"; then
-  echo "Process 'bitmind_miner' is already running. Deleting it..."
+  echo "Process 'natix_miner' is already running. Deleting it..."
   pm2 delete natix_miner
 fi
 
