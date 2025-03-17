@@ -9,7 +9,7 @@ if pm2 list | grep -q "natix_miner"; then
   pm2 delete natix_miner
 fi
 
-python neurons/miner.py \
+pm2 start python neurons/miner.py \
   --neuron.image_detector ${IMAGE_DETECTOR:-None} \
   --neuron.image_detector_config ${IMAGE_DETECTOR_CONFIG:-None} \
   --neuron.image_detector_device ${IMAGE_DETECTOR_DEVICE:-None} \
