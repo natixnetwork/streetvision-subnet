@@ -69,7 +69,7 @@ pm2 start natix/validator/scripts/run_data_generator.py --name $DATA_GEN_PROCESS
   --device $DEVICE
 
 echo "Starting validator process"
-pm2 start python neurons/validator.py --name natix_miner -- \
+pm2 start python neurons/validator.py --name $VALIDATOR_PROCESS_NAME -- \
   --netuid $NETUID \
   --subtensor.network $SUBTENSOR_NETWORK \
   --subtensor.chain_endpoint $SUBTENSOR_CHAIN_ENDPOINT \
@@ -79,10 +79,3 @@ pm2 start python neurons/validator.py --name natix_miner -- \
   --proxy.port $VALIDATOR_PROXY_PORT \
   --wandb.off \
   --logging.debug
-
-echo "Starting real data cache updater process"
-pm2 start natix/validator/scripts/run_cache_updater.py --name $CACHE_UPDATE_PROCESS_NAME
-
-# echo "Starting synthetic data generation process"
-# pm2 start natix/validator/scripts/run_data_generator.py --name $DATA_GEN_PROCESS_NAME -- \
-  # --device $DEVICE
