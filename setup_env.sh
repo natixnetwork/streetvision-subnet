@@ -32,8 +32,8 @@ sudo npm install -g pm2@latest
 # Python Package Installation
 ############################
 
-pip install -e .
-pip install -r requirements.txt
+pip install poetry
+poetry install
 
 ############################
 # Environment Files Setup  #

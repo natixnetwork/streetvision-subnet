@@ -21,8 +21,8 @@ The Natix Subnet is designed to be the backbone of the first decentralized smart
         🤝 <a href="docs/Contributor_Guide.md">Contributor Guide</a></td>
       <td>
         🚀 <a href="https://www.bitmind.ai/apps">TODO: FRONTEND LINK</a><br>
-        🤗 <a href="https://huggingface.co/bitmind">BitMind Huggingface</a><br>
-        📊 <a href="https://wandb.ai/bitmindai/bitmind-subnet">Mainnet XX W&B</a> | <a href="https://wandb.ai/bitmindai/bitmind">Testnet 323 W&B</a><br>
+        🤗 <a href="https://huggingface.co/natix-network-org">Natix Huggingface</a><br>
+        📊 <a href="https://wandb.ai/bitmindai/bitmind-subnet">TODO Mainnet XX W&B</a> | <a href="https://wandb.ai/bitmindai/bitmind">Testnet 323 W&B</a><br>
         📖 <a href="docs/Glossary.md">Project Structure and Terminology</a><br>
         <a href="https://docs.bittensor.com/learn/bittensor-building-blocks">🧠 Bittensor Introduction</a><br> 
       </td>
