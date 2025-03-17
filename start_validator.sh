@@ -37,13 +37,13 @@ if ! huggingface-cli login --token $HUGGING_FACE_TOKEN; then
   exit 1
 fi
 
-STOP VALIDATOR PROCESS
+# STOP VALIDATOR PROCESS
 if pm2 list | grep -q "$VALIDATOR_PROCESS_NAME"; then
   echo "Process '$VALIDATOR_PROCESS_NAME' is already running. Deleting it..."
   pm2 delete $VALIDATOR_PROCESS_NAME
 fi
 
-STOP REAL DATA CACHE UPDATER PROCESS
+# STOP REAL DATA CACHE UPDATER PROCESS
 if pm2 list | grep -q "$CACHE_UPDATE_PROCESS_NAME"; then
   echo "Process '$CACHE_UPDATE_PROCESS_NAME' is already running. Deleting it..."
   pm2 delete $CACHE_UPDATE_PROCESS_NAME
