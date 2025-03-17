@@ -49,11 +49,11 @@ if pm2 list | grep -q "$CACHE_UPDATE_PROCESS_NAME"; then
   pm2 delete $CACHE_UPDATE_PROCESS_NAME
 fi
 
-STOP SYNTHETIC DATA GENERATOR PROCESS
-if pm2 list | grep -q "$DATA_GEN_PROCESS_NAME"; then
-  echo "Process '$DATA_GEN_PROCESS_NAME' is already running. Deleting it..."
-  pm2 delete $DATA_GEN_PROCESS_NAME
-fi
+# STOP SYNTHETIC DATA GENERATOR PROCESS
+# if pm2 list | grep -q "$DATA_GEN_PROCESS_NAME"; then
+#   echo "Process '$DATA_GEN_PROCESS_NAME' is already running. Deleting it..."
+#   pm2 delete $DATA_GEN_PROCESS_NAME
+# fi
 
 # echo "Verifying access to synthetic image generation models. This may take a few minutes."
 # if ! python3 natix/validator/verify_models.py; then
@@ -64,9 +64,9 @@ fi
 echo "Starting real data cache updater process"
 pm2 start natix/validator/scripts/run_cache_updater.py --name $CACHE_UPDATE_PROCESS_NAME
 
-echo "Starting synthetic data generation process"
-pm2 start natix/validator/scripts/run_data_generator.py --name $DATA_GEN_PROCESS_NAME -- \
-  --device $DEVICE
+# echo "Starting synthetic data generation process"
+# pm2 start natix/validator/scripts/run_data_generator.py --name $DATA_GEN_PROCESS_NAME -- \
+#   --device $DEVICE
 
 echo "Starting validator process"
 pm2 start python neurons/validator.py --name $VALIDATOR_PROCESS_NAME -- \
