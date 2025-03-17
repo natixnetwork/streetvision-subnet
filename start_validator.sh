@@ -69,7 +69,7 @@ pm2 start natix/validator/scripts/run_data_generator.py --name $DATA_GEN_PROCESS
   --device $DEVICE
 
 echo "Starting validator process"
-pm2 start python neurons/validator.py \
+pm2 start python neurons/validator.py --name natix_miner -- \
   --netuid $NETUID \
   --subtensor.network $SUBTENSOR_NETWORK \
   --subtensor.chain_endpoint $SUBTENSOR_CHAIN_ENDPOINT \
