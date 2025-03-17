@@ -37,23 +37,23 @@ if ! huggingface-cli login --token $HUGGING_FACE_TOKEN; then
   exit 1
 fi
 
-# STOP VALIDATOR PROCESS
-# if pm2 list | grep -q "$VALIDATOR_PROCESS_NAME"; then
-#   echo "Process '$VALIDATOR_PROCESS_NAME' is already running. Deleting it..."
-#   pm2 delete $VALIDATOR_PROCESS_NAME
-# fi
+STOP VALIDATOR PROCESS
+if pm2 list | grep -q "$VALIDATOR_PROCESS_NAME"; then
+  echo "Process '$VALIDATOR_PROCESS_NAME' is already running. Deleting it..."
+  pm2 delete $VALIDATOR_PROCESS_NAME
+fi
 
-# STOP REAL DATA CACHE UPDATER PROCESS
-# if pm2 list | grep -q "$CACHE_UPDATE_PROCESS_NAME"; then
-#   echo "Process '$CACHE_UPDATE_PROCESS_NAME' is already running. Deleting it..."
-#   pm2 delete $CACHE_UPDATE_PROCESS_NAME
-# fi
+STOP REAL DATA CACHE UPDATER PROCESS
+if pm2 list | grep -q "$CACHE_UPDATE_PROCESS_NAME"; then
+  echo "Process '$CACHE_UPDATE_PROCESS_NAME' is already running. Deleting it..."
+  pm2 delete $CACHE_UPDATE_PROCESS_NAME
+fi
 
-# STOP SYNTHETIC DATA GENERATOR PROCESS
-# if pm2 list | grep -q "$DATA_GEN_PROCESS_NAME"; then
-#   echo "Process '$DATA_GEN_PROCESS_NAME' is already running. Deleting it..."
-#   pm2 delete $DATA_GEN_PROCESS_NAME
-# fi
+STOP SYNTHETIC DATA GENERATOR PROCESS
+if pm2 list | grep -q "$DATA_GEN_PROCESS_NAME"; then
+  echo "Process '$DATA_GEN_PROCESS_NAME' is already running. Deleting it..."
+  pm2 delete $DATA_GEN_PROCESS_NAME
+fi
 
 # echo "Verifying access to synthetic image generation models. This may take a few minutes."
 # if ! python3 natix/validator/verify_models.py; then
