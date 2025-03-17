@@ -38,16 +38,16 @@ if ! huggingface-cli login --token $HUGGING_FACE_TOKEN; then
 fi
 
 # STOP VALIDATOR PROCESS
-if pm2 list | grep -q "$VALIDATOR_PROCESS_NAME"; then
-  echo "Process '$VALIDATOR_PROCESS_NAME' is already running. Deleting it..."
-  pm2 delete $VALIDATOR_PROCESS_NAME
-fi
+# if pm2 list | grep -q "$VALIDATOR_PROCESS_NAME"; then
+#   echo "Process '$VALIDATOR_PROCESS_NAME' is already running. Deleting it..."
+#   pm2 delete $VALIDATOR_PROCESS_NAME
+# fi
 
-STOP REAL DATA CACHE UPDATER PROCESS
-if pm2 list | grep -q "$CACHE_UPDATE_PROCESS_NAME"; then
-  echo "Process '$CACHE_UPDATE_PROCESS_NAME' is already running. Deleting it..."
-  pm2 delete $CACHE_UPDATE_PROCESS_NAME
-fi
+# STOP REAL DATA CACHE UPDATER PROCESS
+# if pm2 list | grep -q "$CACHE_UPDATE_PROCESS_NAME"; then
+#   echo "Process '$CACHE_UPDATE_PROCESS_NAME' is already running. Deleting it..."
+#   pm2 delete $CACHE_UPDATE_PROCESS_NAME
+# fi
 
 # STOP SYNTHETIC DATA GENERATOR PROCESS
 # if pm2 list | grep -q "$DATA_GEN_PROCESS_NAME"; then
@@ -61,8 +61,15 @@ fi
 #   exit 1
 # fi
 
+echo "Starting real data cache updater process"
+pm2 start bitmind/validator/scripts/run_cache_updater.py --name $CACHE_UPDATE_PROCESS_NAME
+
+echo "Starting synthetic data generation process"
+pm2 start bitmind/validator/scripts/run_data_generator.py --name $DATA_GEN_PROCESS_NAME -- \
+  --device $DEVICE
+
 echo "Starting validator process"
-pm2 start neurons/validator.py --name $VALIDATOR_PROCESS_NAME -- \
+python neurons/validator.py \
   --netuid $NETUID \
   --subtensor.network $SUBTENSOR_NETWORK \
   --subtensor.chain_endpoint $SUBTENSOR_CHAIN_ENDPOINT \
