@@ -64,9 +64,9 @@ fi
 echo "Starting real data cache updater process"
 pm2 start bitmind/validator/scripts/run_cache_updater.py --name $CACHE_UPDATE_PROCESS_NAME
 
-# echo "Starting synthetic data generation process"
-# pm2 start bitmind/validator/scripts/run_data_generator.py --name $DATA_GEN_PROCESS_NAME -- \
-  # --device $DEVICE
+echo "Starting synthetic data generation process"
+pm2 start bitmind/validator/scripts/run_data_generator.py --name $DATA_GEN_PROCESS_NAME -- \
+  --device $DEVICE
 
 echo "Starting validator process"
 python neurons/validator.py \

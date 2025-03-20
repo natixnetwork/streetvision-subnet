@@ -7,7 +7,7 @@ from bitmind.validator.scripts.util import load_validator_info, init_wandb_run
 from bitmind.synthetic_data_generation import SyntheticDataGenerator
 from bitmind.validator.cache import ImageCache
 from bitmind.validator.config import (
-    REAL_IMAGE_CACHE_DIR,
+    ROADWORK_IMAGE_CACHE_DIR,
     SYNTH_CACHE_DIR,
     MODEL_NAMES,
     get_task
@@ -15,7 +15,7 @@ from bitmind.validator.config import (
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--image-cache-dir', type=str, default=REAL_IMAGE_CACHE_DIR,
+    parser.add_argument('--image-cache-dir', type=str, default=ROADWORK_IMAGE_CACHE_DIR,
                       help='Directory containing real images to use as reference')
     parser.add_argument('--output-dir', type=str, default=SYNTH_CACHE_DIR,
                       help='Directory to save generated data')
