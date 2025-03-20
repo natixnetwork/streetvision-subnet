@@ -17,6 +17,7 @@ python neurons/miner.py \
   --neuron.video_detector_config ${VIDEO_DETECTOR_CONFIG:-None} \
   --neuron.video_detector_device ${VIDEO_DETECTOR_DEVICE:-None} \
   --netuid $NETUID \
+  --model_url $MODEL_URL \
   --subtensor.network $SUBTENSOR_NETWORK \
   --subtensor.chain_endpoint $SUBTENSOR_CHAIN_ENDPOINT \
   --wallet.name $WALLET_NAME \
