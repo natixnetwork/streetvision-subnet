@@ -6,7 +6,7 @@ authors = [
     {name = "hayden-yuma",email = "hayden@yumaai.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.10,<3.12"
 
 [tool.poetry.dependencies]
 # ^1.2.3 means >=1.2.3 and <2.0.0
