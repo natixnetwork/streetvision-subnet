@@ -13,9 +13,6 @@ pm2 start neurons/miner.py --name natix_miner -- \
   --neuron.image_detector ${IMAGE_DETECTOR:-None} \
   --neuron.image_detector_config ${IMAGE_DETECTOR_CONFIG:-None} \
   --neuron.image_detector_device ${IMAGE_DETECTOR_DEVICE:-None} \
-  --neuron.video_detector ${VIDEO_DETECTOR:-None} \
-  --neuron.video_detector_config ${VIDEO_DETECTOR_CONFIG:-None} \
-  --neuron.video_detector_device ${VIDEO_DETECTOR_DEVICE:-None} \
   --netuid $NETUID \
   --subtensor.network $SUBTENSOR_NETWORK \
   --subtensor.chain_endpoint $SUBTENSOR_CHAIN_ENDPOINT \

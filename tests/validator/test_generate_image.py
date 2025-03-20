@@ -15,8 +15,8 @@ def mock_diffuser():
     Returns:
         MagicMock: A mock object representing the diffuser pipeline.
     """
-    with patch("bitmind.synthetic_image_generation.synthetic_image_generator.StableDiffusionXLPipeline") as mock_sdxl:
-        with patch("bitmind.synthetic_image_generation.synthetic_image_generator.FluxPipeline") as mock_flux:
+    with patch("natix.synthetic_data_generation.synthetic_data_generator.StableDiffusionXLPipeline") as mock_sdxl:
+        with patch("natix.synthetic_data_generation.synthetic_data_generator.FluxPipeline") as mock_flux:
             mock_pipeline = MagicMock()
             test_image = Image.new("RGB", (256, 256))
             mock_pipeline.return_value = {"images": [test_image]}

@@ -240,20 +240,6 @@ def add_validator_args(cls, parser):
     )
 
     parser.add_argument(
-        "--neuron.clip_frames_min",
-        type=int,
-        help="Min number of frames for video challenge",
-        default=8,
-    )
-
-    parser.add_argument(
-        "--neuron.clip_frames_max",
-        type=int,
-        help="Max number of frames for video challenge",
-        default=24,
-    )
-
-    parser.add_argument(
         "--neuron.name",
         type=str,
         help="Trials for this neuron go in neuron.root / (wallet_cold - wallet_hot) / neuron.name. ",
@@ -326,7 +312,12 @@ def add_validator_args(cls, parser):
         default="opentensor-dev",
     )
 
-    parser.add_argument("--proxy.port", type=int, help="The port to run the proxy on.", default=10913)
+    parser.add_argument(
+        "--proxy.port",
+        type=int,
+        help="The port to run the proxy on.",
+        default=10913,
+    )
 
     parser.add_argument(
         "--proxy.proxy_client_url",
