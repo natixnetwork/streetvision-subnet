@@ -108,7 +108,7 @@ class ValidatorProxy:
             bt.logging.info("Successfully authenticated token")
             return public_key_bytes
         except Exception as e:
-            bt.logging.error(f"Exception occured in authenticating token: {e}")
+            bt.logging.error(f"Exception occurred in authenticating token: {e}")
             bt.logging.error(traceback.print_exc())
             raise HTTPException(
                 status_code=401, detail="Error getting authentication token"

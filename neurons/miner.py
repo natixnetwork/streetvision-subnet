@@ -32,7 +32,7 @@ from base_miner.registry import DETECTOR_REGISTRY
 from base_miner.detectors import RoadworkDetector, ViTImageDetector, NPRImageDetector, UCFImageDetector, CAMOImageDetector, TALLVideoDetector
 
 from bitmind.base.miner import BaseMinerNeuron
-from bitmind.protocol import ImageSynapse, VideoSynapse, decode_video_synapse
+from bitmind.protocol import ExtendedImageSynapse, VideoSynapse, decode_video_synapse
 from bitmind.utils.config import get_device
 
 
@@ -92,8 +92,8 @@ class Miner(BaseMinerNeuron):
         bt.logging.info(f"Loaded video detection model: {self.config.neuron.video_detector}")
 
     async def forward_image(
-        self, synapse: ImageSynapse
-    ) -> ImageSynapse:
+        self, synapse: ExtendedImageSynapse
+    ) -> ExtendedImageSynapse:
         """
         Perform inference on image
 
@@ -113,6 +113,8 @@ class Miner(BaseMinerNeuron):
                 image_bytes = base64.b64decode(synapse.image)
                 image = Image.open(io.BytesIO(image_bytes))
                 synapse.prediction = self.image_detector(image)
+                synapse.model_url = str(self.config.model_url)
+
             except Exception as e:
                 bt.logging.error("Error performing inference")
                 bt.logging.error(e)
@@ -154,13 +156,13 @@ class Miner(BaseMinerNeuron):
                 bt.logging.info(f"LABEL (testnet only) = {label}")
         return synapse
 
-    async def blacklist_image(self, synapse: ImageSynapse) -> typing.Tuple[bool, str]:
+    async def blacklist_image(self, synapse: ExtendedImageSynapse) -> typing.Tuple[bool, str]:
         return await self.blacklist(synapse)
 
     async def blacklist_video(self, synapse: VideoSynapse) -> typing.Tuple[bool, str]:
         return await self.blacklist(synapse)
 
-    async def priority_image(self, synapse: ImageSynapse) -> float:
+    async def priority_image(self, synapse: ExtendedImageSynapse) -> float:
         return await self.priority(synapse)
 
     async def priority_video(self, synapse: VideoSynapse) -> float:

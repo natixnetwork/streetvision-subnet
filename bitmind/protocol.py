@@ -35,7 +35,7 @@ base_transforms = get_base_transforms(TARGET_IMAGE_SIZE)
 
 # ---- miner ----
 # Example usage:
-#   def miner_forward( synapse: ImageSynapse ) -> ImageSynapse:
+#   def miner_forward( synapse: ExtendedImageSynapse ) -> ExtendedImageSynapse:
 #       ...
 #       synapse.predictions = deepfake_detection_model_outputs
 #       return synapse
@@ -45,7 +45,7 @@ base_transforms = get_base_transforms(TARGET_IMAGE_SIZE)
 # Example usage:
 #   dendrite = bt.dendrite()
 #   b64_images = [b64_img_1, ..., b64_img_n]
-#   predictions = dendrite.query( ImageSynapse( images = b64_images ) )
+#   predictions = dendrite.query( ExtendedImageSynapse( images = b64_images ) )
 #   assert len(predictions) == len(b64_images)
 
 def prepare_synapse(input_data, modality):
@@ -65,18 +65,18 @@ def prepare_synapse(input_data, modality):
 
 def prepare_image_synapse(image: Image):
     """
-    Prepares an image for use with ImageSynapse object.
+    Prepares an image for use with ExtendedImageSynapse object.
 
     Args:
         image (Image): The input image to be prepared.
 
     Returns:
-        ImageSynapse: An instance of ImageSynapse containing the encoded image and a default prediction value.
+        ExtendedImageSynapse: An instance of ExtendedImageSynapse containing the encoded image, a default prediction value, and default model_url.
     """
     image_bytes = BytesIO()
     image.save(image_bytes, format="JPEG")
     b64_encoded_image = base64.b64encode(image_bytes.getvalue())
-    return ImageSynapse(image=b64_encoded_image)
+    return ExtendedImageSynapse(image=b64_encoded_image)
 
 
 class ImageSynapse(bt.Synapse):
@@ -119,6 +119,8 @@ class ImageSynapse(bt.Synapse):
         """
         return self.prediction
 
+class ExtendedImageSynapse(ImageSynapse):
+    model_url: str = ""
 
 def prepare_video_synapse(frames: List[Image.Image]):
     """

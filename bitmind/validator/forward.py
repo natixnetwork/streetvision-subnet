@@ -20,9 +20,7 @@
 import random
 import time
 import re
-
 import numpy as np
-import pandas as pd
 import wandb
 import bittensor as bt
 
@@ -31,7 +29,6 @@ from bitmind.utils.image_transforms import apply_augmentation_by_level
 from bitmind.utils.uids import get_random_uids
 from bitmind.validator.config import CHALLENGE_TYPE, MAINNET_UID, TARGET_IMAGE_SIZE
 from bitmind.validator.reward import get_rewards
-
 
 def determine_challenge_type(media_cache):
     # probability of video is 0 for now
@@ -163,9 +160,15 @@ async def forward(self):
     responses = await self.dendrite(
         axons=axons,
         synapse=synapse,
-        deserialize=True,
+        deserialize=False,
         timeout=9
     )
+    predictions = [x.prediction for x in responses]
+    model_urls = [x.model_url for x in responses]
+
+    # If the URL already exists for another miner, Error
+    # If the URL is unique and miner doesn't have a URL store it
+    # If the URL belongs to the miner, proceed
     bt.logging.info(f"Responses received in {time.time() - start}s")
     bt.logging.success(f"{CHALLENGE_TYPE[label]} {modality} challenge complete!")
     bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ('miner_uids', 'miner_hotkeys')})
@@ -173,8 +176,9 @@ async def forward(self):
     bt.logging.info(f"Scoring responses")
     rewards, metrics = get_rewards(
         label=label,
-        responses=responses,
+        responses=predictions,
         uids=miner_uids,
+        model_urls=model_urls,
         axons=axons,
         challenge_modality=modality,
         performance_trackers=self.performance_trackers)
