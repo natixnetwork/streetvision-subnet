@@ -1,19 +1,18 @@
 from functools import partial
+
 import torchvision.transforms as transforms
 
-from bitmind.validator.config import TARGET_IMAGE_SIZE
-from bitmind.utils.image_transforms import (
-    center_crop,
-    RandomResizedCropWithParams,
-    RandomHorizontalFlipWithParams,
-    RandomVerticalFlipWithParams,
-    RandomRotationWithParams,
+from natix.utils.image_transforms import (
     ConvertToRGB,
-    ComposeWithParams,
+    RandomHorizontalFlipWithParams,
+    RandomResizedCropWithParams,
+    RandomRotationWithParams,
+    RandomVerticalFlipWithParams,
+    center_crop,
     get_base_transforms,
-    get_random_augmentations
+    get_random_augmentations,
 )
-
+from natix.validator.config import TARGET_IMAGE_SIZE
 
 TRANSFORMS = [
     center_crop,
@@ -21,10 +20,7 @@ TRANSFORMS = [
     RandomVerticalFlipWithParams,
     partial(RandomRotationWithParams, degrees=20, interpolation=transforms.InterpolationMode.BILINEAR),
     partial(RandomResizedCropWithParams, size=TARGET_IMAGE_SIZE, scale=(0.2, 1.0), ratio=(1.0, 1.0)),
-    ConvertToRGB
+    ConvertToRGB,
 ]
 
-TRANSFORM_PIPELINES = [
-    get_base_transforms(TARGET_IMAGE_SIZE),
-    get_random_augmentations(TARGET_IMAGE_SIZE)
-]
+TRANSFORM_PIPELINES = [get_base_transforms(TARGET_IMAGE_SIZE), get_random_augmentations(TARGET_IMAGE_SIZE)]

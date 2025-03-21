@@ -1,6 +1,7 @@
-from PIL import Image
 from abc import ABC, abstractmethod
+
 import numpy as np
+from PIL import Image
 
 
 class Gate(ABC):
@@ -16,7 +17,7 @@ class Gate(ABC):
         gate_name (str): The name of the gate.
         content_type (str): The type of content handled by the gate.
     """
-    
+
     def __init__(self, gate_name: str, content_type: str):
         self.gate_name = gate_name
         self.content_type = content_type

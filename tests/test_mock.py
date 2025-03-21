@@ -1,14 +1,10 @@
-import pytest
 import asyncio
-import bittensor as bt
-from bitmind.protocol import prepare_image_synapse, ImageSynapse
-from bitmind.utils.mock import (
-    MockDendrite,
-    MockMetagraph,
-    MockSubtensor,
-    create_random_image
-)
 
+import bittensor as bt
+import pytest
+
+from natix.protocol import prepare_image_synapse
+from natix.utils.mock import MockDendrite, MockMetagraph, MockSubtensor, create_random_image
 
 wallet = bt.MockWallet()
 wallet.create(coldkey_use_password=False)
@@ -29,15 +25,11 @@ def test_mock_subtensor(netuid, n, wallet):
     assert len(neurons) == (n + 1 if wallet is not None else n)
     # Check wallet
     if wallet is not None:
-        assert subtensor.is_hotkey_registered(
-            netuid=netuid, hotkey_ss58=wallet.hotkey.ss58_address
-        )
+        assert subtensor.is_hotkey_registered(netuid=netuid, hotkey_ss58=wallet.hotkey.ss58_address)
 
     for neuron in neurons:
-        assert type(neuron) == bt.NeuronInfo
-        assert subtensor.is_hotkey_registered(
-            netuid=netuid, hotkey_ss58=neuron.hotkey
-        )
+        assert isinstance(neuron, bt.NeuronInfo)
+        assert subtensor.is_hotkey_registered(netuid=netuid, hotkey_ss58=neuron.hotkey)
 
 
 @pytest.mark.parametrize("n", [16, 32, 64])
@@ -49,7 +41,7 @@ def test_mock_metagraph(n):
     assert len(axons) == n
     # Check ip and port
     for axon in axons:
-        assert type(axon) == bt.AxonInfo
+        assert isinstance(axon, bt.AxonInfo)
         assert axon.ip == mock_metagraph.default_ip
         assert axon.port == mock_metagraph.default_port
 
@@ -86,9 +78,7 @@ def test_mock_dendrite_timings(timeout, min_time, max_time, n):
     eps = 0.2
     responses = asyncio.run(run())
     for synapse in responses:
-        assert (
-            hasattr(synapse, "dendrite") and type(synapse.dendrite) == bt.TerminalInfo
-        )
+        assert hasattr(synapse, "dendrite") and isinstance(synapse.dendrite, bt.TerminalInfo)
 
         dendrite = synapse.dendrite
         # check synapse.dendrite has (process_time, status_code, status_message)
@@ -101,13 +91,12 @@ def test_mock_dendrite_timings(timeout, min_time, max_time, n):
         if dendrite.process_time >= timeout + eps:
             assert dendrite.status_code == 408
             assert dendrite.status_message == "Timeout"
-            assert synapse.prediction == -1.
+            assert synapse.prediction == -1.0
         # check that responses which take less than timeout have 200 status code
         elif dendrite.process_time < timeout:
             assert dendrite.status_code == 200
             assert dendrite.status_message == "OK"
             # check that outputs are not empty for successful responses
-            assert (synapse.prediction >= 0.) & (synapse.prediction <= 1.)
-        # dont check for responses which take between timeout and max_time because they are not guaranteed to have a status code of 200 or 408
+            assert (synapse.prediction >= 0.0) & (synapse.prediction <= 1.0)
     del mock_subtensor
     del mock_metagraph

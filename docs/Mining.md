@@ -24,7 +24,7 @@ git clone https://github.com/bitmind-ai/bitmind-subnet.git && cd bitmind-subnet
 ```
 
 We recommend using a Conda virtual environment to install the necessary Python packages.<br>
-You can set up Conda with this [quick command-line install](https://docs.anaconda.com/free/miniconda/#quick-command-line-install). Note that after you run the last commands in the miniconda setup process, you'll be prompted to start a new shell session to complete the initialization. 
+You can set up Conda with this [quick command-line install](https://docs.anaconda.com/free/miniconda/#quick-command-line-install). Note that after you run the last commands in the miniconda setup process, you'll be prompted to start a new shell session to complete the initialization.
 
 With miniconda installed, you can create a virtual environment with this command:
 
@@ -39,7 +39,7 @@ Install the remaining necessary requirements with the following chained command.
 ```bash
 conda activate bitmind
 export PIP_NO_CACHE_DIR=1
-chmod +x setup_env.sh 
+chmod +x setup_env.sh
 ./setup_env.sh
 ```
 
@@ -55,7 +55,7 @@ python base_miner/datasets/download_data.py
 
 Feel free to skip this step - datasets will be downloaded automatically when you run the training scripts.
 
-The default list of datasets and default download location are defined in `base_miner/config.py` 
+The default list of datasets and default download location are defined in `base_miner/config.py`
 
 
 ## Registration
@@ -122,7 +122,7 @@ Now you're ready to run your miner!
 
 ```bash
 conda activate bitmind
-pm2 start run_neuron.py -- --miner 
+pm2 start run_neuron.py -- --miner
 ```
 
 - Auto updates are enabled by default. To disable, run with `--no-auto-updates`.
@@ -161,13 +161,13 @@ We recommend consulting the `README` in `base_miner/` to learn about the extensi
 
 - The detector type (e.g. `UCF`) corresponds to the module name of the ``DeepfakeDetector`` subclass registered in ``base_miner/registry.py``'s ``DETECTOR_REGISTRY``.
 - The associated detector config file (e.g., `ucf.yaml`) lives in `base_miner/deepfake_detectors/configs/`.
-  - *For UCF only:* You will need to set the `train_config` field in the detector configuration file (`base_miner/deepfake_detectors/configs/ucf.yaml`) to point to the training configuration file. This allows the instantiation of `UCFDetector` to use the settings from training time to reconstruct the correct model architecture. After training a model, the training config can be found in `base_miner/UCF/logs/<your_training_run>/config.yaml`. Feel free to move this to a different location, as long as the `train_config` field in `configs/ucf.yaml` reflects this. 
+  - *For UCF only:* You will need to set the `train_config` field in the detector configuration file (`base_miner/deepfake_detectors/configs/ucf.yaml`) to point to the training configuration file. This allows the instantiation of `UCFDetector` to use the settings from training time to reconstruct the correct model architecture. After training a model, the training config can be found in `base_miner/UCF/logs/<your_training_run>/config.yaml`. Feel free to move this to a different location, as long as the `train_config` field in `configs/ucf.yaml` reflects this.
 - The model weights file (e.g., `ckpt_best.pth`) should be placed in `base_miner/<detector_type>/weights`.
   - If the weights specified in the config file do not exist, the miner will attempt to automatically download them from Hugging Face as specified by the `hf_repo` field in the config file. Feel free to use your own Hugging Face repository for hosting your model weights, and update the config file accordingly.
 
 
 
-## Tensorboard 
+## Tensorboard
 
 Training metrics are logged with TensorboardX. You can view interactive graphs of these metrics by starting a tensorboard server with the following command, and navigating to `localhost:6006`.
 

@@ -47,4 +47,3 @@ For any issues, please contact us via [Discord](https://discord.gg/bitmind) or e
 This Code of Conduct is licensed under the MIT License, which allows reuse of this document provided attribution is given and this license notice is retained.
 
 Please note that the datasets used by the BitMind Subnet are sourced under their own respective licenses. For more information on dataset licensing and usage guidelines, please refer to the [Datasets 📊 README ](Datasets.md) in our repository.
-

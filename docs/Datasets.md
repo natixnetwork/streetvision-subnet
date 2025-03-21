@@ -1,6 +1,6 @@
 # Datasets README
 
-This document provides an overview of the datasets used within the BitMind Subnet, including descriptions and links to their sources and access points on Hugging Face. Each dataset is under its own license, and users are encouraged to review these licenses before use. 
+This document provides an overview of the datasets used within the BitMind Subnet, including descriptions and links to their sources and access points on Hugging Face. Each dataset is under its own license, and users are encouraged to review these licenses before use.
 
 Details on decentralized data storage access points, which will serve as another way to facilitate the utilization of our datasets, will be provided soon. Stay tuned for updates on how to access these resources efficiently and securely.
 

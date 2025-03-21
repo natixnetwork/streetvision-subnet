@@ -1,11 +1,10 @@
 <p align="center">
-  <img src="static/Bitmind-Logo.png" alt="BitMind Logo" width="150"/>
 </p>
-<h1 align="center">BitMind Subnet<br><small>Bittensor Subnet 34 | Deepfake Detection</small></h1>
+<h1 align="center">Natix Subnet<br><small>Bittensor Subnet XXX | Global Smart Maps</small></h1>
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-The BitMind Subnet is **the world's first decentralized AI-generated content detection network**. Built on Bittensor, our incentive mechanism rewards the most accurate detection algorithms, creating an adaptive defense against synthetic media.
+The Natix Subnet is designed to be the backbone of the first decentralized smart map. With Natixs world-class dashcam data pipeline and Bittensors DeAI infrastructure, we are building the worlds most comprehensive and dynamic smart map.
 
 <table style="border: none !important; width: 100% !important; border-collapse: collapse !important; margin: 0 auto !important;">
   <tbody>
@@ -21,35 +20,33 @@ The BitMind Subnet is **the world's first decentralized AI-generated content det
         📈 <a href="docs/Incentive.md">Incentive Mechanism</a><br>
         🤝 <a href="docs/Contributor_Guide.md">Contributor Guide</a></td>
       <td>
-        🚀 <a href="https://www.bitmind.ai/apps">SN34-Powered Applications</a><br>
-        🤗 <a href="https://huggingface.co/bitmind">BitMind Huggingface</a><br>
-        📊 <a href="https://wandb.ai/bitmindai/bitmind-subnet">Mainnet 34 W&B</a> | <a href="https://wandb.ai/bitmindai/bitmind">Testnet 168 W&B</a><br>
+        🚀 <a href="https://www.bitmind.ai/apps">TODO: FRONTEND LINK</a><br>
+        🤗 <a href="https://huggingface.co/natix-network-org">Natix Huggingface</a><br>
+        📊 <a href="https://wandb.ai/bitmindai/bitmind-subnet">TODO Mainnet XX W&B</a> | <a href="https://wandb.ai/bitmindai/bitmind">Testnet 323 W&B</a><br>
         📖 <a href="docs/Glossary.md">Project Structure and Terminology</a><br>
-        <a href="https://docs.bittensor.com/learn/bittensor-building-blocks">🧠 Bittensor Introduction</a><br> 
+        <a href="https://docs.bittensor.com/learn/bittensor-building-blocks">🧠 Bittensor Introduction</a><br>
       </td>
     </tr>
   </tbody>
 </table>
 
 
-## Decentralized Detection of AI Generated Content
-The explosive growth of generative AI technology has unleashed an unprecedented wave of synthetic media creation. These AI-generated images, videos, and other content have become remarkably sophisticated, making them virtually indistinguishable from authentic media. This development presents a critical challenge to information integrity and societal trust in the digital age, as the line between real and synthetic content continues to blur.
-
-To address this growing challenge, SN34 aims to create the most accurate fully-generalized detection system. Here, fully-generalized means that the system is capable of detecting both synthetic and semi-synthetic media with high degrees of accuracy regardless of their content or what model generated them. Our incentive mechanism evolves alongside state-of-the-art generative AI, rewarding miners whose detection algorithms best adapt to new forms of synthetic content.
+## Decentralized Detection of Driving Qualia
+Who hasn't been late to work for reasons outside of your control? Roadwork, lane closures, accidents, weather, and other unforeseen circumstances can cause any number of annoyances. Centralized map providers cannot be everywhere at once, and they
 
 
 ## Core Components
 
-> This documentation assumes basic familiarity with Bittensor concepts. For an introduction, please check out the docs: https://docs.bittensor.com/learn/bittensor-building-blocks. 
+> This documentation assumes basic familiarity with Bittensor concepts. For an introduction, please check out the docs: https://docs.bittensor.com/learn/bittensor-building-blocks.
 
-**Miners** 
-- Miners are tasked with running binary classifiers that discern between genuine and AI-generated content, and are rewarded based on their accuracy. 
-- Miners predict a float value in [0., 1.], with values greater than 0.5 indicating the image or video is AI generated. 
+**Miners**
+- Miners are tasked with running binary classifiers that discern between images with and without roadwork, and are rewarded based on their accuracy.
+- Miners predict a float value in [0., 1.], with values greater than 0.5 indicating the image contains roadwork.
 
 
-**Validators** 
+**Validators**
 - Validators challenge miners with a balanced mix of real and synthetic media drawn from a diverse pool of sources.
-- We continually add new datasets and generative models to our validators in order to maximize coverage of the types of diverse data. Models and datasets are defined in  `bitmind/validator/config.py`.
+- We continually add new datasets and generative models to our validators in order to maximize coverage of the types of diverse data. Models and datasets are defined in  `natix/validator/config.py`.
 
 
 ## Subnet Architecture
@@ -104,7 +101,7 @@ The real data fetcher performs partial dataset downloads, fetching random compre
   </a>
 </p>
 
-For real-time discussions, community support, and regular updates, <a href="https://discord.gg/kKQR98CrUn">join our Discord server</a>. Connect with developers, researchers, and users to get the most out of BitMind Subnet.
+For real-time discussions, community support, and regular updates, <a href="https://discord.gg/kKQR98CrUn">join our Discord server</a>. Connect with developers, researchers, and users to get the most out of Natix Subnet.
 
 ## License
 This repository is licensed under the MIT License.

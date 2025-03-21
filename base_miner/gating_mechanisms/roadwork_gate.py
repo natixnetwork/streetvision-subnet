@@ -1,15 +1,11 @@
-from PIL import Image
-from _dlib_pybind11 import rectangles
 import numpy as np
-import dlib
+from PIL import Image
 
 from base_miner.gating_mechanisms import Gate
-from base_miner.DFB.config.constants import DLIB_FACE_PREDICTOR_PATH
 from base_miner.registry import GATE_REGISTRY
-from base_miner.gating_mechanisms.utils import get_face_landmarks, align_and_crop_face
 
 
-@GATE_REGISTRY.register_module(module_name='ROADWORK')
+@GATE_REGISTRY.register_module(module_name="ROADWORK")
 class RoadworkGate(Gate):
     """
     Gate subclass for roadwork content detection and preprocessing.
@@ -18,10 +14,9 @@ class RoadworkGate(Gate):
         gate_name (str): The name of the gate.
         predictor_path (str): Path to dlib face landmark model.
     """
-    
-    def __init__(self, gate_name: str = 'RoadworkGate'):
-        super().__init__(gate_name, "roadwork")
 
+    def __init__(self, gate_name: str = "RoadworkGate"):
+        super().__init__(gate_name, "roadwork")
 
     def preprocess(self, image: np.ndarray, res=256) -> any:
         """
@@ -36,9 +31,8 @@ class RoadworkGate(Gate):
             preprocessed image with largest face aligned and cropped
         """
 
-        
         return image
-    
+
     def __call__(self, image: Image, res: int = 256) -> any:
         """
         Perform face detection and image aligning and cropping to the face.
