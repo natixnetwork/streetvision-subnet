@@ -1,7 +1,7 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
+# Copyright © 2023 Yuma
 # developer: dubm
-# Copyright © 2023 Bitmind
+# Copyright © 2023 Natix
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -18,47 +18,45 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
-
-import bittensor as bt
-import yaml
-import wandb
 import time
 
-from neurons.validator_proxy import ValidatorProxy
-from bitmind.validator.forward import forward
-from bitmind.validator.cache import VideoCache, ImageCache
-from bitmind.base.validator import BaseValidatorNeuron
-from bitmind.validator.config import (
+import bittensor as bt
+import wandb
+import yaml
+
+import natix
+from natix.base.validator import BaseValidatorNeuron
+from natix.validator.cache import ImageCache
+from natix.validator.config import (
+    CLEAR_IMAGE_CACHE_DIR,
+    I2I_CACHE_DIR,
     MAINNET_UID,
     MAINNET_WANDB_PROJECT,
-    TESTNET_WANDB_PROJECT,
-    WANDB_ENTITY,
-    ROADWORK_VIDEO_CACHE_DIR,
     ROADWORK_IMAGE_CACHE_DIR,
-    CLEAR_VIDEO_CACHE_DIR,
-    CLEAR_IMAGE_CACHE_DIR,
     T2I_CACHE_DIR,
-    I2I_CACHE_DIR,
-    T2V_CACHE_DIR,
-    VALIDATOR_INFO_PATH
+    TESTNET_WANDB_PROJECT,
+    VALIDATOR_INFO_PATH,
+    WANDB_ENTITY,
 )
+from natix.validator.forward import forward
+from neurons.validator_proxy import ValidatorProxy
 
-import bitmind
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 
 class Validator(BaseValidatorNeuron):
     """
-    The BitMind Validator's `forward` function sends single-image challenges to miners every 30 seconds, where each
+    The Natix Validator's `forward` function sends single-image challenges to miners every 30 seconds, where each
     image has a 50/50 chance of being real or fake. In service of this task, the Validator class has two key members -
     self.real_image_datasets and self.synthetic_image_generator. The former is a list of ImageDataset objects, which
     contain real images. The latter is an ML pipeline that combines an LLM for prompt generation and diffusion
     models that ingest prompts output by the LLM to produce synthetic images.
 
-    The BitMind Validator also encapsuluates a ValidatorProxy, which is used to service organic requests from
+    The Natix Validator also encapsuluates a ValidatorProxy, which is used to service organic requests from
     our consumer-facing application. If you wish to participate in this system, run your validator with the
      --proxy.port argument set to an exposed port on your machine.
     """
+
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
         bt.logging.info("load_state()")
@@ -67,36 +65,28 @@ class Validator(BaseValidatorNeuron):
         self.last_responding_miner_uids = []
         self.validator_proxy = ValidatorProxy(self)
 
-        # real media caches are updated by the bitmind_cache_updater process (started by start_validator.sh)
+        # real media caches are updated by the natix_cache_updater process (started by start_validator.sh)
         self.roadwork_media_cache = {
-            'image': ImageCache(ROADWORK_IMAGE_CACHE_DIR),
-            'video': VideoCache(ROADWORK_VIDEO_CACHE_DIR)
+            "image": ImageCache(ROADWORK_IMAGE_CACHE_DIR),
         }
         self.clear_road_media_cache = {
-            'image': ImageCache(CLEAR_IMAGE_CACHE_DIR),
-            'video': VideoCache(CLEAR_VIDEO_CACHE_DIR)
+            "image": ImageCache(CLEAR_IMAGE_CACHE_DIR),
         }
 
         # synthetic media caches are populated by the SyntheticDataGenerator process (started by start_validator.sh)
         self.synthetic_media_cache = {
-            'image': {
-                't2i': ImageCache(T2I_CACHE_DIR),
-                'i2i': ImageCache(I2I_CACHE_DIR)
-            },
-            'video': {
-                't2v': VideoCache(T2V_CACHE_DIR)
-            }
+            "image": {"t2i": ImageCache(T2I_CACHE_DIR), "i2i": ImageCache(I2I_CACHE_DIR)},
         }
 
         self.media_cache = {
-            'None': self.clear_road_media_cache,
-            'Roadwork': self.roadwork_media_cache,
+            "None": self.clear_road_media_cache,
+            "Roadwork": self.roadwork_media_cache,
         }
 
         self.init_wandb()
         self.store_vali_info()
-        self._fake_prob = self.config.get('fake_prob', 0.5)
-    
+        self._fake_prob = self.config.get("fake_prob", 0.5)
+
     async def forward(self):
         """
         Validator forward pass. Consists of:
@@ -112,11 +102,11 @@ class Validator(BaseValidatorNeuron):
         if self.config.wandb.off:
             return
 
-        run_name = f'validator-{self.uid}-{bitmind.__version__}'
+        run_name = f"validator-{self.uid}-{natix.__version__}"
         self.config.run_name = run_name
         self.config.uid = self.uid
         self.config.hotkey = self.wallet.hotkey.ss58_address
-        self.config.version = bitmind.__version__
+        self.config.version = natix.__version__
         self.config.type = self.neuron_type
 
         wandb_project = TESTNET_WANDB_PROJECT
@@ -132,7 +122,7 @@ class Validator(BaseValidatorNeuron):
                 entity=WANDB_ENTITY,
                 config=self.config,
                 dir=self.config.full_path,
-                reinit=True
+                reinit=True,
             )
         except wandb.UsageError as e:
             bt.logging.warning(e)
@@ -152,12 +142,12 @@ class Validator(BaseValidatorNeuron):
         The SyntheticDataGenerator process reads this to name its w&b run
         """
         validator_info = {
-            'uid': self.uid,
-            'hotkey': self.wallet.hotkey.ss58_address,
-            'netuid': self.config.netuid,
-            'full_path': self.config.neuron.full_path
+            "uid": self.uid,
+            "hotkey": self.wallet.hotkey.ss58_address,
+            "netuid": self.config.netuid,
+            "full_path": self.config.neuron.full_path,
         }
-        with open(VALIDATOR_INFO_PATH, 'w') as f:
+        with open(VALIDATOR_INFO_PATH, "w") as f:
             yaml.safe_dump(validator_info, f, indent=4)
 
         bt.logging.info(f"Wrote validator info to {VALIDATOR_INFO_PATH}")
@@ -166,6 +156,7 @@ class Validator(BaseValidatorNeuron):
 # The main function parses the configuration and runs the validator.
 if __name__ == "__main__":
     import warnings
+
     warnings.filterwarnings("ignore")
 
     with Validator() as validator:

@@ -1,12 +1,19 @@
 # Natix Network Incentive Mechanism
 
 This document covers the current state of the Natix Network's incentive mechanism, designed to encourage high-quality performance and continuous improvement among miners and validators.
+This document covers the current state of SN34's incentive mechanism.
+1. [Overview](#overview)
+2. [Rewards for Miners](#Rewards for Miners)
+2. [Rewards for Validators](#Rewards for Validators)
+3. [Ranking and Incentives](#Ranking and Incentives)
+5. [Incentive](#incentives)
 
 ## Overview
 
 The Natix Network employs a dynamic reward system to incentivize miners to continuously improve their models for detecting construction site elements in images. Validators play a crucial role in maintaining the integrity and accuracy of the network.
 
 ## Rewards for Miners
+Performance on video and image challenges are computed separately -- each is a weighted combination of the MCC of the last 100 predictions and the accuracy of the last 10.
 
 Miners are rewarded based on their performance in detecting construction site elements. Their success rate, which determines their rank, is assessed by validators through a mix of organic tasks and tasks with known outcomes. This process ensures that miner models are accurately evaluated for their task performance.
 

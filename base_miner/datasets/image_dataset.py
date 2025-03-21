@@ -1,28 +1,29 @@
+from io import BytesIO
 from typing import Optional
+
 from datasets import Dataset
 from PIL import Image
-from io import BytesIO
 from torchvision.transforms import Compose
 
-from .download_data import download_image
 from .base_dataset import BaseDataset
+from .download_data import download_image
 
 
 class ImageDataset(BaseDataset):
     def __init__(
         self,
         huggingface_dataset_path: Optional[str] = None,
-        huggingface_dataset_split: str = 'train',
+        huggingface_dataset_split: str = "train",
         huggingface_dataset_name: Optional[str] = None,
         huggingface_dataset: Optional[Dataset] = None,
         download_mode: Optional[str] = None,
         transforms: Optional[Compose] = None,
     ):
         """Initialize the ImageDataset.
-        
+
         Args:
             huggingface_dataset_path (str, optional): Path to the Hugging Face dataset.
-                Can be a publicly hosted dataset (<organization>/<dataset-name>) or 
+                Can be a publicly hosted dataset (<organization>/<dataset-name>) or
                 local directory (imagefolder:<path/to/directory>)
             huggingface_dataset_split (str): Dataset split to load. Defaults to 'train'.
             huggingface_dataset_name (str, optional): Name of the specific Hugging Face dataset subset.
@@ -36,7 +37,7 @@ class ImageDataset(BaseDataset):
             huggingface_dataset_name=huggingface_dataset_name,
             huggingface_dataset=huggingface_dataset,
             download_mode=download_mode,
-            transforms=transforms
+            transforms=transforms,
         )
 
     def __getitem__(self, index: int) -> dict:
@@ -64,43 +65,39 @@ class ImageDataset(BaseDataset):
             dict: Dictionary containing 'image' (PIL image) and 'id' (str).
         """
         sample = self.dataset[int(index)]
-        if 'url' in sample:
-            image = download_image(sample['url'])
-            image_id = sample['url']
-        elif 'image_url' in sample:
-            image = download_image(sample['image_url'])
-            image_id = sample['image_url']
-        elif 'image' in sample:
-            if isinstance(sample['image'], Image.Image):
-                image = sample['image']
-            elif isinstance(sample['image'], bytes):
-                image = Image.open(BytesIO(sample['image']))
+        if "url" in sample:
+            image = download_image(sample["url"])
+            image_id = sample["url"]
+        elif "image_url" in sample:
+            image = download_image(sample["image_url"])
+            image_id = sample["image_url"]
+        elif "image" in sample:
+            if isinstance(sample["image"], Image.Image):
+                image = sample["image"]
+            elif isinstance(sample["image"], bytes):
+                image = Image.open(BytesIO(sample["image"]))
             else:
                 raise NotImplementedError
 
-            image_id = ''
-            if 'name' in sample:
-                image_id = sample['name']
-            elif 'filename' in sample:
-                 image_id = sample['filename']
+            image_id = ""
+            if "name" in sample:
+                image_id = sample["name"]
+            elif "filename" in sample:
+                image_id = sample["filename"]
 
-            image_id = image_id if image_id != '' else index
+            image_id = image_id if image_id != "" else index
 
         else:
             raise NotImplementedError
 
         # remove alpha channel if download didnt 404
         if image is not None:
-            image = image.convert('RGB')
+            image = image.convert("RGB")
 
         if self.transforms is not None:
             image = self.transforms(image)
 
-        return {
-            'image': image,
-            'id': image_id,
-            'source': self.huggingface_dataset_path
-        }
+        return {"image": image, "id": image_id, "source": self.huggingface_dataset_path}
 
     def __len__(self) -> int:
         """
@@ -110,4 +107,3 @@ class ImageDataset(BaseDataset):
             int: Length of the dataset.
         """
         return len(self.dataset)
-

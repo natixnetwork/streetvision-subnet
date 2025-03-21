@@ -1,11 +1,12 @@
 """
 Thank you to Namoray of SN19 for their autoupdate implementation!
 """
-import os
-import sys
-import subprocess
-import time
+
 import argparse
+import os
+import subprocess
+import sys
+import time
 
 # self heal restart interval
 RESTART_INTERVAL_HOURS = 3
@@ -37,7 +38,7 @@ def run_auto_update_self_heal(neuron_type, auto_update, self_heal):
                     print("Error in updating:", error)
                 else:
                     print("Updated local repo to latest version: {}", format(remote_commit))
-                    
+
                     print("Running the autoupdate steps...")
                     # Trigger shell script. Make sure this file path starts from root
                     os.system(f"./autoupdate_{neuron_type}_steps.sh")
@@ -68,7 +69,7 @@ if __name__ == "__main__":
         print(f"Usage: python {__file__}" + "--validator | --miner [--no-self-heal --no-auto-update]")
         sys.exit(1)
 
-    neuron_type = 'miner' if args.miner else 'validator'
+    neuron_type = "miner" if args.miner else "validator"
 
     if args.clear_cache and args.validator:
         os.system(f"./start_{neuron_type}.sh --clear-cache")
@@ -76,7 +77,4 @@ if __name__ == "__main__":
         os.system(f"./start_{neuron_type}.sh")
 
     if not args.no_auto_update or not args.no_self_heal:
-        run_auto_update_self_heal(
-            neuron_type,
-            auto_update=not args.no_auto_update,
-            self_heal=not args.no_self_heal)
+        run_auto_update_self_heal(neuron_type, auto_update=not args.no_auto_update, self_heal=not args.no_self_heal)

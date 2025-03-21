@@ -1,1 +1,1 @@
-from .face_utils import get_face_landmarks, align_and_crop_face
+from .face_utils import align_and_crop_face, get_face_landmarks

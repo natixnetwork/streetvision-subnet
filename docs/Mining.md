@@ -24,7 +24,7 @@ git clone https://github.com/natixnetwork/natix-subnet.git && cd natix-subnet
 ```
 
 We recommend using a Conda virtual environment to install the necessary Python packages.<br>
-You can set up Conda with this [quick command-line install](https://docs.anaconda.com/free/miniconda/#quick-command-line-install). Note that after you run the last commands in the miniconda setup process, you'll be prompted to start a new shell session to complete the initialization. 
+You can set up Conda with this [quick command-line install](https://docs.anaconda.com/free/miniconda/#quick-command-line-install). Note that after you run the last commands in the miniconda setup process, you'll be prompted to start a new shell session to complete the initialization.
 
 With miniconda installed, you can create a virtual environment with this command:
 
@@ -39,7 +39,7 @@ Install the remaining necessary requirements with the following chained command.
 ```bash
 conda activate natix
 export PIP_NO_CACHE_DIR=1
-chmod +x setup_env.sh 
+chmod +x setup_env.sh
 ./setup_env.sh
 ```
 
@@ -55,7 +55,7 @@ python base_miner/datasets/download_data.py
 
 Feel free to skip this step - datasets will be downloaded automatically when you run the training scripts.
 
-The default list of datasets and default download location are defined in `base_miner/config.py` 
+The default list of datasets and default download location are defined in `base_miner/config.py`
 
 
 ## Registration
@@ -166,7 +166,7 @@ We recommend consulting the `README` in `base_miner/` to learn about the extensi
 
 
 
-## Tensorboard 
+## Tensorboard
 
 Training metrics are logged with TensorboardX. You can view interactive graphs of these metrics by starting a tensorboard server with the following command, and navigating to `localhost:6006`.
 

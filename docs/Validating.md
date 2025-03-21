@@ -11,7 +11,7 @@
 
 **Ensure you are running Subtensor locally** to minimize outages and improve performance. See [Run a Subtensor Node Locally](https://github.com/opentensor/subtensor/blob/main/docs/running-subtensor-locally.md#compiling-your-own-binary).
 
-**Be aware of the minimum compute requirements** for our subnet, detailed in [Minimum compute YAML configuration](../min_compute.yml). 
+**Be aware of the minimum compute requirements** for our subnet, detailed in [Minimum compute YAML configuration](../min_compute.yml).
 
 ## Installation
 
@@ -34,7 +34,7 @@ Install the remaining necessary requirements with the following chained command.
 ```bash
 conda activate natix
 export PIP_NO_CACHE_DIR=1
-chmod +x setup_env.sh 
+chmod +x setup_env.sh
 ./setup_env.sh
 ```
 
@@ -84,7 +84,7 @@ WANDB_API_KEY=your_wandb_api_key_here
 HUGGING_FACE_TOKEN=your_hugging_face_token_here
 ```
 
-If you don't have a W&B API key, please reach out to the BitMind team via Discord and we can provide one. 
+If you don't have a W&B API key, please reach out to the BitMind team via Discord and we can provide one.
 
 Now you're ready to run your validator!
 

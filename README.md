@@ -29,24 +29,25 @@ The Natix Network is a decentralized subnet designed to identify elements of con
   </tbody>
 </table>
 
-## Decentralized Detection of Construction Site Elements
+
+## Decentralized Detection of Driving Qualia
+Who hasn't been late to work for reasons outside of your control? Roadwork, lane closures, accidents, weather, and other unforeseen circumstances can cause any number of annoyances. Centralized map providers cannot be everywhere at once, and they
 The Natix Network focuses on detecting elements of construction sites in images, such as road signs, hazard markings, construction materials, and machinery. Miners are incentivized to continually improve their models to achieve higher accuracy in identifying these elements.
+
 
 ## Core Components
 
 > This documentation assumes basic familiarity with Bittensor concepts. For an introduction, please check out the docs: https://docs.bittensor.com/learn/bittensor-building-blocks.
 
-**Miners** 
-- Miners are tasked with evaluating images to determine the likelihood of the presence of construction site elements. They provide a float value between 0 and 1 to indicate this probability.
-- Miners must submit their models to a public repository on Hugging Face every 90 days to maintain their reward factor.
+**Miners**
+- Miners are tasked with running binary classifiers that discern between images with and without roadwork, and are rewarded based on their accuracy.
+- Miners predict a float value in [0., 1.], with values greater than 0.5 indicating the image contains roadwork.
 
 A unique feature of the Natix Network is its dynamic reward system. Miners must submit their image classification models to a public repository on Hugging Face. The submission is valid for 90 days, during which their reward factor is one. As time progresses beyond this period, the reward factor decays to zero, incentivizing continuous improvement and re-submission of models.
 
-**Validators** 
-- Validators present miners with a mix of organic images and randomly selected labeled images to assess their performance. The labeled images help rank miners based on accuracy.
-
-## Incentive Mechanism
-
+**Validators**
+- Validators challenge miners with a balanced mix of real and synthetic media drawn from a diverse pool of sources.
+- We continually add new datasets and generative models to our validators in order to maximize coverage of the types of diverse data. Models and datasets are defined in  `natix/validator/config.py`.
 
 
 ## Subnet Architecture
@@ -72,7 +73,7 @@ A unique feature of the Natix Network is its dynamic reward system. Miners must 
   </a>
 </p>
 
-For real-time discussions, community support, and regular updates, <a href="https://discord.gg/natixnetwork">join our Discord server</a>. Connect with developers, researchers, and users to get the most out of Natix Network.
+For real-time discussions, community support, and regular updates, <a href="https://discord.gg/kKQR98CrUn">join our Discord server</a>. Connect with developers, researchers, and users to get the most out of Natix Subnet.
 
 ## License
 This repository is licensed under the MIT License.
