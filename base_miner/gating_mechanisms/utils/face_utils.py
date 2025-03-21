@@ -1,6 +1,6 @@
-from skimage import transform as trans
-import numpy as np
 import cv2
+import numpy as np
+from skimage import transform as trans
 
 
 def get_face_landmarks(face):
@@ -19,9 +19,7 @@ def get_face_landmarks(face):
     return np.concatenate([leye, reye, nose, lmouth, rmouth], axis=0)
 
 
-def align_and_crop_face(
-        img: np.ndarray,
-        landmarks: np.ndarray, outsize: tuple, scale=1.3, mask=None):
+def align_and_crop_face(img: np.ndarray, landmarks: np.ndarray, outsize: tuple, scale=1.3, mask=None):
     """
     Align and crop the face according to the given landmarks
     Args:
@@ -36,12 +34,10 @@ def align_and_crop_face(
          cropped and aligned mask
     """
     target_size = [112, 112]
-    dst = np.array([
-        [30.2946, 51.6963],
-        [65.5318, 51.5014],
-        [48.0252, 71.7366],
-        [33.5493, 92.3655],
-        [62.7299, 92.2041]], dtype=np.float32)
+    dst = np.array(
+        [[30.2946, 51.6963], [65.5318, 51.5014], [48.0252, 71.7366], [33.5493, 92.3655], [62.7299, 92.2041]],
+        dtype=np.float32,
+    )
 
     if target_size[1] == 112:
         dst[:, 0] += 8.0
@@ -52,8 +48,8 @@ def align_and_crop_face(
     target_size = outsize
 
     margin_rate = scale - 1
-    x_margin = target_size[0] * margin_rate / 2.
-    y_margin = target_size[1] * margin_rate / 2.
+    x_margin = target_size[0] * margin_rate / 2.0
+    y_margin = target_size[1] * margin_rate / 2.0
 
     # move
     dst[:, 0] += x_margin

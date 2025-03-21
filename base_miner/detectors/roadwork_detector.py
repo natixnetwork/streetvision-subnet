@@ -1,24 +1,22 @@
-from pathlib import Path
-import yaml
-import torch
 from PIL import Image
-from base_miner.registry import DETECTOR_REGISTRY
-from base_miner.gating_mechanisms import GatingMechanism
-from base_miner.detectors import FeatureDetector
-import bittensor as bt
 
-@DETECTOR_REGISTRY.register_module(module_name='ROADWORK')
+from base_miner.detectors import FeatureDetector
+from base_miner.gating_mechanisms import GatingMechanism
+from base_miner.registry import DETECTOR_REGISTRY
+
+
+@DETECTOR_REGISTRY.register_module(module_name="ROADWORK")
 class RoadworkDetector(FeatureDetector):
     """
     This DeepfakeDetector subclass implements Content-Aware Model Orchestration
     (CAMO), a mixture-of-experts approach to the binary classification of
     real and fake images, breaking the classification problem into content-specific
     subproblems.
-    
+
     The subproblems are solved by using a GatingMechanism to route image
     content to appropriate DeepfakeDetector subclass instance(s) that
     initialize models pretrained to handle the content type.
-    
+
     Attributes:
         model_name (str): Name of the detector instance.
         config_name (str): Name of the YAML file in deepfake_detectors/config/ to load
@@ -26,7 +24,7 @@ class RoadworkDetector(FeatureDetector):
         device (str): The type of device ('cpu' or 'cuda').
     """
 
-    def __init__(self, model_name: str = 'ROADWORK', config_name: str = 'roadwork.yaml', device: str = 'cpu'):
+    def __init__(self, model_name: str = "ROADWORK", config_name: str = "roadwork.yaml", device: str = "cpu"):
         """
         Initialize the Detector with dynamic model selection based on config.
         """
@@ -34,8 +32,7 @@ class RoadworkDetector(FeatureDetector):
         super().__init__(model_name, config_name, device)
 
         gate_names = [
-            content_type for content_type in self.content_type
-            if self.content_type[content_type].get('use_gate', False)
+            content_type for content_type in self.content_type if self.content_type[content_type].get("use_gate", False)
         ]
         self.gating_mechanism = GatingMechanism(gate_names)
 
@@ -44,20 +41,16 @@ class RoadworkDetector(FeatureDetector):
         Load detectors dynamically based on the provided configuration and registry.
         """
         for content_type, detector_info in self.content_type.items():
-            model_name = detector_info['model']
-            detector_config = detector_info['detector_config']
+            model_name = detector_info["model"]
+            detector_config = detector_info["detector_config"]
             if model_name in DETECTOR_REGISTRY:
                 self.detectors[content_type] = DETECTOR_REGISTRY[model_name](
-                    model_name=f'{model_name}_{content_type}',
-                    config_name=detector_config,
-                    device=self.device
+                    model_name=f"{model_name}_{content_type}", config_name=detector_config, device=self.device
                 )
             else:
                 raise ValueError(f"Detector {model_name} not found in the registry for {content_type}.")
 
-    def __call__(
-        self, image: Image
-    ) -> float:
+    def __call__(self, image: Image) -> float:
         """
         Perform inference using the CAMO detector.
 
@@ -77,5 +70,5 @@ class RoadworkDetector(FeatureDetector):
 
         # if len(expert_outputs) == 0:
         #     return self.detectors['general'](image)
-        pred = self.detectors['roadwork'](image)
+        pred = self.detectors["roadwork"](image)
         return pred

@@ -1,16 +1,10 @@
 import numpy as np
-from torchvision import transforms as T
 import torch
+
 
 class RealFakeDataset:
 
-    def __init__(
-        self,
-        real_image_datasets: list,
-        fake_image_datasets: list,
-        fake_prob=0.5,
-        source_label_mapping=None
-    ):
+    def __init__(self, real_image_datasets: list, fake_image_datasets: list, fake_prob=0.5, source_label_mapping=None):
         """
         Initialize the RealFakeDataset instance.
 
@@ -27,11 +21,11 @@ class RealFakeDataset:
         self.source_label_mapping = source_label_mapping
 
         self._history = {
-            'source': [],
-            'index': [],
-            'label': [],
+            "source": [],
+            "index": [],
+            "label": [],
         }
-    
+
     def __getitem__(self, index: int) -> tuple:
         """
         Retrieve an item (image, label) from the dataset.
@@ -44,31 +38,31 @@ class RealFakeDataset:
             tuple: Tuple containing the image, its label (1 : fake, 0 : real),
             and its source label (0 for real datasets and >= 1 for fake datasets).
         """
-        if len(self._history['index']) > index:
+        if len(self._history["index"]) > index:
             self.reset()
 
         if np.random.rand() > self.fake_prob:
             source = self.fake_image_datasets[np.random.randint(0, len(self.fake_image_datasets))]
-            image = source[index]['image']
+            image = source[index]["image"]
             label = 1.0
         else:
             source = self.real_image_datasets[np.random.randint(0, len(self.real_image_datasets))]
-            #imgs, idx = source.sample(1)
-            image = source[index]['image']
-            #image = imgs[0]['image']
-            #index = idx[0]
+            # imgs, idx = source.sample(1)
+            image = source[index]["image"]
+            # image = imgs[0]['image']
+            # index = idx[0]
             label = 0.0
 
-        self._history['source'].append(source.huggingface_dataset_path)
-        self._history['label'].append(label)
-        self._history['index'].append(index)
+        self._history["source"].append(source.huggingface_dataset_path)
+        self._history["label"].append(label)
+        self._history["index"].append(index)
 
         if self.source_label_mapping:
             source_label = self.source_label_mapping[source.huggingface_dataset_path]
             return image, label, source_label
-            
+
         return image, label
-    
+
     def __len__(self) -> int:
         """
         Return the length of the dataset.
@@ -83,9 +77,9 @@ class RealFakeDataset:
 
     def reset(self):
         self._history = {
-            'source': [],
-            'index': [],
-            'label': [],
+            "source": [],
+            "index": [],
+            "label": [],
         }
 
     @staticmethod
@@ -96,11 +90,5 @@ class RealFakeDataset:
         labels = torch.LongTensor(labels)
         source_labels = torch.LongTensor(source_labels)
 
-        data_dict = {
-            'image': images,
-            'label': labels,
-            'label_spe': source_labels,
-            'landmark': None,
-            'mask': None
-        }
+        data_dict = {"image": images, "label": labels, "label_spe": source_labels, "landmark": None, "mask": None}
         return data_dict

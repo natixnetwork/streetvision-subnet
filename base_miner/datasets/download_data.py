@@ -1,31 +1,25 @@
-from typing import Optional
-from datasets import load_dataset
-from PIL import Image
-from io import BytesIO
-import datasets
 import argparse
-import time
-import sys
+import glob
 import os
 import subprocess
-import glob
-import requests
+import sys
+import time
+from io import BytesIO
+from typing import Optional
 
-from base_miner.config import IMAGE_DATASETS, HUGGINGFACE_CACHE_DIR
+import datasets
+import requests
+from datasets import load_dataset, load_from_disk
+from PIL import Image
+
+from base_miner.config import HUGGINGFACE_CACHE_DIR, IMAGE_DATASETS
 
 datasets.logging.set_verbosity_warning()
 datasets.disable_progress_bar()
 
-from datasets import load_dataset, load_from_disk
-from typing import Optional
-import os
-
 
 def load_huggingface_dataset(
-    path: str,
-    split: str = 'train',
-    name: Optional[str] = None,
-    download_mode: str = 'reuse_cache_if_exists'
+    path: str, split: str = "train", name: Optional[str] = None, download_mode: str = "reuse_cache_if_exists"
 ) -> datasets.Dataset:
     """Load a dataset from Hugging Face or a local directory.
 
@@ -42,10 +36,10 @@ def load_huggingface_dataset(
         Dataset: The loaded dataset or requested split
     """
     # Check if it's a local path suitable for load_from_disk
-    if not path.startswith('imagefolder:') and os.path.exists(path):
+    if not path.startswith("imagefolder:") and os.path.exists(path):
         try:
             # Look for dataset artifacts that indicate this is a saved dataset
-            dataset_files = {'dataset_info.json', 'state.json', 'data'}
+            dataset_files = {"dataset_info.json", "state.json", "data"}
             path_contents = set(os.listdir(path))
             if dataset_files.intersection(path_contents):
                 dataset = load_from_disk(path)
@@ -55,18 +49,16 @@ def load_huggingface_dataset(
         except Exception as e:
             print(f"Attempted load_from_disk but failed: {e}")
 
-    if 'imagefolder' in path:
-        _, directory = path.split(':')
+    if "imagefolder" in path:
+        _, directory = path.split(":")
         if name:
-            dataset = load_dataset(path='imagefolder', name=name, data_dir=directory)
+            dataset = load_dataset(path="imagefolder", name=name, data_dir=directory)
         else:
-            dataset = load_dataset(path='imagefolder', data_dir=directory)
+            dataset = load_dataset(path="imagefolder", data_dir=directory)
     else:
         dataset = download_dataset(
-            dataset_path=path,
-            dataset_name=name,
-            download_mode=download_mode,
-            cache_dir=HUGGINGFACE_CACHE_DIR)
+            dataset_path=path, dataset_name=name, download_mode=download_mode, cache_dir=HUGGINGFACE_CACHE_DIR
+        )
 
     if split is None:
         return dataset
@@ -88,17 +80,11 @@ def download_image(url: str) -> Image.Image:
         image_data = BytesIO(response.content)
         return Image.open(image_data)
     else:
-        #print(f"Failed to download image: {response.status_code}")
+        # print(f"Failed to download image: {response.status_code}")
         return None
 
 
-def download_dataset(
-    dataset_path: str,
-    dataset_name: str,
-    download_mode: str,
-    cache_dir: str,
-    max_wait: int = 300
-):
+def download_dataset(dataset_path: str, dataset_name: str, download_mode: str, cache_dir: str, max_wait: int = 300):
     """Downloads the datasets present in datasets.json with exponential backoff.
 
     Args:
@@ -121,17 +107,18 @@ def download_dataset(
                 name=dataset_name,  # config/subset name
                 cache_dir=cache_dir,
                 download_mode=download_mode,
-                trust_remote_code=True)
+                trust_remote_code=True,
+            )
             break
         except Exception as e:
             print(e)
-            if '429' in str(e) or 'ReadTimeoutError' in str(e):
+            if "429" in str(e) or "ReadTimeoutError" in str(e):
                 print(f"Rate limit hit or timeout, retrying in {retry_wait}s...")
             elif isinstance(e, PermissionError):
                 file_path = str(e).split(": '")[1].rstrip("'")
                 print(f"Permission error at {file_path}, attempting to fix...")
                 fix_permissions(file_path)  # Attempt to fix permissions directly
-                clean_cache(cache_dir)      # Clear cache to remove any incomplete or locked files
+                clean_cache(cache_dir)  # Clear cache to remove any incomplete or locked files
             else:
                 print(f"Unexpected error, stopping retries for {dataset_path}")
                 raise e
@@ -180,11 +167,13 @@ def fix_permissions(path):
         print(f"Failed to fix permissions for {path}: {e}")
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Download Hugging Face datasets for validator challenge generation and miner training.')
-    parser.add_argument('--force_redownload', action='store_true', help='force redownload of datasets')
-    parser.add_argument('--modality', default='image', choices=['video', 'image'], help='download image or video datasets')
-    parser.add_argument('--cache_dir', type=str, default=HUGGINGFACE_CACHE_DIR, help='huggingface cache directory')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Download Hugging Face datasets for validator challenge generation and miner training."
+    )
+    parser.add_argument("--force_redownload", action="store_true", help="force redownload of datasets")
+    parser.add_argument("--modality", default="image", choices=["video", "image"], help="download image or video datasets")
+    parser.add_argument("--cache_dir", type=str, default=HUGGINGFACE_CACHE_DIR, help="huggingface cache directory")
     args = parser.parse_args()
 
     download_mode = "reuse_cache_if_exists"
@@ -194,15 +183,16 @@ if __name__ == '__main__':
     os.makedirs(args.cache_dir, exist_ok=True)
     clean_cache(args.cache_dir)  # Clear the cache of lock and incomplete files.
 
-    if args.modality == 'image':
+    if args.modality == "image":
         dataset_meta = IMAGE_DATASETS
-    #elif args.modality == 'video':
+    # elif args.modality == 'video':
     #    dataset_meta = VIDEO_DATASET_META
 
     for dataset_type in dataset_meta:
         for dataset in dataset_meta[dataset_type]:
             download_dataset(
-                dataset_path=dataset['path'],
-                dataset_name=dataset.get('name', None),
+                dataset_path=dataset["path"],
+                dataset_name=dataset.get("name", None),
                 download_mode=download_mode,
-                cache_dir=args.cache_dir)
+                cache_dir=args.cache_dir,
+            )
