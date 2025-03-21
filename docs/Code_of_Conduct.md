@@ -1,5 +1,5 @@
 <center>
-    <img src="../static/Bitmind-Logo.png" alt="BitMind Logo" width="200"/>
+    <img src="../static/natix-network-logo.svg" alt="Natix Network Logo" width="200"/>
 </center>
 
 # BitMind Subnet Code of Conduct
@@ -32,7 +32,7 @@ Participants asked to stop any harmful activity are expected to comply immediate
 
 ## Reporting Guidelines
 
-If you witness or are subjected to unacceptable behavior, or have any other concerns, please promptly contact a community organizer or report the incident through our [Discord](https://discord.gg/bitmind).
+If you witness or are subjected to unacceptable behavior, or have any other concerns, please promptly contact a community organizer or report the incident through our [Discord](https://discord.gg/natix).
 
 ## Scope
 
@@ -40,7 +40,7 @@ This Code of Conduct applies to all community interactions, including forums, so
 
 ## Contact Info
 
-For any issues, please contact us via [Discord](https://discord.gg/bitmind) or email the project maintainers directly.
+For any issues, please contact us via [Discord](https://discord.gg/natix) or email the project maintainers directly.
 
 ## License
 

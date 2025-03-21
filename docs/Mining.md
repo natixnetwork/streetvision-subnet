@@ -6,7 +6,7 @@
    - [Data 📊](#data)
    - [Registration ✍️](#registration)
 2. [Mining ⛏️](#mining)
-3. [Training 🚂](#training)
+3. [Model Submission and Improvement 📈](#model-submission-and-improvement)
 
 ## Before you proceed ⚠️
 
@@ -14,13 +14,13 @@
 
 **Ensure you are running Subtensor locally** to minimize outages and improve performance. See [Run a Subtensor Node Locally](https://github.com/opentensor/subtensor/blob/main/docs/running-subtensor-locally.md#compiling-your-own-binary).
 
-**Be aware of the minimum compute requirements** for our subnet, detailed in [Minimum compute YAML configuration](../min_compute.yml). A GPU is required for training (unless you want to wait weeks for training to complete), but is not required for inference while running a miner.
+**Be aware of the minimum compute requirements** for our subnet, detailed in [Minimum compute YAML configuration](../min_compute.yml). A GPU is recommended for training, but not required for inference while running a miner.
 
 ## Installation
 
 Download the repository and navigate to the folder.
 ```bash
-git clone https://github.com/bitmind-ai/bitmind-subnet.git && cd bitmind-subnet
+git clone https://github.com/natixnetwork/natix-subnet.git && cd natix-subnet
 ```
 
 We recommend using a Conda virtual environment to install the necessary Python packages.<br>
@@ -29,15 +29,15 @@ You can set up Conda with this [quick command-line install](https://docs.anacond
 With miniconda installed, you can create a virtual environment with this command:
 
 ```bash
-conda create -y -n bitmind python=3.10 ipython jupyter ipykernel
+conda create -y -n natix python=3.9
 ```
 
-To activate your virtual environment, run `conda activate bitmind`. To deactivate, `conda deactivate`.
+To activate your virtual environment, run `conda activate natix`. To deactivate, `conda deactivate`.
 
 Install the remaining necessary requirements with the following chained command. This may take a few minutes to complete.
 
 ```bash
-conda activate bitmind
+conda activate natix
 export PIP_NO_CACHE_DIR=1
 chmod +x setup_env.sh
 ./setup_env.sh
@@ -67,7 +67,6 @@ To mine on our subnet, you must have a registered hotkey.
 To reduce the risk of deregistration due to technical issues or a poor performing model, we recommend the following:
 1. Test your miner on testnet before you start mining on mainnet.
 2. Before registering your hotkey on mainnet, make sure your port is open by running `curl your_ip:your_port`
-3. If you've trained a custom model, test it's performance by deploying to testnet. You can use this [notebook](https://github.com/BitMind-AI/bitmind-utils/blob/main/wandb_data/wandb_miner_performance.ipynb) to query our tesnet Weights and Biases logs and compute your model's accuracy. Our testnet validator is running 24/7.
 
 
 #### Mainnet
@@ -121,8 +120,8 @@ BLACKLIST_FORCE_VALIDATOR_PERMIT=True          # Default setting to force valida
 Now you're ready to run your miner!
 
 ```bash
-conda activate bitmind
-pm2 start run_neuron.py -- --miner
+conda activate natix
+pm2 start run_neuron.py -- --miner 
 ```
 
 - Auto updates are enabled by default. To disable, run with `--no-auto-updates`.
@@ -155,13 +154,13 @@ the training config, e.g. `config.yaml`, is different from the detector config, 
 
 ## Deploy Your Model
 
-Whether you have trained your own model, designed your own ``DeepfakeDetector`` subclass, or want to deploy a base miner using provided detectors in ``base_miner/deepfake_detectors/``, you can simply update the `miner.env` file to point to the desired detector class and config.
+Whether you have trained your own model, designed your own ``FeatureDetector`` subclass, or want to deploy a base miner using provided detectors in ``base_miner/detectors/``, you can simply update the `miner.env` file to point to the desired detector class and config.
 
 We recommend consulting the `README` in `base_miner/` to learn about the extensibility and modular design of our base miner detectors.
 
-- The detector type (e.g. `UCF`) corresponds to the module name of the ``DeepfakeDetector`` subclass registered in ``base_miner/registry.py``'s ``DETECTOR_REGISTRY``.
-- The associated detector config file (e.g., `ucf.yaml`) lives in `base_miner/deepfake_detectors/configs/`.
-  - *For UCF only:* You will need to set the `train_config` field in the detector configuration file (`base_miner/deepfake_detectors/configs/ucf.yaml`) to point to the training configuration file. This allows the instantiation of `UCFDetector` to use the settings from training time to reconstruct the correct model architecture. After training a model, the training config can be found in `base_miner/UCF/logs/<your_training_run>/config.yaml`. Feel free to move this to a different location, as long as the `train_config` field in `configs/ucf.yaml` reflects this.
+- The detector type (e.g. `UCF`) corresponds to the module name of the ``FeatureDetector`` subclass registered in ``base_miner/registry.py``'s ``DETECTOR_REGISTRY``.
+- The associated detector config file (e.g., `ucf.yaml`) lives in `base_miner/detectors/configs/`.
+  - *For UCF only:* You will need to set the `train_config` field in the detector configuration file (`base_miner/detectors/configs/ucf.yaml`) to point to the training configuration file. This allows the instantiation of `UCFDetector` to use the settings from training time to reconstruct the correct model architecture. After training a model, the training config can be found in `base_miner/UCF/logs/<your_training_run>/config.yaml`. Feel free to move this to a different location, as long as the `train_config` field in `configs/ucf.yaml` reflects this. 
 - The model weights file (e.g., `ckpt_best.pth`) should be placed in `base_miner/<detector_type>/weights`.
   - If the weights specified in the config file do not exist, the miner will attempt to automatically download them from Hugging Face as specified by the `hf_repo` field in the config file. Feel free to use your own Hugging Face repository for hosting your model weights, and update the config file accordingly.
 

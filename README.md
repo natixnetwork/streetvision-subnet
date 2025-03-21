@@ -1,10 +1,11 @@
 <p align="center">
+  <img src="static/natix-network-logo.svg" alt="Natix Network Logo" width="150"/>
 </p>
-<h1 align="center">Natix Subnet<br><small>Bittensor Subnet XXX | Global Smart Maps</small></h1>
+<h1 align="center">Natix Network<br><small>Bittensor Subnet for Construction Site Detection</small></h1>
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-The Natix Subnet is designed to be the backbone of the first decentralized smart map. With Natixs world-class dashcam data pipeline and Bittensors DeAI infrastructure, we are building the worlds most comprehensive and dynamic smart map.
+The Natix Network is a decentralized subnet designed to identify elements of construction sites in images. Built on Bittensor, this subnet incentivizes miners to develop and deploy models that accurately detect construction-related features like road signs, hazard markings, and machinery.
 
 <table style="border: none !important; width: 100% !important; border-collapse: collapse !important; margin: 0 auto !important;">
   <tbody>
@@ -20,11 +21,9 @@ The Natix Subnet is designed to be the backbone of the first decentralized smart
         📈 <a href="docs/Incentive.md">Incentive Mechanism</a><br>
         🤝 <a href="docs/Contributor_Guide.md">Contributor Guide</a></td>
       <td>
-        🚀 <a href="https://www.bitmind.ai/apps">TODO: FRONTEND LINK</a><br>
-        🤗 <a href="https://huggingface.co/natix-network-org">Natix Huggingface</a><br>
-        📊 <a href="https://wandb.ai/bitmindai/bitmind-subnet">TODO Mainnet XX W&B</a> | <a href="https://wandb.ai/bitmindai/bitmind">Testnet 323 W&B</a><br>
-        📖 <a href="docs/Glossary.md">Project Structure and Terminology</a><br>
-        <a href="https://docs.bittensor.com/learn/bittensor-building-blocks">🧠 Bittensor Introduction</a><br>
+        🚀 <a href="https://www.natix.network">Natix Network</a><br>
+        🤗 <a href="https://huggingface.co/natix-network-org">Natix Network Hugging Face</a><br>
+        📊 <a href="https://wandb.ai/natix_network/natix-testnet">W&B</a><br>
       </td>
     </tr>
   </tbody>
@@ -33,6 +32,7 @@ The Natix Subnet is designed to be the backbone of the first decentralized smart
 
 ## Decentralized Detection of Driving Qualia
 Who hasn't been late to work for reasons outside of your control? Roadwork, lane closures, accidents, weather, and other unforeseen circumstances can cause any number of annoyances. Centralized map providers cannot be everywhere at once, and they
+The Natix Network focuses on detecting elements of construction sites in images, such as road signs, hazard markings, construction materials, and machinery. Miners are incentivized to continually improve their models to achieve higher accuracy in identifying these elements.
 
 
 ## Core Components
@@ -43,6 +43,7 @@ Who hasn't been late to work for reasons outside of your control? Roadwork, lane
 - Miners are tasked with running binary classifiers that discern between images with and without roadwork, and are rewarded based on their accuracy.
 - Miners predict a float value in [0., 1.], with values greater than 0.5 indicating the image contains roadwork.
 
+A unique feature of the Natix Network is its dynamic reward system. Miners must submit their image classification models to a public repository on Hugging Face. The submission is valid for 90 days, during which their reward factor is one. As time progresses beyond this period, the reward factor decays to zero, incentivizing continuous improvement and re-submission of models.
 
 **Validators**
 - Validators challenge miners with a balanced mix of real and synthetic media drawn from a diverse pool of sources.
@@ -51,8 +52,7 @@ Who hasn't been late to work for reasons outside of your control? Roadwork, lane
 
 ## Subnet Architecture
 
-
-![Subnet Architecture](static/Subnet-Arch.png)
+![Subnet Architecture](static/natix-bittensor-subnet-achitecture.png)
 
 <details>
 <summary align=center><i>Figure 1 (above): Ecosystem Overview</i></summary>
@@ -60,44 +60,16 @@ Who hasn't been late to work for reasons outside of your control? Roadwork, lane
 
 > This diagram provides an overview of the validator neuron, miner neuron, and other components external to the subnet.
 
-- The green arrows show how applications interact with the subnet to provide AI-generated image and video detection functionality.
-- The blue arrows show how validators generate synthetic data, challenge miners and score their responses.
+- The green arrows show how applications interact with the subnet to provide construction site detection functionality.
+- The blue arrows show how validators generate challenges, present miners with images, and score their responses.
 
 </details>
-
-<br>
-
-
-![Subnet Architecture](static/Vali-Arch.png)
-
-<details>
-<summary align=center><i>Figure 2 (above): Validator Components</i></summary>
-<br>
-
-> This diagram presents the same architecture as figure 1, but with organic traffic ommitted and with a more detailed look at scored challenges and the associated validator neuron components.
-
-
-**Challenge Generation and Scoring (Blue Arrows)**
-
-For each challenge, the validator randomly samples a real or synthetic image/video from the cache, applies random augmentations to the sampled media, and distributes the augmented data to 50 randomly selected miners for classification. It then scores the miners responses, and logs comprehensive challenge results to [Weights and Biases](https://wandb.ai/bitmindai/bitmind-subnet), including the generated media, original prompt, miner responses and rewards, and other challenge metadata.
-
-**Synthetic Data Generation (Pink Arrows)**:
-
-The synthetic data generator coordinates a VLM and LLM to generate prompts for our suite of text-to-image, image-to-image, and text-to-video models. Each image or video is written to the cache along with the prompt, generation parameters, and other metadata.
-
-**Dataset Downloads (Green Arrows)**:
-
-The real data fetcher performs partial dataset downloads, fetching random compressed chunks of datasets from HuggingFace and unpacking random portions of these chunks into the cache along with their metadata. Partial downloads avoid requiring TBs of space for large video datasets like OpenVid1M.
-
-</details>
-
-
 
 ## Community
 
 <p align="left">
-  <a href="https://discord.gg/kKQR98CrUn">
-    <img src="static/Join-BitMind-Discord.png" alt="Join us on Discord" width="60%">
+  <a href="https://discord.gg/natixnetwork">
+    <img src="static/Join-NatixNetwork-Discord.png" alt="Join us on Discord" width="60%">
   </a>
 </p>
 
@@ -107,7 +79,7 @@ For real-time discussions, community support, and regular updates, <a href="http
 This repository is licensed under the MIT License.
 ```text
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
+# Copyright © 2025 Natix Network
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -122,4 +94,3 @@ This repository is licensed under the MIT License.
 # THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
-```
