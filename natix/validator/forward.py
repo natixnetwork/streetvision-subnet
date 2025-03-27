@@ -121,14 +121,16 @@ async def forward(self):
 
     bt.logging.info(f"Sending {modality} challenge to {len(miner_uids)} miners")
     start = time.time()
-    responses = await self.dendrite(axons=axons, synapse=synapse, deserialize=True, timeout=9)
+    responses = await self.dendrite(axons=axons, synapse=synapse, deserialize=False, timeout=9)
+    predictions = [x.prediction for x in responses]
+    model_urls = [x.model_url for x in responses]
     bt.logging.info(f"Responses received in {time.time() - start}s")
     bt.logging.success(f"Roadwork {modality} challenge complete!")
     bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ("miner_uids", "miner_hotkeys")})
 
     bt.logging.info("Scoring responses")
     rewards, metrics = get_rewards(
-        label=label, responses=responses, uids=miner_uids, axons=axons, performance_trackers=self.performance_trackers
+        label=label, responses=predictions, uids=miner_uids, model_urls=model_urls, axons=axons, performance_trackers=self.performance_trackers
     )
 
     self.update_scores(rewards, miner_uids)
@@ -140,7 +142,7 @@ async def forward(self):
     challenge_metadata["rewards"] = rewards
     challenge_metadata["scores"] = list(self.scores)
 
-    for uid, pred, reward in zip(miner_uids, responses, rewards):
+    for uid, pred, reward in zip(miner_uids, predictions, rewards):
         if pred != -1:
             bt.logging.success(f"UID: {uid} | Prediction: {pred} | Reward: {reward}")
 

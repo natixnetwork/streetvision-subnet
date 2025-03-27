@@ -4,10 +4,7 @@ set -a
 source miner.env
 set +a
 
-# if pm2 list | grep -q "bitmind_miner"; then
-#   echo "Process 'bitmind_miner' is already running. Deleting it..."
-#   pm2 delete bitmind_miner
-# fi
+export PYTHONPATH=$(pwd):$PYTHONPATH
 
 python neurons/miner.py \
   --neuron.image_detector ${IMAGE_DETECTOR:-None} \

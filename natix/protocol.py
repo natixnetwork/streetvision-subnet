@@ -65,7 +65,7 @@ def prepare_image_synapse(image: Image):
     image_bytes = BytesIO()
     image.save(image_bytes, format="JPEG")
     b64_encoded_image = base64.b64encode(image_bytes.getvalue())
-    return ImageSynapse(image=b64_encoded_image)
+    return ExtendedImageSynapse(image=b64_encoded_image)
 
 
 class ImageSynapse(bt.Synapse):
@@ -102,3 +102,6 @@ class ImageSynapse(bt.Synapse):
         prediction probabilities
         """
         return self.prediction
+
+class ExtendedImageSynapse(ImageSynapse):
+     model_url: str = ""
