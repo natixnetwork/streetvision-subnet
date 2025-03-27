@@ -26,7 +26,7 @@ class PromptGenerator:
         self,
         vlm_name: str,
         llm_name: str,
-        device: str = "cuda",
+        device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
     ) -> None:
         """
         Initialize the ImageAnnotationGenerator with specific models and device settings.
