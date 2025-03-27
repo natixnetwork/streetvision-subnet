@@ -61,7 +61,7 @@ IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
 
 # Prompt generation model configurations
 IMAGE_ANNOTATION_MODEL: str = "Salesforce/blip2-opt-6.7b-coco"
-TEXT_MODERATION_MODEL: str = "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit"
+TEXT_MODERATION_MODEL: str = "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit" if torch.cuda.is_available() else "unsloth/Meta-Llama-3.1-8B-Instruct"
 
 # Text-to-image model configurations
 T2I_MODELS: Dict[str, Dict[str, Any]] = {
