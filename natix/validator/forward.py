@@ -27,13 +27,13 @@ import wandb
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.utils.uids import get_random_uids
-from natix.validator.config import TARGET_IMAGE_SIZE
+from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
 
 
-def determine_challenge_type(media_cache, roadwork_prob=0.5):
+def determine_challenge_type(media_cache):
     modality = "image"
-    label = 0 if np.random.rand() < roadwork_prob else 1
+    label = np.random.choice(list(CHALLENGE_TYPE.keys()))
     cache = media_cache["Roadwork"][modality]
     task = None
     # if label == 1:

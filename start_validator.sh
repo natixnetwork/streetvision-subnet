@@ -61,6 +61,9 @@ fi
 #   exit 1
 # fi
 
+echo "Starting real data cache updater process"
+pm2 start natix/validator/scripts/run_cache_updater.py --name $CACHE_UPDATE_PROCESS_NAME
+
 echo "Starting validator process"
 python neurons/validator.py \
   --netuid $NETUID \
@@ -72,6 +75,3 @@ python neurons/validator.py \
   --proxy.port $VALIDATOR_PROXY_PORT \
   --wandb.off \
   --logging.debug
-
-echo "Starting real data cache updater process"
-pm2 start natix/validator/scripts/run_cache_updater.py --name $CACHE_UPDATE_PROCESS_NAME
