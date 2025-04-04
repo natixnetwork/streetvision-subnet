@@ -23,8 +23,15 @@ def make_json_safe(obj):
         return [make_json_safe(item) for item in obj]
     elif isinstance(obj, dict):
         return {k: make_json_safe(v) for k, v in obj.items()}
-    elif isinstance(obj, np.ndarray):
-        return obj.tolist()
+    elif isinstance(value, np.ndarray):
+        # For integer arrays (e.g., UIDs)
+        if np.issubdtype(value.dtype, np.integer):
+            result[key] = [int(x) for x in value]
+        # For float arrays (e.g., rewards)
+        elif np.issubdtype(value.dtype, np.floating):
+            result[key] = [float(x) if not (np.isnan(x) or np.isinf(x)) else None for x in value]
+        else:
+            result[key] = value.tolist()
     elif isinstance(obj, np.integer):
         return int(obj)
     elif isinstance(obj, np.floating):
