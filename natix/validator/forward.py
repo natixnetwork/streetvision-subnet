@@ -26,6 +26,7 @@ import wandb
 
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
+from natix.utils.json_safe import prepare_metadata_for_json
 from natix.utils.uids import get_random_uids
 from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
@@ -155,7 +156,15 @@ async def forward(self):
         if pred != -1:
             bt.logging.success(f"UID: {uid} | Prediction: {pred} | Reward: {reward}")
 
-    bt.logging.info(f"Challenge metadata: {challenge_metadata}")
+    json_safe_challenge_metadata = prepare_metadata_for_json(challenge_metadata)
+
+    try:
+        json_test = json.dumps(json_safe_challenge_metadata)
+        bt.logging.success("Successfully converted to JSON")
+    except Exception as e:
+        bt.logging.error(f"JSON conversion error: {e}")
+
+    bt.logging.info(f"Challenge metadata: {json_safe_challenge_metadata}")
 
     # W&B logging if enabled
     if not self.config.wandb.off:
