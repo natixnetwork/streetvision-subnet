@@ -23,11 +23,10 @@ import time
 import bittensor as bt
 import numpy as np
 import wandb
-import json
 
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
-from natix.utils.json_safe import prepare_metadata_for_json
+from natix.utils.json_utils import extract_focused_metadata, validate_json
 from natix.utils.uids import get_random_uids
 from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
@@ -157,15 +156,10 @@ async def forward(self):
         if pred != -1:
             bt.logging.success(f"UID: {uid} | Prediction: {pred} | Reward: {reward}")
 
-    json_safe_challenge_metadata = prepare_metadata_for_json(challenge_metadata)
+    filtered_challenge_metadata = extract_focused_metadata(challenge_metadata)
 
-    try:
-        json_test = json.dumps(json_safe_challenge_metadata)
-        bt.logging.success("Successfully converted to JSON")
-    except Exception as e:
-        bt.logging.error(f"JSON conversion error: {e}")
-
-    bt.logging.info(f"Challenge metadata: {json_safe_challenge_metadata}")
+    if validate_json(filtered_challenge_metadata):
+        bt.logging.info(f"Challenge metadata: {filtered_challenge_metadata}")
 
     # W&B logging if enabled
     if not self.config.wandb.off:
