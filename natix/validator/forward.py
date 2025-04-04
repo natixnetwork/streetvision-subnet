@@ -23,6 +23,7 @@ import time
 import bittensor as bt
 import numpy as np
 import wandb
+import json
 
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
