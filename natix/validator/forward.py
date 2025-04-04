@@ -155,10 +155,11 @@ async def forward(self):
         if pred != -1:
             bt.logging.success(f"UID: {uid} | Prediction: {pred} | Reward: {reward}")
 
+    bt.logging.info(f"Challenge metadata: {challenge_metadata}")
+
     # W&B logging if enabled
     if not self.config.wandb.off:
         wandb.log(challenge_metadata)
-        bt.logging.info(f"Challenge metadata logged to W&B: {challenge_metadata}")
 
     # ensure state is saved after each challenge
     self.save_miner_history()
