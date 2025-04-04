@@ -7,31 +7,11 @@ import bittensor as bt
 
 def make_json_safe(obj):
     """Convert objects to JSON-serializable format."""
-    if isinstance(obj, (str, int, bool, type(None))):
-        return obj
-    elif isinstance(obj, float) or (hasattr(obj, "item") and callable(getattr(obj, "item", None))):
-        # Handle float, np.float32, np.float64, etc.
-        try:
-            float_val = float(obj)
-            # Check for NaN or Infinity which aren't valid in JSON
-            if np.isnan(float_val) or np.isinf(float_val):
-                return None
-            return float_val
-        except:
-            return str(obj)
-    elif isinstance(obj, (list, tuple)):
-        return [make_json_safe(item) for item in obj]
-    elif isinstance(obj, dict):
-        return {k: make_json_safe(v) for k, v in obj.items()}
-    elif isinstance(value, np.ndarray):
-        # For integer arrays (e.g., UIDs)
-        if np.issubdtype(value.dtype, np.integer):
-            result[key] = [int(x) for x in value]
-        # For float arrays (e.g., rewards)
-        elif np.issubdtype(value.dtype, np.floating):
-            result[key] = [float(x) if not (np.isnan(x) or np.isinf(x)) else None for x in value]
-        else:
-            result[key] = value.tolist()
+    # NumPy arrays - convert to list
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    
+    # NumPy scalar types
     elif isinstance(obj, np.integer):
         return int(obj)
     elif isinstance(obj, np.floating):
@@ -39,8 +19,21 @@ def make_json_safe(obj):
         if np.isnan(float_val) or np.isinf(float_val):
             return None
         return float_val
+    
+    # Lists and tuples - process recursively
+    elif isinstance(obj, (list, tuple)):
+        return [make_json_safe(item) for item in obj]
+    
+    # Dictionaries - process recursively
+    elif isinstance(obj, dict):
+        return {k: make_json_safe(v) for k, v in obj.items()}
+    
+    # Basic types that don't need conversion
+    elif isinstance(obj, (str, int, float, bool, type(None))):
+        return obj
+    
+    # Default case - convert to string
     else:
-        # Convert other types to strings
         return str(obj)
 
 def extract_focused_metadata(metadata):
@@ -53,6 +46,10 @@ def extract_focused_metadata(metadata):
     Returns:
         Dictionary with only the specified metrics
     """
+    # Handle None metadata
+    if metadata is None:
+        return {}
+    
     focused_data = {}
     
     # Core information to keep
@@ -81,7 +78,7 @@ def validate_json(data):
     try:
         json.dumps(data)
         bt.logging.info("Successfully serialized data to JSON")
-        return True, None
+        return True
     except Exception as e:
         bt.logging.error(f"JSON serialization error: {e}")
         
