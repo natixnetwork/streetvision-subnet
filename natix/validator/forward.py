@@ -135,12 +135,21 @@ async def forward(self):
 
     self.update_scores(rewards, miner_uids)
 
-    for metric_name in list(metrics[0][modality].keys()):
-        challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
+    metric_names = set()
+    for m in metrics:
+        if modality in m and m[modality]: 
+            metric_names.update(m[modality].keys())
+
+    for metric_name in metric_names:
+        challenge_metadata[f"miner_{modality}_{metric_name}"] = [
+            m[modality].get(metric_name, None) if modality in m else None 
+            for m in metrics
+        ]
 
     challenge_metadata["predictions"] = responses
     challenge_metadata["rewards"] = rewards
     challenge_metadata["scores"] = list(self.scores)
+    challenge_metadata["model_urls"] = model_urls
 
     for uid, pred, reward in zip(miner_uids, predictions, rewards):
         if pred != -1:
@@ -149,6 +158,7 @@ async def forward(self):
     # W&B logging if enabled
     if not self.config.wandb.off:
         wandb.log(challenge_metadata)
+        bt.logging.info(f"Challenge metadata logged to W&B: {challenge_metadata}")
 
     # ensure state is saved after each challenge
     self.save_miner_history()
