@@ -72,9 +72,10 @@ async def forward(self):
 
     bt.logging.info(f"Sampling data from {modality} cache")
 
-    if modality == "video":
-        bt.logging.error("Video challenges are not supported")
-    elif modality == "image":
+    if modality != "image":
+        bt.logging.error(f"Unexpected modality: {modality}")
+        return
+    else:
         challenge = cache.sample(label)
 
     if challenge is None:
@@ -83,10 +84,7 @@ async def forward(self):
 
     # prepare metadata for logging
     try:
-        if modality == "video":
-            bt.logging.error("Video challenges are not supported")
-        elif modality == "image":
-            challenge_metadata["image"] = wandb.Image(challenge["image"])
+        challenge_metadata[modality] = wandb.Image(challenge[modality])
     except Exception as e:
         bt.logging.error(e)
         bt.logging.error(f"{modality} is truncated or corrupt. Challenge skipped.")
@@ -136,6 +134,7 @@ async def forward(self):
     self.update_scores(rewards, miner_uids)
 
     for metric_name in list(metrics[0][modality].keys()):
+        bt.logging.info(f"Iterating over list of metrics 1:{metric_name} 2:{modality}")
         challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
 
     challenge_metadata["predictions"] = responses
