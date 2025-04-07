@@ -38,7 +38,11 @@ class ValidatorProxy:
         validator,
     ):
         self.validator = validator
-        self.get_credentials()
+        try:
+            self.get_credentials()
+        except Exception as e:
+            bt.logging.warning(e)
+            bt.logging.warning("Warning, proxy can't ping to proxy-client.")
         self.miner_request_counter = {}
         self.dendrite = bt.dendrite(wallet=validator.wallet)
         self.app = FastAPI()
@@ -157,7 +161,7 @@ class ValidatorProxy:
                     data["emissions"] = [float(metagraph.E[uid]) for uid in valid_pred_uids]
                     data["hotkeys"] = [str(metagraph.hotkeys[uid]) for uid in valid_pred_uids]
                     data["coldkeys"] = [str(metagraph.coldkeys[uid]) for uid in valid_pred_uids]
-
+                print(f"[ORGANIC] {data}")
                 return data
 
         self.proxy_counter.update(is_success=False)
