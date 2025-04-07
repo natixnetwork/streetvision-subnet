@@ -133,9 +133,9 @@ async def forward(self):
 
     self.update_scores(rewards, miner_uids)
 
-    for metric_name in list(metrics[0][modality].keys()):
-        bt.logging.info(f"Iterating over list of metrics 1:{metric_name} 2:{modality}")
-        challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
+    # for metric_name in list(metrics[0][modality].keys()):
+    #     bt.logging.info(f"Iterating over list of metrics 1:{metric_name} 2:{modality}")
+    #     challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
 
     challenge_metadata["predictions"] = responses
     challenge_metadata["rewards"] = rewards
