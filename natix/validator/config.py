@@ -14,14 +14,14 @@ from diffusers import (
 
 TARGET_IMAGE_SIZE: tuple[int, int] = (224, 224)
 
-MAINNET_UID = 34
-TESTNET_UID = 168
+MAINNET_UID = None
+TESTNET_UID = 323
 
 # Project constants
-MAINNET_WANDB_PROJECT: str = "test"
-TESTNET_WANDB_PROJECT: str = "test"
+MAINNET_WANDB_PROJECT: str = "natix-subnet"
+TESTNET_WANDB_PROJECT: str = "natix-testnet"
 HUGGINGFACE_REPO: str = "natix-network-org"
-WANDB_ENTITY: str = "alirezaght-natix-gmbh"
+WANDB_ENTITY: str = "natix_network_org"
 
 
 # Cache directories
