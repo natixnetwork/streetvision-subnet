@@ -137,7 +137,8 @@ async def forward(self):
     #     bt.logging.info(f"Iterating over list of metrics 1:{metric_name} 2:{modality}")
     #     challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
 
-    challenge_metadata["predictions"] = responses
+    predictions = [x.prediction for x in responses]
+    challenge_metadata["predictions"] = predictions
     challenge_metadata["rewards"] = rewards
     challenge_metadata["scores"] = list(self.scores)
 
