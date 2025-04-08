@@ -73,5 +73,4 @@ python neurons/validator.py \
   --wallet.hotkey $WALLET_HOTKEY \
   --axon.port $VALIDATOR_AXON_PORT \
   --proxy.port $VALIDATOR_PROXY_PORT \
-  --wandb.off \
   --logging.debug
