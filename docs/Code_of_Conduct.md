@@ -2,15 +2,15 @@
     <img src="../static/natix-network-logo.svg" alt="Natix Network Logo" width="200"/>
 </center>
 
-# BitMind Subnet Code of Conduct
+# Natix Subnet Code of Conduct
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-Welcome to the BitMind Subnet Code of Conduct! This document emphasizes our commitment to a safe, respectful, and abuse-free environment. It outlines our expectations for behavior and the consequences for unacceptable actions, including abusing the subnet’s capabilities and other community members.
+Welcome to the Natix Subnet Code of Conduct! This document emphasizes our commitment to a safe, respectful, and abuse-free environment. It outlines our expectations for behavior and the consequences for unacceptable actions, including abusing the subnet’s capabilities and other community members.
 
 ## Purpose
 
-This Code of Conduct aims to protect the BitMind Subnet and its users from abusive behaviors, ensuring a secure and productive environment for all community members regardless of background.
+This Code of Conduct aims to protect the Natix Subnet and its users from abusive behaviors, ensuring a secure and productive environment for all community members regardless of background.
 
 ## Expected Behavior
 
@@ -28,7 +28,7 @@ Unacceptable behavior includes, but is not limited to:
 
 ## Consequences of Unacceptable Behavior
 
-Participants asked to stop any harmful activity are expected to comply immediately. If a participant engages in abusive behavior, the BitMind Subnet community organizers may take any actions deemed appropriate, up to and including expulsion from the community and escalation to relevant authorities.
+Participants asked to stop any harmful activity are expected to comply immediately. If a participant engages in abusive behavior, the Natix Subnet community organizers may take any actions deemed appropriate, up to and including expulsion from the community and escalation to relevant authorities.
 
 ## Reporting Guidelines
 
@@ -36,7 +36,7 @@ If you witness or are subjected to unacceptable behavior, or have any other conc
 
 ## Scope
 
-This Code of Conduct applies to all community interactions, including forums, social media, and public events related to the BitMind Subnet.
+This Code of Conduct applies to all community interactions, including forums, social media, and public events related to the Natix Subnet.
 
 ## Contact Info
 
@@ -46,4 +46,4 @@ For any issues, please contact us via [Discord](https://discord.gg/natix) or ema
 
 This Code of Conduct is licensed under the MIT License, which allows reuse of this document provided attribution is given and this license notice is retained.
 
-Please note that the datasets used by the BitMind Subnet are sourced under their own respective licenses. For more information on dataset licensing and usage guidelines, please refer to the [Datasets 📊 README ](Datasets.md) in our repository.
+Please note that the datasets used by the Natix Subnet are sourced under their own respective licenses. For more information on dataset licensing and usage guidelines, please refer to the [Datasets 📊 README ](Datasets.md) in our repository.

@@ -3,10 +3,6 @@
 The `base_miner/` directory facilitates the training, orchestration, and deployment of modular and highly customizable deepfake detectors.
 We broadly define **detector** as an algorithm that either employs a single model or orchestrates multiple models to perform the binary real-or-AI inference task. These **models** can be any algorithm that processes an image to determine its classification. This includes not only pretrained machine learning architectures, but also heuristic and statistical modeling frameworks.
 
-## Our Base Miner Detector: Content-Aware Model Orchestration (CAMO)
-
-Read about [CAMO (Content Aware Model Orchestration)](https://bitmindlabs.notion.site/CAMO-Content-Aware-Model-Orchestration-CAMO-Framework-for-Deepfake-Detection-43ef46a0f9de403abec7a577a45cd075), our generalized framework for creating “hard mixture of expert” detectors.
-
 - **Latest Iteration**: The most performant iteration of `class CAMODetector(DeepfakeDetector)` used in our base miner `neurons/miner.py` incorporates a `GatingMechanism(Gate)` that routes to a fine-tuned face expert model and generalist model with the `UCF` architecture.
 
 ## Directory Structure
@@ -14,7 +10,7 @@ Read about [CAMO (Content Aware Model Orchestration)](https://bitmindlabs.notion
 ### 1. Architectures and Training
 - **UCF/** and **NPR/**
 
-These folders contain model architectures and training loops for `UCF (ICCV 2023)` and `NPR (CVPR 2024)`, adapted to use curated and preprocessed training datasets on our [BitMind Huggingface](https://huggingface.co/bitmind).
+These folders contain model architectures and training loops for `UCF (ICCV 2023)` and `NPR (CVPR 2024)`, adapted to use curated and preprocessed training datasets on our [Natix Huggingface](https://huggingface.co/natix-network-org).
 
 ### 2. deepfake_detectors/
 The modular structure for detectors used in the miner neuron is defined here, through `DeepfakeDetector` abstract base class and subclass implementations.
@@ -40,4 +36,4 @@ The `registry.py` file is responsible for managing the creation of detectors and
 
 ## Integration with `miner.py`
 
-- **Modular Initialization**: The miner neuron in `bitmind-subnet/neurons/miner.py` leverages the registry system to dynamically initialize the detector used for the forward function, facilitating a highly modular design. The detector module used is determined by neuron config args, defaulting to `"CAMO"`.
+- **Modular Initialization**: The miner neuron in `natix-subnet/neurons/miner.py` leverages the registry system to dynamically initialize the detector used for the forward function, facilitating a highly modular design. The detector module used is determined by neuron config args, defaulting to `"CAMO"`.
