@@ -138,9 +138,23 @@ async def forward(self):
     #     challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
 
     predictions = [x.prediction for x in responses]
-    challenge_metadata["predictions"] = predictions
-    challenge_metadata["rewards"] = rewards
-    challenge_metadata["scores"] = list(self.scores)
+    # challenge_metadata["predictions"] = predictions
+    # challenge_metadata["rewards"] = rewards
+    # challenge_metadata["scores"] = list(self.scores)
+
+    miner_table = wandb.Table(columns=["miner_uid", "miner_hotkey", "prediction", "reward", "score"])
+    for uid, hotkey, pred, reward, score in zip(
+        miner_uids, 
+        [axon.hotkey for axon in axons], 
+        predictions, 
+        rewards, 
+        [self.scores[uid] for uid in miner_uids]
+    ):
+        miner_table.add_data(uid, hotkey, pred, reward, score)
+
+    challenge_metadata["miner_performance"] = miner_table
+    challenge_metadata["reward_distribution"] = wandb.Histogram(rewards)
+    challenge_metadata["score_distribution"] = wandb.Histogram(list(self.scores))
 
     for uid, pred, reward in zip(miner_uids, predictions, rewards):
         if pred != -1:
