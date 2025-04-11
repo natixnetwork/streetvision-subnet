@@ -122,7 +122,7 @@ class Validator(BaseValidatorNeuron):
                 entity=WANDB_ENTITY,
                 config=self.config,
                 resume="auto",
-                tags=[self.config.neuron_type],
+                tags=[self.config.neuron.name],
                 dir=self.config.full_path,
                 reinit=True,
             )
