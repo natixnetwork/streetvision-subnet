@@ -153,8 +153,6 @@ async def forward(self):
         miner_table.add_data(uid, hotkey, pred, reward, score)
 
     challenge_metadata["miner_performance"] = miner_table
-    challenge_metadata["reward_distribution"] = wandb.Histogram(rewards)
-    challenge_metadata["score_distribution"] = wandb.Histogram(list(self.scores))
 
     for uid, pred, reward in zip(miner_uids, predictions, rewards):
         if pred != -1:

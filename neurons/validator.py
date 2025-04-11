@@ -121,6 +121,8 @@ class Validator(BaseValidatorNeuron):
                 project=wandb_project,
                 entity=WANDB_ENTITY,
                 config=self.config,
+                resume="auto",
+                tags=[self.config.neuron_type],
                 dir=self.config.full_path,
                 reinit=True,
             )
