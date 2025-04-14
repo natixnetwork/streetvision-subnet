@@ -154,7 +154,15 @@ async def forward(self):
 
     bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ("miner_uids", "miner_hotkeys")})
 
-    miner_table = wandb.Table(columns=["miner_uid", "miner_hotkey", "prediction", "reward", "score"])
+    # Define columns for the table - include basic columns AND metric columns
+    table_columns = ["miner_uid", "miner_hotkey", "prediction", "reward", "score"]
+    for metric_name in sorted(metric_names):
+        table_columns.append(metric_name)
+        
+    # Now create the table with ALL columns defined upfront
+    miner_table = wandb.Table(columns=table_columns)
+    
+    # Add rows with all the data
     for i, (uid, hotkey, pred, reward, score) in enumerate(zip(
         miner_uids, 
         [axon.hotkey for axon in axons], 
@@ -162,16 +170,19 @@ async def forward(self):
         rewards, 
         [self.scores[uid] for uid in miner_uids]
     )):
+        # Start with basic data
         row_data = [uid, hotkey, pred, reward, score]
         
-        for metric_name in metric_names:
+        # Add metric values for this miner
+        for metric_name in sorted(metric_names):
             metric_value = None
             if i < len(metrics) and modality in metrics[i] and metrics[i][modality]:
                 metric_value = metrics[i][modality].get(metric_name, None)
             row_data.append(metric_value)
         
+        # Add row to table
         miner_table.add_data(*row_data)
-
+    
     challenge_metadata["miner_performance"] = miner_table
 
     for uid, pred, reward in zip(miner_uids, predictions, rewards):
