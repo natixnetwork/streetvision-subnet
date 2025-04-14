@@ -155,14 +155,22 @@ async def forward(self):
     bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ("miner_uids", "miner_hotkeys")})
 
     miner_table = wandb.Table(columns=["miner_uid", "miner_hotkey", "prediction", "reward", "score"])
-    for uid, hotkey, pred, reward, score in zip(
+    for i, (uid, hotkey, pred, reward, score) in enumerate(zip(
         miner_uids, 
         [axon.hotkey for axon in axons], 
         predictions, 
         rewards, 
         [self.scores[uid] for uid in miner_uids]
-    ):
-        miner_table.add_data(uid, hotkey, pred, reward, score)
+    )):
+        row_data = [uid, hotkey, pred, reward, score]
+        
+        for metric_name in metric_names:
+            metric_value = None
+            if i < len(metrics) and modality in metrics[i] and metrics[i][modality]:
+                metric_value = metrics[i][modality].get(metric_name, None)
+            row_data.append(metric_value)
+        
+        miner_table.add_data(*row_data)
 
     challenge_metadata["miner_performance"] = miner_table
 
