@@ -82,13 +82,14 @@ async def forward(self):
         bt.logging.warning("Waiting for cache to populate. Challenge skipped.")
         return
 
+    # TODO: Temporarily remove image from logging. Need to find a more sustainable solution. Potentially point to the huggingface url where the image is stored.
     # prepare metadata for logging
-    try:
-        challenge_metadata[modality] = wandb.Image(challenge[modality])
-    except Exception as e:
-        bt.logging.error(e)
-        bt.logging.error(f"{modality} is truncated or corrupt. Challenge skipped.")
-        return
+    # try:
+    #     challenge_metadata[modality] = wandb.Image(challenge[modality])
+    # except Exception as e:
+    #     bt.logging.error(e)
+    #     bt.logging.error(f"{modality} is truncated or corrupt. Challenge skipped.")
+    #     return
 
     # update logging dict with everything except image data
     challenge_metadata.update({k: v for k, v in challenge.items() if re.match(r"^(?!image$|video$|videos$|video_\d+$).+", k)})
