@@ -125,8 +125,6 @@ async def forward(self):
     model_urls = [x.model_url for x in responses]
     bt.logging.info(f"Responses received in {time.time() - start}s")
     bt.logging.success(f"Roadwork {modality} challenge complete!")
-    bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ("miner_uids", "miner_hotkeys")})
-
     bt.logging.info("Scoring responses")
     rewards, metrics = get_rewards(
         label=label, responses=predictions, uids=miner_uids, model_urls=model_urls, axons=axons, performance_trackers=self.performance_trackers
@@ -153,6 +151,8 @@ async def forward(self):
     # challenge_metadata["predictions"] = predictions
     # challenge_metadata["rewards"] = rewards
     # challenge_metadata["scores"] = list(self.scores)
+
+    bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ("miner_uids", "miner_hotkeys")})
 
     miner_table = wandb.Table(columns=["miner_uid", "miner_hotkey", "prediction", "reward", "score"])
     for uid, hotkey, pred, reward, score in zip(
