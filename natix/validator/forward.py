@@ -137,12 +137,6 @@ async def forward(self):
         if modality in m and m[modality]: 
             metric_names.update(m[modality].keys())
 
-    for metric_name in metric_names:
-        challenge_metadata[f"miner_{modality}_{metric_name}"] = [
-            m[modality].get(metric_name, None) if modality in m else None 
-            for m in metrics
-        ]
-
     # for metric_name in list(metrics[0][modality].keys()):
     #     bt.logging.info(f"Iterating over list of metrics 1:{metric_name} 2:{modality}")
     #     challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
