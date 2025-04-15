@@ -139,7 +139,8 @@ async def forward(self):
             responses=responses,
             rewards=rewards,
             metrics=metrics,
-            scores=self.scores
+            scores=self.scores,
+            axons=axons,
         )
 
     # ensure state is saved after each challenge

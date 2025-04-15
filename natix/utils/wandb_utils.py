@@ -20,7 +20,7 @@ def clean_nans_for_json(obj):
     else:
         return obj
 
-def log_to_wandb(challenge_data, responses, rewards, metrics, scores):
+def log_to_wandb(challenge_data, responses, rewards, metrics, scores, axons):
     """Log challenge data to wandb in the same format as the original code"""
     if not wandb.run:
         bt.logging.info("Wandb logging is disabled")
@@ -35,7 +35,6 @@ def log_to_wandb(challenge_data, responses, rewards, metrics, scores):
     data_aug_params = challenge_data.get("data_aug_params")
     level = challenge_data.get("data_aug_level")
     miner_uids = challenge_data.get("miner_uids", [])
-    axons = challenge_data.get("axons", [])
     
     # Create miner performance table
     predictions = [x.prediction for x in responses]
