@@ -133,19 +133,8 @@ async def forward(self):
 
     self.update_scores(rewards, miner_uids)
     
-
-
-    metadata_dict = clean_nans_for_json(challenge_metadata["metadata"])
-    metadata_json = json.dumps(metadata_dict, indent=4)
-    bt.logging.debug(f"Challenge metadata: {metadata_json}")
-    try:
-        metadata_html = wandb.Html(f"<pre>{metadata_json}</pre>")
-    except Exception as e:
-        bt.logging.error(f"Unable to create HTML for metadata: {e}")
-        metadata_html = None
-    
     if not self.config.wandb.off:
-        log_to_wandb(challenge_data)
+        log_to_wandb(challenge_metadata)
 
     # ensure state is saved after each challenge
     self.save_miner_history()
