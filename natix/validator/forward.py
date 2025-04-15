@@ -178,7 +178,11 @@ async def forward(self):
     metadata_dict = clean_nans_for_json(challenge_metadata["metadata"])
     metadata_json = json.dumps(metadata_dict, indent=4)
     bt.logging.debug(f"Challenge metadata: {metadata_json}")
-    metadata_html = wandb.Html(f"<pre>{metadata_json}</pre>")
+    try:
+        metadata_html = wandb.Html(f"<pre>{metadata_json}</pre>")
+    except Exception as e:
+        bt.logging.error(f"Unable to create HTML for metadata: {e}")
+        metadata_html = None
     
     wandb_log_data = {
         "label": label,
