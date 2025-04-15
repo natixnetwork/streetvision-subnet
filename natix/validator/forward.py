@@ -195,7 +195,7 @@ async def forward(self):
     }
     
     for k, v in challenge_metadata.items():
-        if k not in ["label", "modality", "source_model_task", "data_aug_params", "data_aug_level"] and \
+        if k not in ["label", "modality", "source_model_task", "data_aug_params", "data_aug_level", "metadata"] and \
            not k.startswith(("miner_", "predictions", "rewards", "scores")):
             wandb_log_data[k] = v
 
