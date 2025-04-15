@@ -166,7 +166,7 @@ async def forward(self):
         miner_table.add_data(*row_data)
 
     # Convert the rest of the the data to json and log as html
-    metadata_json = json.dumps(challenge_metadata)
+    metadata_json = json.dumps(challenge_metadata["metadata"])
     metadata_html = wandb.Html(f"<pre>{metadata_json}</pre>")
     
     wandb_log_data = {
