@@ -167,6 +167,7 @@ async def forward(self):
 
     # Convert the rest of the the data to json and log as html
     metadata_json = json.dumps(challenge_metadata["metadata"])
+    bt.logging.debug(f"Challenge metadata: {metadata_json}")
     metadata_html = wandb.Html(f"<pre>{metadata_json}</pre>")
     
     wandb_log_data = {
