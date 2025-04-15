@@ -137,26 +137,16 @@ async def forward(self):
         if modality in m and m[modality]: 
             metric_names.update(m[modality].keys())
 
-    # for metric_name in list(metrics[0][modality].keys()):
-    #     bt.logging.info(f"Iterating over list of metrics 1:{metric_name} 2:{modality}")
-    #     challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
-
     predictions = [x.prediction for x in responses]
-    # challenge_metadata["predictions"] = predictions
-    # challenge_metadata["rewards"] = rewards
-    # challenge_metadata["scores"] = list(self.scores)
 
     bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ("miner_uids", "miner_hotkeys")})
 
-    # Define columns for the table - include basic columns AND metric columns
     table_columns = ["miner_uid", "miner_hotkey", "prediction", "reward", "score"]
     for metric_name in sorted(metric_names):
         table_columns.append(metric_name)
         
-    # Now create the table with ALL columns defined upfront
     miner_table = wandb.Table(columns=table_columns)
     
-    # Add rows with all the data
     for i, (uid, hotkey, pred, reward, score) in enumerate(zip(
         miner_uids, 
         [axon.hotkey for axon in axons], 
@@ -164,20 +154,29 @@ async def forward(self):
         rewards, 
         [self.scores[uid] for uid in miner_uids]
     )):
-        # Start with basic data
         row_data = [uid, hotkey, pred, reward, score]
         
-        # Add metric values for this miner
         for metric_name in sorted(metric_names):
             metric_value = None
             if i < len(metrics) and modality in metrics[i] and metrics[i][modality]:
                 metric_value = metrics[i][modality].get(metric_name, None)
             row_data.append(metric_value)
-        
-        # Add row to table
+
         miner_table.add_data(*row_data)
     
-    challenge_metadata["miner_performance"] = miner_table
+    wandb_log_data = {
+        "label": label,
+        "modality": modality,
+        "source_model_task": source_model_task,
+        "data_aug_params": data_aug_params,
+        "data_aug_level": level,
+        "miner_performance": miner_table
+    }
+    
+    for k, v in challenge_metadata.items():
+        if k not in ["label", "modality", "source_model_task", "data_aug_params", "data_aug_level"] and \
+           not k.startswith(("miner_", "predictions", "rewards", "scores")):
+            wandb_log_data[k] = v
 
     for uid, pred, reward in zip(miner_uids, predictions, rewards):
         if pred != -1:
@@ -185,7 +184,7 @@ async def forward(self):
 
     # W&B logging if enabled
     if not self.config.wandb.off:
-        wandb.log(challenge_metadata)
+        wandb.log(wandb_log_data)
 
     # ensure state is saved after each challenge
     self.save_miner_history()
