@@ -166,14 +166,14 @@ async def forward(self):
         miner_table.add_data(*row_data)
 
     def clean_nans_for_json(obj):
-    if isinstance(obj, float) and np.isnan(obj):
-        return None
-    elif isinstance(obj, dict):
-        return {k: clean_nans_for_json(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [clean_nans_for_json(i) for i in obj]
-    else:
-        return obj
+        if isinstance(obj, float) and np.isnan(obj):
+            return None
+        elif isinstance(obj, dict):
+            return {k: clean_nans_for_json(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [clean_nans_for_json(i) for i in obj]
+        else:
+            return obj
 
     metadata_dict = clean_nans_for_json(challenge_metadata)
     metadata_json = json.dumps(metadata_dict, indent=4)
