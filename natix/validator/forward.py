@@ -134,7 +134,15 @@ async def forward(self):
     self.update_scores(rewards, miner_uids)
     
     if not self.config.wandb.off:
-        log_to_wandb(challenge_metadata)
+            challenge_data = {
+            **challenge_metadata,
+            "axons": axons,
+            "predictions": predictions,
+            "rewards": rewards,
+            "scores": self.scores,
+            "metrics": metrics
+        }
+        log_to_wandb(challenge_data)
 
     # ensure state is saved after each challenge
     self.save_miner_history()
