@@ -175,7 +175,7 @@ async def forward(self):
         else:
             return obj
 
-    metadata_dict = clean_nans_for_json(challenge_metadata)
+    metadata_dict = clean_nans_for_json(challenge_metadata["metadata"])
     metadata_json = json.dumps(metadata_dict, indent=4)
     bt.logging.debug(f"Challenge metadata: {metadata_json}")
     metadata_html = wandb.Html(f"<pre>{metadata_json}</pre>")
