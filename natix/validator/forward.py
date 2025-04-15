@@ -205,6 +205,7 @@ async def forward(self):
 
     # W&B logging if enabled
     if not self.config.wandb.off:
+        bt.logging.info(f"Logging to W&B: {wandb_log_data}")
         wandb.log(wandb_log_data)
 
     # ensure state is saved after each challenge
