@@ -23,6 +23,7 @@ import time
 import bittensor as bt
 import numpy as np
 import wandb
+import json
 
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
@@ -163,6 +164,10 @@ async def forward(self):
             row_data.append(metric_value)
 
         miner_table.add_data(*row_data)
+
+    # Convert the rest of the the data to json and log as html
+    metadata_json = json.dumps(challenge_metadata)
+    metadata_html = wandb.Html(f"<pre>{metadata_json}</pre>")
     
     wandb_log_data = {
         "label": label,
@@ -170,7 +175,8 @@ async def forward(self):
         "source_model_task": source_model_task,
         "data_aug_params": data_aug_params,
         "data_aug_level": level,
-        "miner_performance": miner_table
+        "miner_performance": miner_table,
+        "metadata": metadata_html,
     }
     
     for k, v in challenge_metadata.items():
