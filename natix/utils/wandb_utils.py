@@ -20,18 +20,18 @@ def clean_nans_for_json(obj):
     else:
         return obj
 
-def log_to_wandb(challenge_data, responses, rewards, metrics, scores, axons):
-    """Log challenge data to wandb in the same format as the original code"""
+def log_to_wandb(challenge_metadata, responses, rewards, metrics, scores, axons):
+    """Log challenge metadata to wandb in the same format as the original code"""
     if not wandb.run:
         bt.logging.info("Wandb logging is disabled")
         return
     
-    label = challenge_data.get("label")
-    modality = challenge_data.get("modality")
-    source_model_task = challenge_data.get("source_model_task")
-    data_aug_params = challenge_data.get("data_aug_params")
-    level = challenge_data.get("data_aug_level")
-    miner_uids = challenge_data.get("miner_uids", [])
+    label = challenge_metadata.get("label")
+    modality = challenge_metadata.get("modality")
+    source_model_task = challenge_metadata.get("source_model_task")
+    data_aug_params = challenge_metadata.get("data_aug_params")
+    level = challenge_metadata.get("data_aug_level")
+    miner_uids = challenge_metadata.get("miner_uids", [])
     
     predictions = [x.prediction for x in responses]
     
@@ -63,7 +63,7 @@ def log_to_wandb(challenge_data, responses, rewards, metrics, scores, axons):
 
         miner_table.add_data(*row_data)
     
-    metadata_dict = clean_nans_for_json(challenge_data)
+    metadata_dict = clean_nans_for_json(challenge_metadata)
     metadata_json = json.dumps(metadata_dict, indent=4)
     try:
         metadata_html = wandb.Html(f"<pre>{metadata_json}</pre>")
@@ -76,7 +76,7 @@ def log_to_wandb(challenge_data, responses, rewards, metrics, scores, axons):
         "metadata": metadata_html,
     }
     
-    for k, v in challenge_data.items():
+    for k, v in challenge_metadata.items():
         if k not in wandb_log_data and not k.startswith(("miner_", "predictions", "rewards", "scores")):
             wandb_log_data[k] = v
     

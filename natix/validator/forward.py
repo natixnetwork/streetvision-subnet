@@ -135,7 +135,7 @@ async def forward(self):
     
     if not self.config.wandb.off:
         log_to_wandb(
-            challenge_data=challenge_metadata,
+            challenge_metadata=challenge_metadata,
             responses=responses,
             rewards=rewards,
             metrics=metrics,
