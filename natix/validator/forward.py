@@ -23,13 +23,13 @@ import time
 import bittensor as bt
 import numpy as np
 import wandb
-import json
 
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.utils.uids import get_random_uids
 from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
+from natix.utils.wandb_utils import log_to_wandb
 
 
 def determine_challenge_type(media_cache):
@@ -132,48 +132,8 @@ async def forward(self):
     )
 
     self.update_scores(rewards, miner_uids)
-
-    metric_names = set()
-    for m in metrics:
-        if modality in m and m[modality]: 
-            metric_names.update(m[modality].keys())
-
-    predictions = [x.prediction for x in responses]
-
-    bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ("miner_uids", "miner_hotkeys")})
-
-    table_columns = ["miner_uid", "miner_hotkey", "prediction", "reward", "score"]
-    for metric_name in sorted(metric_names):
-        table_columns.append(metric_name)
-        
-    miner_table = wandb.Table(columns=table_columns)
     
-    for i, (uid, hotkey, pred, reward, score) in enumerate(zip(
-        miner_uids, 
-        [axon.hotkey for axon in axons], 
-        predictions, 
-        rewards, 
-        [self.scores[uid] for uid in miner_uids]
-    )):
-        row_data = [uid, hotkey, pred, reward, score]
-        
-        for metric_name in sorted(metric_names):
-            metric_value = None
-            if i < len(metrics) and modality in metrics[i] and metrics[i][modality]:
-                metric_value = metrics[i][modality].get(metric_name, None)
-            row_data.append(metric_value)
 
-        miner_table.add_data(*row_data)
-
-    def clean_nans_for_json(obj):
-        if isinstance(obj, float) and np.isnan(obj):
-            return None
-        elif isinstance(obj, dict):
-            return {k: clean_nans_for_json(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
-            return [clean_nans_for_json(i) for i in obj]
-        else:
-            return obj
 
     metadata_dict = clean_nans_for_json(challenge_metadata["metadata"])
     metadata_json = json.dumps(metadata_dict, indent=4)
@@ -184,29 +144,8 @@ async def forward(self):
         bt.logging.error(f"Unable to create HTML for metadata: {e}")
         metadata_html = None
     
-    wandb_log_data = {
-        "label": label,
-        "modality": modality,
-        "source_model_task": source_model_task,
-        "data_aug_params": data_aug_params,
-        "data_aug_level": level,
-        "miner_performance": miner_table,
-        "metadata": metadata_html,
-    }
-    
-    for k, v in challenge_metadata.items():
-        if k not in ["label", "modality", "source_model_task", "data_aug_params", "data_aug_level", "metadata"] and \
-           not k.startswith(("miner_", "predictions", "rewards", "scores")):
-            wandb_log_data[k] = v
-
-    for uid, pred, reward in zip(miner_uids, predictions, rewards):
-        if pred != -1:
-            bt.logging.success(f"UID: {uid} | Prediction: {pred} | Reward: {reward}")
-
-    # W&B logging if enabled
     if not self.config.wandb.off:
-        bt.logging.info(f"Logging to W&B: {wandb_log_data}")
-        wandb.log(wandb_log_data)
+        log_to_wandb(challenge_data)
 
     # ensure state is saved after each challenge
     self.save_miner_history()
