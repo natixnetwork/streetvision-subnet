@@ -134,7 +134,7 @@ async def forward(self):
     self.update_scores(rewards, miner_uids)
     
     if not self.config.wandb.off:
-            challenge_data = {
+        challenge_data = {
             **challenge_metadata,
             "axons": axons,
             "predictions": predictions,
