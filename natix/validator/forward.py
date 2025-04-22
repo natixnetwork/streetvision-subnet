@@ -22,13 +22,13 @@ import time
 
 import bittensor as bt
 import numpy as np
-import wandb
 
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.utils.uids import get_random_uids
 from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
+from natix.utils.wandb_utils import log_to_wandb
 
 
 def determine_challenge_type(media_cache):
@@ -72,21 +72,23 @@ async def forward(self):
 
     bt.logging.info(f"Sampling data from {modality} cache")
 
-    if modality == "video":
-        bt.logging.error("Video challenges are not supported")
-    elif modality == "image":
+    if modality != "image":
+        bt.logging.error(f"Unexpected modality: {modality}")
+        return
+    else:
         challenge = cache.sample(label)
 
     if challenge is None:
         bt.logging.warning("Waiting for cache to populate. Challenge skipped.")
         return
 
-    # prepare metadata for logging
     try:
         if modality == "video":
             bt.logging.error("Video challenges are not supported")
         elif modality == "image":
-            challenge_metadata["image"] = wandb.Image(challenge["image"])
+            # TODO: temporarily disable uploading image to wandb. Takes up a tremendous amount of storage
+            # Ideally, we could add a URL that points to the image in hugging face
+            # challenge_metadata["image"] = wandb.Image(challenge["image"])
     except Exception as e:
         bt.logging.error(e)
         bt.logging.error(f"{modality} is truncated or corrupt. Challenge skipped.")
@@ -126,8 +128,6 @@ async def forward(self):
     model_urls = [x.model_url for x in responses]
     bt.logging.info(f"Responses received in {time.time() - start}s")
     bt.logging.success(f"Roadwork {modality} challenge complete!")
-    bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ("miner_uids", "miner_hotkeys")})
-
     bt.logging.info("Scoring responses")
     rewards, metrics = get_rewards(
         label=label, responses=predictions, uids=miner_uids, model_urls=model_urls, axons=axons, performance_trackers=self.performance_trackers
@@ -145,10 +145,16 @@ async def forward(self):
     for uid, pred, reward in zip(miner_uids, predictions, rewards):
         if pred != -1:
             bt.logging.success(f"UID: {uid} | Prediction: {pred} | Reward: {reward}")
-
-    # W&B logging if enabled
+    
     if not self.config.wandb.off:
-        wandb.log(challenge_metadata)
+        log_to_wandb(
+            challenge_metadata=challenge_metadata,
+            responses=responses,
+            rewards=rewards,
+            metrics=metrics,
+            scores=self.scores,
+            axons=axons,
+        )
 
     # ensure state is saved after each challenge
     self.save_miner_history()
