@@ -6,13 +6,12 @@ from natix.synthetic_data_generation import SyntheticDataGenerator
 from natix.validator.config import IMAGE_ANNOTATION_MODEL, MODEL_NAMES, TEXT_MODERATION_MODEL
 from natix.utils.model_format import REQUIRED_MODEL_CARD_KEYS, OPTIONAL_MODEL_CARD_KEYS
 
-def fetch_model_card(miner_wallet: str, version: int = None):
-    model_repo = f"natix-subnet/{miner_wallet}"
+def fetch_model_card(model_url: str, uid: int, version: int = None):
+    model_repo = f"{model_url}"
     if version:
         model_repo += f"-v{version}"
 
     model_card_url = f"https://huggingface.co/{model_repo}/resolve/main/model_card.json"
-
     try:
         response = requests.get(model_card_url)
         response.raise_for_status()
@@ -30,17 +29,17 @@ def validate_model_card(card: dict):
         return False
     return True
 
-def check_miner_model(miner_wallet: str):
-    card = fetch_model_card(miner_wallet)
+def check_miner_model(model_url: str, uid: int):
+    card = fetch_model_card(model_url, uid)
     if not card:
-        print(f"No model found for {miner_wallet}")
+        print(f"No model found for uid: {uid} with model url: {model_url}")
         return False
 
     if validate_model_card(card):
-        print(f"Model card for {miner_wallet} is valid")
+        print(f"Model card for uid: {uid} and model url: {model_url} is valid")
         return True
     else:
-        print(f"Invalid model card for {miner_wallet}")
+        print(f"Invalid model card for uid: {uid} and model url: {model_url}")
         return False
 
 def is_model_cached(model_name):

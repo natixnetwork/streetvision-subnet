@@ -135,7 +135,7 @@ async def forward(self):
             bt.logging.warning(f"Miner UID {uid} missing or invalid model_url. Skipping.")
             continue
 
-        if not check_miner_model(model_url):
+        if not check_miner_model(model_url, uid):
             bt.logging.warning(f"Model at URL {model_url} (UID {uid}) failed validation. Skipping.")
             continue
 
