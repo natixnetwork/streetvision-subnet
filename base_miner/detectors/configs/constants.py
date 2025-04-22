@@ -9,5 +9,5 @@ CONFIG_PATHS = {
 }
 
 HF_REPOS = {
-    "Roadwork": "natix-network-org/roadwork",
+    "Roadwork": os.getenv("MODEL_URL", "")
 }
