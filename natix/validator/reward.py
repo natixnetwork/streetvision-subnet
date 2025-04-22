@@ -40,7 +40,6 @@ def get_rewards(
     label: float,
     responses: List[float],
     uids: List[int],
-    model_urls: List[str],
     axons: List[bt.axon],
     performance_trackers: Dict[str, Any]
 ) -> Tuple[np.ndarray, List[Dict[str, Dict[str, float]]]]:
@@ -61,28 +60,12 @@ def get_rewards(
     """
     miner_rewards = []
     miner_metrics = []
-
-    url_to_uid = {}
-    for uid, model_url in zip(uids, model_urls):
-        if model_url in url_to_uid:
-            # If URL is already registered to another UID, set UID to -1 (indicating conflict)
-            if url_to_uid[model_url] != uid:
-                url_to_uid[model_url] = -1
-        else:
-            url_to_uid[model_url] = uid
-
-    for axon, uid, pred_prob, model_url in zip(axons, uids, responses, model_urls):
+    for axon, uid, pred_prob in zip(axons, uids, responses):
         miner_modality_rewards = {}
         miner_modality_metrics = {}
-
-        if model_url not in url_to_uid or url_to_uid[model_url] != uid:
-            # Invalid or missing model URL, give zero reward
-            miner_rewards.append(0.0)
-            miner_metrics.append({modality: {} for modality in ['image', 'video']})
-            continue
-
         tracker = performance_trackers
         modality = "image"
+
         try:
             miner_hotkey = axon.hotkey
             tracked_hotkeys = tracker[modality].miner_hotkeys

@@ -29,6 +29,7 @@ from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.utils.uids import get_random_uids
 from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
+from natix.validator.verify_models import check_miner_model
 
 
 def determine_challenge_type(media_cache):
@@ -121,18 +122,41 @@ async def forward(self):
     start = time.time()
     responses = await self.dendrite(axons=axons, synapse=synapse, deserialize=False, timeout=9)
     predictions = [x.prediction for x in responses]
+
+    # Check model URLs
     model_urls = [x.model_url for x in responses]
+    valid_miners = []
+    valid_model_urls = []
+    valid_predictions = []
+    valid_axons = []
+
+    for uid, model_url, prediction, axon in zip(miner_uids, model_urls, predictions, axons):
+        if not model_url or not isinstance(model_url, str):
+            bt.logging.warning(f"Miner UID {uid} missing or invalid model_url. Skipping.")
+            continue
+
+        if not check_miner_model(model_url):
+            bt.logging.warning(f"Model at URL {model_url} (UID {uid}) failed validation. Skipping.")
+            continue
+
+        valid_miners.append(uid)
+        valid_model_urls.append(model_url)
+        valid_predictions.append(prediction)
+        valid_axons.append(axon)
+
+
     bt.logging.info(f"Responses received in {time.time() - start}s")
     bt.logging.success(f"Roadwork {modality} challenge complete!")
     bt.logging.info({k: v for k, v in challenge_metadata.items() if k not in ("miner_uids", "miner_hotkeys")})
 
     bt.logging.info("Scoring responses")
     rewards, metrics = get_rewards(
-        label=label, responses=predictions, uids=miner_uids, model_urls=model_urls, axons=axons, performance_trackers=self.performance_trackers
+        label=label, responses=predictions, uids=miner_uids, axons=axons, performance_trackers=self.performance_trackers
     )
 
     self.update_scores(rewards, miner_uids)
 
+    # @todo debug and reinstate these metadata
     # for metric_name in list(metrics[0][modality].keys()):
     #     bt.logging.info(f"Iterating over list of metrics 1:{metric_name} 2:{modality}")
     #     challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
@@ -140,6 +164,7 @@ async def forward(self):
     challenge_metadata["predictions"] = responses
     challenge_metadata["rewards"] = rewards
     challenge_metadata["scores"] = list(self.scores)
+    challenge_metadata["model_urls"] = model_urls
 
     for uid, pred, reward in zip(miner_uids, predictions, rewards):
         if pred != -1:
