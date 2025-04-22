@@ -3,6 +3,7 @@ import requests
 import time
 
 import bittensor as bt
+from natix.validator import model_registry
 from natix.synthetic_data_generation import SyntheticDataGenerator
 from natix.validator.config import IMAGE_ANNOTATION_MODEL, MODEL_NAMES, TEXT_MODERATION_MODEL
 from natix.utils.model_format import REQUIRED_MODEL_CARD_KEYS, OPTIONAL_MODEL_CARD_KEYS
@@ -33,13 +34,16 @@ def fetch_model_card(model_url: str, uid: int, version: int = None):
 
     return model_card
 
-def validate_model_card(card: dict, uid: int, hotkeys: list[str]):
+def validate_model_card(card: dict, uid: int, model_url: str, hotkeys: list[str]):
     missing_keys = [k for k in REQUIRED_MODEL_CARD_KEYS if k not in card]
     if missing_keys:
         bt.logging.warning(f"Invalid model card: missing keys {missing_keys}")
         return False
 
-    submitted_by = card['submitted_by']
+    submitted_by = card["submitted_by"]
+    submission_time = card["submission_time"]
+    model_name = card["model_name"]
+    model_version = card["version"]
     expected_hotkey = uid_to_hotkey(uid, hotkeys)
 
     if submitted_by != expected_hotkey:
@@ -49,6 +53,17 @@ def validate_model_card(card: dict, uid: int, hotkeys: list[str]):
     if not is_valid_timestamp(int(card['submission_time'])):
         bt.logging.warning(f"Invalid submission_time: {card['submission_time']}")
         return False
+    
+    latest = model_registry.get_latest_submission(uid)
+    if latest is None:
+        # New miner
+        if model_registry.is_model_name_taken(model_name):
+            bt.logging.warning(f"Model name '{model_name}' already taken by another miner.")
+            return False
+        else:
+            model_registry.insert_submission(uid, model_name, model_version, model_url, submitted_by, submission_time)
+            bt.logging.info(f"New miner submission recorded for UID {uid}")
+            return True
 
     bt.logging.info(f"The submitted model for UID: {uid} was valid.")
     return True
@@ -59,7 +74,7 @@ def check_miner_model(model_url: str, uid: int, hotkeys: list[str]):
         bt.logging.warning(f"No model found for uid: {uid} with model url: {model_url}")
         return False
 
-    if validate_model_card(card, uid, hotkeys):
+    if validate_model_card(card, uid, model_url, hotkeys):
         bt.logging.info(f"Model card for uid: {uid} and model url: {model_url} is valid")
         return True
     else:
