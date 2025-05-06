@@ -25,7 +25,6 @@ from natix.validator.config import (
     MODEL_NAMES,
     MODELS,
     T2I_MODEL_NAMES,
-    T2V_MODEL_NAMES,
     TARGET_IMAGE_SIZE,
     TEXT_MODERATION_MODEL,
     get_modality,
@@ -139,9 +138,8 @@ class SyntheticDataGenerator:
             # shuffle and interleave models to add stochasticity
             i2i_model_names = random.sample(I2I_MODEL_NAMES, len(I2I_MODEL_NAMES))
             t2i_model_names = random.sample(T2I_MODEL_NAMES, len(T2I_MODEL_NAMES))
-            t2v_model_names = random.sample(T2V_MODEL_NAMES, len(T2V_MODEL_NAMES))
             model_names = [
-                m for triple in zip_longest(t2v_model_names, t2i_model_names, i2i_model_names) for m in triple if m is not None
+                m for triple in zip_longest(t2i_model_names, i2i_model_names) for m in triple if m is not None
             ]
 
         # Generate for each model/prompt combination

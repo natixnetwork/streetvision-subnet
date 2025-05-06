@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
+import os
 import numpy as np
 import torch
 from diffusers import (
@@ -14,14 +14,14 @@ from diffusers import (
 
 TARGET_IMAGE_SIZE: tuple[int, int] = (224, 224)
 
-MAINNET_UID = None
-TESTNET_UID = 323
+MAINNET_UID = int(os.getenv("MAINNET_UID", 0))
+TESTNET_UID = int(os.getenv("TESTNET_UID", 0))
 
 # Project constants
-MAINNET_WANDB_PROJECT: str = "natix-subnet"
-TESTNET_WANDB_PROJECT: str = "natix-testnet"
-HUGGINGFACE_REPO: str = "natix-network-org"
-WANDB_ENTITY: str = "natix_network_org"
+MAINNET_WANDB_PROJECT = os.getenv("MAINNET_WANDB_PROJECT", "no_mainnet_wandb_env")
+TESTNET_WANDB_PROJECT = os.getenv("TESTNET_WANDB_PROJECT", "no_testnet_wandb_env")
+HUGGINGFACE_REPO = os.getenv("HUGGINGFACE_REPO", "no_huggingface_repo")
+WANDB_ENTITY = os.getenv("WANDB_ENTITY", "no_wandb_entity")
 
 
 # Cache directories
@@ -55,7 +55,7 @@ CHALLENGE_TYPE = {0: "Clear", 1: "Roadwork"}
 # Image datasets configuration
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
     "Roadwork": [
-        {"path": "natix-network-org/roadwork"},
+        {"path": f"{HUGGINGFACE_REPO}/roadwork"},
     ],
 }
 

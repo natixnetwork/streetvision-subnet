@@ -114,7 +114,19 @@ WALLET_HOTKEY=default
 
 # Miner Settings:
 MINER_AXON_PORT=8091
-BLACKLIST_FORCE_VALIDATOR_PERMIT=True          # Default setting to force validator permit for blacklisting
+BLACKLIST_FORCE_VALIDATOR_PERMIT=True         # Default setting to force validator permit for blacklisting
+MODE_URL=hf_username/uf_repo                  # Huggingface username and repository of the model used by the miner
+```
+
+The submitted model needs to contain a file named `model_card.json` which includes the following information
+```
+{
+  "model_name": "<ARBITRARY_MODEL_NAME>",
+  "description": "<>DESCRIPTION",
+  "version": <VERSION NUMBER IN X.Y.Z format>,
+  "submitted_by": "<WALLET_HOTKEY_ADDRESS>",
+  "submission_time": <TIMESTAMP>
+}
 ```
 
 Now you're ready to run your miner!
