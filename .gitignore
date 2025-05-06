@@ -168,3 +168,10 @@ miner_eval.py
 *.env
 *~
 wandb/
+
+
+# Editors
+.vscode
+
+# DBs
+model_registry.db
