@@ -28,11 +28,8 @@ from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.utils.uids import get_random_uids
 from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
-<<<<<<< HEAD
 from natix.validator.verify_models import check_miner_model
-=======
 from natix.utils.wandb_utils import log_to_wandb
->>>>>>> development
 
 
 def determine_challenge_type(media_cache):
@@ -86,17 +83,17 @@ async def forward(self):
         bt.logging.warning("Waiting for cache to populate. Challenge skipped.")
         return
 
-    try:
-        if modality == "video":
-            bt.logging.error("Video challenges are not supported")
-        elif modality == "image":
-            # TODO: temporarily disable uploading image to wandb. Takes up a tremendous amount of storage
-            # Ideally, we could add a URL that points to the image in hugging face
-            # challenge_metadata["image"] = wandb.Image(challenge["image"])
-    except Exception as e:
-        bt.logging.error(e)
-        bt.logging.error(f"{modality} is truncated or corrupt. Challenge skipped.")
-        return
+    # try:
+    #     if modality == "video":
+    #         bt.logging.error("Video challenges are not supported")
+    #     elif modality == "image":
+    #         # TODO: temporarily disable uploading image to wandb. Takes up a tremendous amount of storage
+    #         # Ideally, we could add a URL that points to the image in hugging face
+    #         # challenge_metadata["image"] = wandb.Image(challenge["image"])
+    # except Exception as e:
+    #     bt.logging.error(e)
+    #     bt.logging.error(f"{modality} is truncated or corrupt. Challenge skipped.")
+    #     return
 
     # update logging dict with everything except image data
     challenge_metadata.update({k: v for k, v in challenge.items() if re.match(r"^(?!image$|video$|videos$|video_\d+$).+", k)})
