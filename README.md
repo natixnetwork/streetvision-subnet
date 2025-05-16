@@ -67,12 +67,6 @@ A unique feature of the Natix Network is its dynamic reward system. Miners must 
 
 ## Community
 
-<p align="left">
-  <a href="https://discord.gg/natixnetwork">
-    <img src="static/Join-NatixNetwork-Discord.png" alt="Join us on Discord" width="60%">
-  </a>
-</p>
-
 For real-time discussions, community support, and regular updates, <a href="https://discord.gg/kKQR98CrUn">join our Discord server</a>. Connect with developers, researchers, and users to get the most out of Natix Subnet.
 
 ## License
