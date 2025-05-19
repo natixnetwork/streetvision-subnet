@@ -12,7 +12,7 @@ module.exports = {
     },
     {
       name: "natix_cache_updater",
-      script: "start_catch_updater",
+      script: "start_cache_updater.sh",
       interpreter: "bash",
     }
   ]
