@@ -53,7 +53,7 @@ class ValidatorProxy:
             dependencies=[Depends(self.get_self)],
         )
         self.app.add_api_route(
-            "/healthcheck",
+            "/health/liveness",
             self.healthcheck,
             methods=["GET"],
             dependencies=[Depends(self.get_self)],
