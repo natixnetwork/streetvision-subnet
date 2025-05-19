@@ -12,19 +12,6 @@ VALIDATOR_PROCESS_NAME="natix_validator"
 DATA_GEN_PROCESS_NAME="natix_data_generator"
 CACHE_UPDATE_PROCESS_NAME="natix_cache_updater"
 
-# Clear cache if specified
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --clear-cache)
-      rm -rf ~/.cache/natix
-      shift
-      ;;
-    *)
-      shift
-      ;;
-  esac
-done
-
 # Login to Weights & Biases
 if ! wandb login $WANDB_API_KEY; then
   echo "Failed to login to Weights & Biases with the provided API key."
@@ -37,8 +24,9 @@ if ! huggingface-cli login --token $HUGGING_FACE_TOKEN; then
   exit 1
 fi
 
+
 echo "Starting validator process"
-poetry run poetry run python neurons/validator.py \
+poetry run python neurons/validator.py \
   --netuid $NETUID \
   --subtensor.network $SUBTENSOR_NETWORK \
   --subtensor.chain_endpoint $SUBTENSOR_CHAIN_ENDPOINT \
@@ -46,5 +34,4 @@ poetry run poetry run python neurons/validator.py \
   --wallet.hotkey $WALLET_HOTKEY \
   --axon.port $VALIDATOR_AXON_PORT \
   --proxy.port $VALIDATOR_PROXY_PORT \
-  --proxy.proxy_client_url "http://localhost:8000" \
   --logging.debug
