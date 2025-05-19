@@ -21,21 +21,33 @@ git clone https://github.com/natixnetwork/natix-subnet.git && cd natix-subnet
 ```
 
 We recommend using a Conda virtual environment to install the necessary Python packages.<br>
-You can set up Conda with this [quick command-line install](https://docs.anaconda.com/free/miniconda/#quick-command-line-install), and create a virtual environment with this command:
+You can use poetry to setup the dependencies.
 
 ```bash
-conda create -y -n natix python=3.10
+poetry env use path/to/your/python.3.11
+poetry sync
 ```
 
-To activate your virtual environment, run `conda activate natix`. To deactivate, `conda deactivate`.
+To activate your virtual environment, run `poetry env activate`.
 
 Install the remaining necessary requirements with the following chained command.
 
 ```bash
-conda activate natix
-export PIP_NO_CACHE_DIR=1
+poetry env activate
 chmod +x setup_env.sh
 ./setup_env.sh
+```
+
+If WanDB is activated, you'll need to login first
+
+```
+wandb login --relogin
+```
+
+Next you need to login with your huggingface credentials
+
+```
+huggingface-cli login
 ```
 
 ## Registration

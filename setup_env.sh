@@ -30,13 +30,6 @@ sudo apt install -y \
 sudo npm install -g pm2@latest
 
 ############################
-# Python Package Installation
-############################
-
-pip install poetry
-poetry install
-
-############################
 # Environment Files Setup  #
 ############################
 
