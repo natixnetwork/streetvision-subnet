@@ -1,7 +1,7 @@
 <p align="center">
   <img src="static/natix-network-logo.svg" alt="NATIX Network Logo" width="150"/>
 </p>
-<h1 align="center"><small>Bittensor Subnet for Image Classification and Object Detection</small></h1>
+<h1 align="center"> StreetVision  <small>Bittensor Subnet for Image Classification and Object Detection</small></h1>
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
