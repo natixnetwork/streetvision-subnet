@@ -57,12 +57,10 @@ Feel free to skip this step - datasets will be downloaded automatically when you
 
 The default list of datasets and default download location are defined in `base_miner/config.py`
 
-
-## Registration
-
+##  Mining Requirments ⚠️
 To mine on our subnet, you must have a registered hotkey and [at least submited one model](#Submitted-a-model)  
 
-*Note: For testnet tao, you can make requests in the [Bittensor Discord's "Requests for Testnet Tao" channel](https://discord.com/channels/799672011265015819/1190048018184011867)*
+## Registration
 
 To reduce the risk of deregistration due to technical issues or a poor performing model, we recommend the following:
 1. Test your miner on testnet before you start mining on mainnet.
@@ -80,6 +78,7 @@ btcli s register --netuid 34 --wallet.name [wallet_name] --wallet.hotkey [wallet
 ```bash
 btcli s register --netuid 168 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
+*Note: For testnet tao, you can make requests in the [Bittensor Discord's "Requests for Testnet Tao" channel](https://discord.com/channels/799672011265015819/1190048018184011867)*
 
 ## Mining
 
