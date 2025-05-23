@@ -67,7 +67,7 @@ class ValidatorProxy:
     def get_credentials(self):
         with httpx.Client(timeout=httpx.Timeout(30)) as client:
             response = client.post(
-                f"{self.validator.config.proxy.proxy_client_url}/get-credentials",
+                f"{self.validator.config.proxy.proxy_client_url}/credentials/get",
                 json={
                     "postfix": (
                         f":{self.validator.config.proxy.port}/validator_proxy" if self.validator.config.proxy.port else ""
