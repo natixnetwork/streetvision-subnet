@@ -3,12 +3,14 @@
 ## Table of Contents
 
 1. [Installation 🔧](#installation)
-   - [Data 📊](#data)
-   - [Registration ✍️](#registration)
+
+   * [Data 📊](#data)
+   * [Registration ✍️](#registration)
 2. [Mining ⛏️](#mining)
 3. [Model Submission and Improvement 📈](#model-submission-and-improvement)
+4. [Economy 📅](#economy)
 
-## Before you proceed ⚠️
+## Before You Proceed ⚠️
 
 **IMPORTANT**: If you are new to Bittensor, we recommend familiarizing yourself with the basics on the [Bittensor Website](https://bittensor.com/) before proceeding.
 
@@ -18,54 +20,48 @@
 
 ## Installation
 
-Download the repository and navigate to the folder.
+Download the repository and navigate to the folder:
+
 ```bash
 git clone https://github.com/natixnetwork/natix-subnet.git && cd natix-subnet
 ```
 
-We recommend using a Conda virtual environment to install the necessary Python packages.<br>
-You can set up Conda with this [quick command-line install](https://docs.anaconda.com/free/miniconda/#quick-command-line-install). Note that after you run the last commands in the miniconda setup process, you'll be prompted to start a new shell session to complete the initialization.
-
-With miniconda installed, you can create a virtual environment with this command:
+We recommend using a [Poetry](https://python-poetry.org/docs/) environment with Python 3.11 to manage dependencies:
 
 ```bash
-conda create -y -n natix python=3.9
+curl -sSL https://install.python-poetry.org | python3 -
+poetry env use 3.11
+poetry install
 ```
 
-To activate your virtual environment, run `conda activate natix`. To deactivate, `conda deactivate`.
-
-Install the remaining necessary requirements with the following chained command. This may take a few minutes to complete.
-
-```bash
-conda activate natix
-export PIP_NO_CACHE_DIR=1
-chmod +x setup_env.sh
-./setup_env.sh
-```
+This will install all necessary dependencies and prepare your environment.
 
 ### Data
 
-*Only for training -- deployed miner instances do not require access to these datasets.*
+*Only required for training -- deployed miner instances do not need access to these datasets.*
 
-You can optionally pre-download the training datasets by running:
+Optionally, pre-download the training datasets by running:
 
 ```bash
 python base_miner/datasets/download_data.py
 ```
 
-Feel free to skip this step - datasets will be downloaded automatically when you run the training scripts.
+The default list of datasets and their download location is defined in `base_miner/config.py`.
 
-The default list of datasets and default download location are defined in `base_miner/config.py`
+## Mining Requirements ⚠️
 
-##  Mining Requirments ⚠️
-To mine on our subnet, you must have a registered hotkey and [at least submited one model](#Submitted-a-model)  
+To mine on our subnet, you must have a registered hotkey and [have submitted at least one model](#submitted-a-model).
 
 ## Registration
 
-To reduce the risk of deregistration due to technical issues or a poor performing model, we recommend the following:
-1. Test your miner on testnet before you start mining on mainnet.
-2. Before registering your hotkey on mainnet, make sure your port is open by running `curl your_ip:your_port`
+To reduce the risk of deregistration due to technical issues or poor model performance, we recommend the following:
 
+1. Test your miner on testnet before mining on mainnet.
+2. Before registering your hotkey on mainnet, verify that your port is open:
+
+```bash
+curl your_ip:your_port
+```
 
 #### Mainnet
 
@@ -78,48 +74,41 @@ btcli s register --netuid 34 --wallet.name [wallet_name] --wallet.hotkey [wallet
 ```bash
 btcli s register --netuid 168 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
-*Note: For testnet tao, you can make requests in the [Bittensor Discord's "Requests for Testnet Tao" channel](https://discord.com/channels/799672011265015819/1190048018184011867)*
+
+*Note: For testnet TAO, make requests in the [Bittensor Discord's "Requests for Testnet Tao" channel](https://discord.com/channels/799672011265015819/1190048018184011867)*
+
+You can also use the `./register.sh` helper script:
+
+```bash
+chmod +x ./register.sh
+./register.sh
+```
 
 ## Mining
 
-You can launch your node with `run_neuron.py`.
-
-First, make sure to update `miner.env` with your **wallet**, **hotkey**, and **miner port**. This file was created for you during setup, and is not tracked by git.
-
+Make sure to update your `miner.env` file with your wallet name, hotkey, miner port, and model configuration. Then, start your miner with:
 
 ```bash
-IMAGE_DETECTOR=CAMO                            # Options: CAMO, UCF, NPR, None
-IMAGE_DETECTOR_CONFIG=camo.yaml                # Configs live in base_miner/deepfake_detectors/configs
-                                               # Supply a filename or relative path
-
-VIDEO_DETECTOR=TALL                            # Options: TALL, None
-VIDEO_DETECTOR_CONFIG=tall.yaml                # Configs live in base_miner/deepfake_detectors/configs
-                                               # Supply a filename or relative path
-
-IMAGE_DETECTOR_DEVICE=cpu                         # Options: cpu, cuda
-VIDEO_DETECTOR_DEVICE=cpu
-
-# Subtensor Network Configuration:
-NETUID=34                                      # Network User ID options: 34, 168
-SUBTENSOR_NETWORK=finney                       # Networks: finney, test, local
-SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-finney.opentensor.ai:443
-                                               # Endpoints:
-                                               # - wss://entrypoint-finney.opentensor.ai:443
-                                               # - wss://test.finney.opentensor.ai:443/
-
-# Wallet Configuration:
-WALLET_NAME=default
-WALLET_HOTKEY=default
-
-# Miner Settings:
-MINER_AXON_PORT=8091
-BLACKLIST_FORCE_VALIDATOR_PERMIT=True         # Default setting to force validator permit for blacklisting
-MODE_URL=hf_username/uf_repo                  # Huggingface username and repository of the model used by the miner
+chmod +x ./start_miner.sh
+./start_miner.sh
 ```
 
-### Submitted a model
-The submitted model needs to contain a file named `model_card.json` which includes the following information
+This will launch `run_neuron.py` using Poetry.
+
+You can also optionally run a cache updater service to improve image caching performance:
+
+```bash
+chmod +x ./start_cache_updater.sh
+./start_cache_updater.sh
 ```
+
+This invokes `natix/validator/scripts/run_cache_updater.py` in the background.
+
+## Submitted a Model
+
+Miners must publish their model to Hugging Face and include a `model_card.json` with the following format:
+
+```json
 {
   "model_name": "<ARBITRARY_MODEL_NAME>",
   "description": "<DESCRIPTION>",
@@ -129,72 +118,62 @@ The submitted model needs to contain a file named `model_card.json` which includ
 }
 ```
 
-### Run a minder
-Now you're ready to run your miner!
+Update the `MODE_URL` variable in your `miner.env` to reflect your Hugging Face repository.
 
-```bash
-conda activate natix
-pm2 start run_neuron.py -- --miner 
-```
+## Economy 📅
 
-- Auto updates are enabled by default. To disable, run with `--no-auto-updates`.
-- Self-healing restarts are enabled by default (every 6 hours). To disable, run with `--no-self-heal`.
+To participate in mining, miners must register a wallet and submit a model URL.
 
-If you want to outperform the base model, you'll need to train on more data or try experiment with different hyperparameters and model architectures. See our [training](#train) section below for more details.
+**Currently, validators are exempt from holding NATIX tokens or staking Alpha tokens for the first 90 days of mainnet.** However, it is still **strongly recommended** that you proceed with wallet registration to claim your model URL and on-chain identity. This ensures that your contributions are recognized and tied to your identity.
 
+Note: This registration process is separate from the model submission process described above.
 
 ## Training
 
-To see performance improvements over the base models, you'll need to train on more data, modify hyperparameters, or try a different modeling strategy altogether. Happy experimenting!
-
-*We are working on a unified interface for training models, but for now, each model has its own training script and logging systems that are functionality independent.*
+To improve beyond the baseline model, experiment with new datasets, architectures, or hyperparameters.
 
 ### NPR
-```python
+
+```bash
 cd base_miner/NPR/ && python train_detector.py
 ```
-The model with the lowest accuracy will be saved to `base_miner/NPR/checkpoints/<experiment_name>/model_epoch_best.pth`.<br>
 
 ### UCF
-```python
-cd base_miner/DFB/ && python train_detector.py --detector [UCF, TALL] --modality [image, video]
+
+```bash
+cd base_miner/DFB/ && python train_detector.py --detector UCF --modality image
 ```
-The model with the lowest accuracy will be saved to `base_miner/UCF/logs/training/<experiment_name>/`.<br>
 
-In this directory, you will find your model weights (`ckpt_best.pth`) and training configuration (`config.yaml`). Note that
-the training config, e.g. `config.yaml`, is different from the detector config, e.g. `ucf.yaml`.
-
+The model with the lowest accuracy will be saved to its respective checkpoint directory.
 
 ## Deploy Your Model
 
-Whether you have trained your own model, designed your own ``FeatureDetector`` subclass, or want to deploy a base miner using provided detectors in ``base_miner/detectors/``, you can simply update the `miner.env` file to point to the desired detector class and config.
+Update your `miner.env` file to use your trained detector class and configuration.
 
-We recommend consulting the `README` in `base_miner/` to learn about the extensibility and modular design of our base miner detectors.
+* Detector types are defined in `base_miner/registry.py`.
+* Config files live in `base_miner/detectors/configs/`.
+* UCFDetector requires a `train_config` path in its config YAML.
 
-- The detector type (e.g. `UCF`) corresponds to the module name of the ``FeatureDetector`` subclass registered in ``base_miner/registry.py``'s ``DETECTOR_REGISTRY``.
-- The associated detector config file (e.g., `ucf.yaml`) lives in `base_miner/detectors/configs/`.
-  - *For UCF only:* You will need to set the `train_config` field in the detector configuration file (`base_miner/detectors/configs/ucf.yaml`) to point to the training configuration file. This allows the instantiation of `UCFDetector` to use the settings from training time to reconstruct the correct model architecture. After training a model, the training config can be found in `base_miner/UCF/logs/<your_training_run>/config.yaml`. Feel free to move this to a different location, as long as the `train_config` field in `configs/ucf.yaml` reflects this. 
-- The model weights file (e.g., `ckpt_best.pth`) should be placed in `base_miner/<detector_type>/weights`.
-  - If the weights specified in the config file do not exist, the miner will attempt to automatically download them from Hugging Face as specified by the `hf_repo` field in the config file. Feel free to use your own Hugging Face repository for hosting your model weights, and update the config file accordingly.
+Weights should be placed under `base_miner/<detector_type>/weights`. If missing, they will be pulled from Hugging Face according to the `hf_repo` field in the config.
 
+## TensorBoard
 
-
-## Tensorboard
-
-Training metrics are logged with TensorboardX. You can view interactive graphs of these metrics by starting a tensorboard server with the following command, and navigating to `localhost:6006`.
+Start TensorBoard to view training metrics:
 
 ```bash
 tensorboard --logdir=./base_miner/checkpoints/<experiment_name>
 ```
 
-If you're using remote compute for training, you can set up port forwarding by ssh'ing onto your machine with the following flags:
+For remote machines:
 
 ```bash
 ssh -L 7007:localhost:6006 your_username@your_ip
 ```
 
-with port forwarding enabled, you can start your tensorboard server on your remote machine with the following command, and view the tensorboard UI at `localhost:7007` in your local browser.
+Then on the remote machine:
 
 ```bash
 tensorboard --logdir=./base_miner/checkpoints/<experiment_name> --host 0.0.0.0 --port 6006
 ```
+
+View it locally at `http://localhost:7007`
