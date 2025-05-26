@@ -3,143 +3,139 @@
 ## Table of Contents
 
 1. [Installation 🔧](#installation)
-   - [Data 📊](#data)
-   - [Registration ✍️](#registration)
-2. [Validating ✅](#validating)
+2. [Validator Requirements ⚠️](#validator-requirements-⚠️)
+3. [Registration ✍️](#registration)
+   - [Scripted Registration](#scripted-registration)
+4. [Validating ✅](#validating)
 
-## Before you proceed ⚠️
+## Before You Proceed ⚠️
 
-**Ensure you are running Subtensor locally** to minimize outages and improve performance. See [Run a Subtensor Node Locally](https://github.com/opentensor/subtensor/blob/main/docs/running-subtensor-locally.md#compiling-your-own-binary).
+**Ensure you're running Subtensor locally** to minimize outages and improve performance.  
+Refer to the [Run a Subtensor Node Locally guide](https://github.com/opentensor/subtensor/blob/main/docs/running-subtensor-locally.md#compiling-your-own-binary).
 
-**Be aware of the minimum compute requirements** for our subnet, detailed in [Minimum compute YAML configuration](../min_compute.yml).
+**Check the minimum compute requirements** for our subnet, defined in the [Minimum compute YAML configuration](../min_compute.yml).
+
+---
 
 ## Installation
 
-Download the repository and navigate to the folder.
+Clone the repository and navigate to the project directory:
+
 ```bash
 git clone https://github.com/natixnetwork/natix-subnet.git && cd natix-subnet
 ```
 
-We recommend using a Conda virtual environment to install the necessary Python packages.<br>
-You can set up Conda with this [quick command-line install](https://docs.anaconda.com/free/miniconda/#quick-command-line-install), and create a virtual environment with this command:
+We now use [Poetry](https://python-poetry.org/) for dependency management.  
+Make sure Poetry is installed, then activate the environment and install dependencies:
 
 ```bash
-conda create -y -n natix python=3.10
+poetry env use python3.11
+poetry install
+poetry shell
 ```
 
-To activate your virtual environment, run `conda activate natix`. To deactivate, `conda deactivate`.
+Python **3.11** is the preferred version.
 
-Install the remaining necessary requirements with the following chained command.
+---
 
-```bash
-conda activate natix
-export PIP_NO_CACHE_DIR=1
-chmod +x setup_env.sh
-./setup_env.sh
-```
-##  Validator Requirments ⚠️ [Last update: May 20th, 2025]
-To validate on our subnet, you must have a registered hotkey and meet two conditions:
+## Validator Requirements ⚠️  
+**Last updated: May 20th, 2025**
 
-- **$NATIX Staking**: Validators <a href="https://staking.natix.network/"> should stake 72727272 $NATIX </a> equivalent to approximately $50,000 in $NATIX, based on the average price over the last 30 days. This amount is to be reviewed and adjusted by the subnet owner every 1–3 months.
-- **Alpha Token Hold**: Validators should hold 12,500 alpha, equivalent to approximately $50,000 in Alpha tokens. This amount is to be reviewed and adjusted by the subnet owner every 1–3 months. 
+To validate on the Natix subnet, you must have a registered hotkey and meet **both** of the following criteria:
 
-**Grace Period: Validators who registered before May 20th, 2025, have a 4-week grace period to fulfill both the staking and holding requirements**
+- **$NATIX Staking**:  
+  Validators must stake **72,727,272 $NATIX**, equivalent to approximately $50,000 based on the average price over the past 30 days. This requirement is reviewed and adjusted by the subnet owner every 1–3 months.
 
+- **Alpha Token Holding**:  
+  Validators must hold **12,500 Alpha tokens**, also approximately $50,000 in value. This requirement is reviewed and adjusted periodically.
 
-## Registration
+> **Grace Period**: Validators who registered before **May 20th, 2025**, have a **4-week grace period** to meet these requirements.
 
-#### Mainnet
+---
+
+## Acquiring a UID
+
+### Mainnet Registration
 
 ```bash
 btcli s register --netuid 34 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network finney
 ```
 
-#### Testnet
+### Testnet Registration
 
 ```bash
 btcli s register --netuid 168 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
 
 ## Economy registration
-Before registering with the API, make sure you've registered your `uid` on Bittensor (as explained above).
+Once registered on-chain, you must also register on the **Natix application server**. make sure you've registered, and received your `uid` on Bittensor (as explained above).
 To register with the Natix network, you must sign a recent timestamp with both your **Solana** and **Bittensor** keys.
 
-### Scripted Registration
 
-Use the `register.sh` helper script:
+Use the `./register` script to simplify registration with the Natix application server:
 
 ```bash
-./register.sh <uid> <bt_wallet_name> <bt_hotkey_name> <solana_keypair_path> <hf_model_path>
+./register <uid> <bt_wallet_name> <bt_hotkey_name> <solana_keypair_path> <hf_model_path>
 ```
 
 **Example:**
-```
-./register.sh 10 reyraa default ~/.config/solana/reyraa.json reyraa/roadwork
-```
-
-This will:  
-	•	Generate a fresh timestamp  
-	•	Sign it using both wallets  
-	•	Automatically send a registration POST request to:  
-
-```
-https://hydra.natix.network/participant/register
+```bash
+./register 10 reyraa default ~/.config/solana/reyraa.json reyraa/roadwork
 ```
 
+This script will:
+- Generate a fresh timestamp
+- Sign it with both your **Solana** and **Bittensor** keys
+- Send a POST request to:  
+  `https://hydra.natix.network/participant/register`
+
+---
 
 ## Validating
 
-You can launch your validator with `run_neuron.py`.
-
-First, make sure to update `validator.env` with your **wallet**, **hotkey**, and **validator port**. This file was created for you during setup, and is not tracked by git.
+Update your `validator.env` file with your configuration:
 
 ```bash
-NETUID=34                                      # Network User ID options: 34, 168
-SUBTENSOR_NETWORK=finney                       # Networks: finney, test, local
+NETUID=34
+SUBTENSOR_NETWORK=finney
 SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-finney.opentensor.ai:443
-                                                # Endpoints:
-                                                # - wss://entrypoint-finney.opentensor.ai:443
-                                                # - wss://test.finney.opentensor.ai:443/
 
-# Wallet Configuration:
 WALLET_NAME=default
 WALLET_HOTKEY=default
 
-# Note: If you're using RunPod, you must select a port >= 70000 for symmetric mapping
-# Validator Port Setting:
 VALIDATOR_AXON_PORT=8092
 VALIDATOR_PROXY_PORT=10913
 DEVICE=cuda
 
-# API Keys:
 WANDB_API_KEY=your_wandb_api_key_here
 HUGGING_FACE_TOKEN=your_hugging_face_token_here
 ```
 
-If you don't have a W&B API key, please reach out to the Natix team via Discord and we can provide one.
-
-Now you're ready to run your validator!
+To run the validator, use the `./start_validator.sh` script:
 
 ```bash
-conda activate natix
-pm2 start run_neuron.py -- --validator 
+chmod +x ./start_validator.sh
+./start_validator.sh
 ```
-- Auto updates are enabled by default. To disable, run with `--no-auto-updates`.
-- Self-healing restarts are enabled by default (every 6 hours). To disable, run with `--no-self-heal`.
 
+This script runs with **no arguments** and uses the values defined in `validator.env`.
 
-The above command will kick off 4 `pm2` processes
+> **Note**: You may optionally run the validator using [PM2](https://pm2.keymetrics.io/), but this is not required. If you choose to use PM2:
+
+```bash
+pm2 start run_neuron.py -- --validator
 ```
-┌────┬───────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
-│ id │ name                      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
-├────┼───────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
-│ 2  │ natix_cache_updater     │ default     │ N/A     │ fork    │ 1601308  │ 2h     │ 0    │ online    │ 0%       │ 843.6mb  │ user     │ disabled │
-│ 3  │ natix_data_generator    │ default     │ N/A     │ fork    │ 1601426  │ 2h     │ 0    │ online    │ 0%       │ 11.3gb   │ user     │ disabled │
-│ 1  │ natix_validator         │ default     │ N/A     │ fork    │ 1601246  │ 2h     │ 0    │ online    │ 0%       │ 867.8mb  │ user     │ disabled │
-│ 0  │ run_neuron                │ default     │ N/A     │ fork    │ 223218   │ 41h    │ 0    │ online    │ 0%       │ 8.9mb    │ user     │ disabled │
-└────┴───────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
-```
-- `run_neuron` manages self heals and auto updates
-- `natix_validator` is the validator process, whose hotkey, port, etc. are configured in `validator.env`
-- `natix_data_generator` runs our data generation pipeline to produce **synthetic images** used for evaluation of miners (stored in `~/.cache/sn34/synthetic`)
-- `natix_cache_updater` manages the cache of **real images**  (stored in `~/.cache/sn34/real`) 
+
+Optional flags:
+- `--no-auto-updates`: Disables automatic code updates
+- `--no-self-heal`: Disables automatic restart every 6 hours
+
+---
+
+### PM2 Note
+
+You may choose to manage your validator with PM2 if desired, but by default, it does **not** use PM2.
+
+---
+
+That’s it — you’re ready to validate!
