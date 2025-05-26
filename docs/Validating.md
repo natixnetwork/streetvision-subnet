@@ -37,10 +37,16 @@ export PIP_NO_CACHE_DIR=1
 chmod +x setup_env.sh
 ./setup_env.sh
 ```
+##  Validator Requirments ⚠️ [Last update: May 20th, 2025]
+To validate on our subnet, you must have a registered hotkey and meet two conditions:
+
+- **$NATIX Staking**: Validators <a href="https://staking.natix.network/"> should stake 72727272 $NATIX </a> equivalent to approximately $50,000 in $NATIX, based on the average price over the last 30 days. This amount is to be reviewed and adjusted by the subnet owner every 1–3 months.
+- **Alpha Token Hold**: Validators should hold 12,500 alpha, equivalent to approximately $50,000 in Alpha tokens. This amount is to be reviewed and adjusted by the subnet owner every 1–3 months. 
+
+**Grace Period: Validators who registered before May 20th, 2025, have a 4-week grace period to fulfill both the staking and holding requirements**
+
 
 ## Registration
-
-To validate on our subnet, you must have a registered hotkey.
 
 #### Mainnet
 

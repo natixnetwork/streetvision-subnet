@@ -57,12 +57,10 @@ Feel free to skip this step - datasets will be downloaded automatically when you
 
 The default list of datasets and default download location are defined in `base_miner/config.py`
 
+##  Mining Requirments ⚠️
+To mine on our subnet, you must have a registered hotkey and [at least submited one model](#Submitted-a-model)  
 
 ## Registration
-
-To mine on our subnet, you must have a registered hotkey.
-
-*Note: For testnet tao, you can make requests in the [Bittensor Discord's "Requests for Testnet Tao" channel](https://discord.com/channels/799672011265015819/1190048018184011867)*
 
 To reduce the risk of deregistration due to technical issues or a poor performing model, we recommend the following:
 1. Test your miner on testnet before you start mining on mainnet.
@@ -80,12 +78,13 @@ btcli s register --netuid 34 --wallet.name [wallet_name] --wallet.hotkey [wallet
 ```bash
 btcli s register --netuid 168 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
+*Note: For testnet tao, you can make requests in the [Bittensor Discord's "Requests for Testnet Tao" channel](https://discord.com/channels/799672011265015819/1190048018184011867)*
 
 ## Mining
 
-You can launch your validator with `run_neuron.py`.
+You can launch your node with `run_neuron.py`.
 
-First, make sure to update `validator.env` with your **wallet**, **hotkey**, and **miner port**. This file was created for you during setup, and is not tracked by git.
+First, make sure to update `miner.env` with your **wallet**, **hotkey**, and **miner port**. This file was created for you during setup, and is not tracked by git.
 
 
 ```bash
@@ -118,17 +117,19 @@ BLACKLIST_FORCE_VALIDATOR_PERMIT=True         # Default setting to force validat
 MODE_URL=hf_username/uf_repo                  # Huggingface username and repository of the model used by the miner
 ```
 
+### Submitted a model
 The submitted model needs to contain a file named `model_card.json` which includes the following information
 ```
 {
   "model_name": "<ARBITRARY_MODEL_NAME>",
-  "description": "<>DESCRIPTION",
+  "description": "<DESCRIPTION>",
   "version": <VERSION NUMBER IN X.Y.Z format>,
   "submitted_by": "<WALLET_HOTKEY_ADDRESS>",
   "submission_time": <TIMESTAMP>
 }
 ```
 
+### Run a minder
 Now you're ready to run your miner!
 
 ```bash
@@ -152,13 +153,13 @@ To see performance improvements over the base models, you'll need to train on mo
 ```python
 cd base_miner/NPR/ && python train_detector.py
 ```
-The model with the lowest validation accuracy will be saved to `base_miner/NPR/checkpoints/<experiment_name>/model_epoch_best.pth`.<br>
+The model with the lowest accuracy will be saved to `base_miner/NPR/checkpoints/<experiment_name>/model_epoch_best.pth`.<br>
 
 ### UCF
 ```python
 cd base_miner/DFB/ && python train_detector.py --detector [UCF, TALL] --modality [image, video]
 ```
-The model with the lowest validation accuracy will be saved to `base_miner/UCF/logs/training/<experiment_name>/`.<br>
+The model with the lowest accuracy will be saved to `base_miner/UCF/logs/training/<experiment_name>/`.<br>
 
 In this directory, you will find your model weights (`ckpt_best.pth`) and training configuration (`config.yaml`). Note that
 the training config, e.g. `config.yaml`, is different from the detector config, e.g. `ucf.yaml`.

@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="static/natix-network-logo.svg" alt="Natix Network Logo" width="150"/>
+  <img src="static/natix-network-logo.svg" alt="NATIX Network Logo" width="150"/>
 </p>
-<h1 align="center">Natix Network<br><small>Bittensor Subnet for Construction Site Detection</small></h1>
+<h1 align="center"> StreetVision  <br/> <small>Bittensor Subnet for Image Classification and Object Detection</small></h1>
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-The Natix Network is a decentralized subnet designed to identify elements of construction sites in images. Built on Bittensor, this subnet incentivizes miners to develop and deploy models that accurately detect construction-related features like road signs, hazard markings, and machinery.
+This network is a decentralized subnet designed to inference images to extract information such as construction sites. Built on Bittensor, this subnet incentivizes miners to develop and deploy models that accurately detect features, starting with construction sites.
 
 <table style="border: none !important; width: 100% !important; border-collapse: collapse !important; margin: 0 auto !important;">
   <tbody>
@@ -17,23 +17,17 @@ The Natix Network is a decentralized subnet designed to identify elements of con
       <td>
         ⛏️ <a href="docs/Mining.md">Mining Guide</a><br>
         🔧 <a href="docs/Validating.md">Validator Guide</a><br>
-        🏗️ <a href="#Subnet-Architecture">Architecture Diagrams</a><br>
+        🏗️ <a href="#subnet-architecture">Architecture Diagrams</a><br>
         📈 <a href="docs/Incentive.md">Incentive Mechanism</a><br>
         🤝 <a href="docs/Contributor_Guide.md">Contributor Guide</a></td>
       <td>
-        🚀 <a href="https://www.natix.network">Natix Network</a><br>
-        🤗 <a href="https://huggingface.co/natix-network-org">Natix Network Hugging Face</a><br>
+        🚀 <a href="https://www.natix.network">NATIX Network</a><br>
+        🤗 <a href="https://huggingface.co/natix-network-org">NATIX Network Hugging Face</a><br>
         📊 <a href="https://wandb.ai/natix_network/natix-testnet">W&B</a><br>
       </td>
     </tr>
   </tbody>
 </table>
-
-
-## Decentralized Detection of Driving Qualia
-Who hasn't been late to work for reasons outside of your control? Roadwork, lane closures, accidents, weather, and other unforeseen circumstances can cause any number of annoyances. Centralized map providers cannot be everywhere at once, and they
-The Natix Network focuses on detecting elements of construction sites in images, such as road signs, hazard markings, construction materials, and machinery. Miners are incentivized to continually improve their models to achieve higher accuracy in identifying these elements.
-
 
 ## Core Components
 
@@ -43,7 +37,7 @@ The Natix Network focuses on detecting elements of construction sites in images,
 - Miners are tasked with running binary classifiers that discern between images with and without roadwork, and are rewarded based on their accuracy.
 - Miners predict a float value in [0., 1.], with values greater than 0.5 indicating the image contains roadwork.
 
-A unique feature of the Natix Network is its dynamic reward system. Miners must submit their image classification models to a public repository on Hugging Face. The submission is valid for 90 days, during which their reward factor is one. As time progresses beyond this period, the reward factor decays to zero, incentivizing continuous improvement and re-submission of models.
+A unique feature of the NATIX Network is its dynamic reward system. Miners must submit their image classification models to a public repository on Hugging Face. The submission is valid for 90 days, during which their reward factor is one. As time progresses beyond this period, the reward factor decays to zero, incentivizing continuous improvement and re-submission of models.
 
 **Validators**
 - Validators challenge miners with a balanced mix of real and synthetic media drawn from a diverse pool of sources.
@@ -73,7 +67,7 @@ For real-time discussions, community support, and regular updates, <a href="http
 This repository is licensed under the MIT License.
 ```text
 # The MIT License (MIT)
-# Copyright © 2025 Natix Network
+# Copyright © 2025 NATIX Network
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
