@@ -4,14 +4,14 @@
 # Copyright © 2023 <your name>
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
+# documentation files (the "Software"), to deal in the Software without restriction, including without limitation
 # the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
 # and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 # The above copyright notice and this permission notice shall be included in all copies or substantial portions of
 # the Software.
 
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
 # THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 # THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
@@ -247,6 +247,9 @@ class BaseValidatorNeuron(BaseNeuron):
                 "This may be due to a lack of responses from miners, or a bug in your reward functions."
             )
 
+        # Define whitelisted validator hotkeys
+        WHITELISTED_HOTKEYS = set(self.config.neuron.whitelisted_hotkeys) if hasattr(self.config.neuron, 'whitelisted_hotkeys') else None
+
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
         # Compute the norm of the scores
@@ -258,6 +261,13 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Compute raw_weights safely
         raw_weights = self.scores / norm
+
+        # Apply whitelist if configured
+        if WHITELISTED_HOTKEYS is not None:
+            for uid, hotkey in enumerate(self.metagraph.hotkeys):
+                if hotkey not in WHITELISTED_HOTKEYS:
+                    raw_weights[uid] = 0
+                    bt.logging.debug(f"Setting weight to 0 for non-whitelisted validator {hotkey} (UID {uid})")
 
         bt.logging.debug("raw_weights", raw_weights)
         bt.logging.debug("raw_weight_uids", str(self.metagraph.uids.tolist()))
@@ -284,19 +294,23 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.debug("uint_uids", uint_uids)
 
         # Set the weights on chain via our subtensor connection.
-        result, msg = self.subtensor.set_weights(
-            wallet=self.wallet,
-            netuid=self.config.netuid,
-            uids=uint_uids,
-            weights=uint_weights,
-            wait_for_finalization=False,
-            wait_for_inclusion=False,
-            version_key=self.spec_version,
-        )
-        if result is True:
-            bt.logging.info("set_weights on chain successfully!")
-        else:
-            bt.logging.error("set_weights failed", msg)
+        try:
+            # Set the weights through our subtensor connection.
+            if not self.config.neuron.disable_set_weights:
+                self.subtensor.set_weights(
+                    wallet=self.wallet,
+                    netuid=self.config.netuid,
+                    uids=uint_uids,
+                    weights=uint_weights,
+                    wait_for_finalization=False,
+                    version_key=self.spec_version,
+                )
+                bt.logging.info("Successfully set weights.")
+        except Exception as e:
+            bt.logging.error(f"Failed to set weights on chain with exception: {e}")
+
+        # Update the hotkeys.
+        self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
 
     def resync_metagraph(self):
         """Resyncs the metagraph and updates the hotkeys and moving averages based on the new metagraph."""
