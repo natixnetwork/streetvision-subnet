@@ -28,11 +28,11 @@ def fetch_model_card(model_url: str, uid: int, version: int = None):
         response = requests.get(model_card_url)
         response.raise_for_status()
         model_card = response.json()
+        return model_card
     except requests.RequestException as e:
         bt.logging.warning(f"Error fetching model card for {model_repo}: {e}")
         return None
 
-    return model_card
 
 def validate_model_card(card: dict, uid: int, model_url: str, hotkeys: list[str]):
     missing_keys = [k for k in REQUIRED_MODEL_CARD_KEYS if k not in card]
