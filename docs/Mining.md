@@ -86,7 +86,46 @@ chmod +x ./register.sh
 
 ## Mining
 
-Make sure to update your `miner.env` file with your wallet name, hotkey, miner port, and model configuration. Then, start your miner with:
+Make sure to update your `miner.env` file with your wallet name, hotkey, miner port, and model configuration.
+```
+TESTNET_UID=323
+MAINNET_UID=72
+MAINNET_WANDB_PROJECT=
+TESTNET_WANDB_PROJECT=
+HUGGINGFACE_REPO=
+WANDB_ENTITY=
+
+# following are initial values
+IMAGE_DETECTOR=ViT
+IMAGE_DETECTOR_CONFIG=ViT_roadwork.yaml
+VIDEO_DETECTOR=TALL
+VIDEO_DETECTOR_CONFIG=tall.yaml
+
+# Device Settings
+IMAGE_DETECTOR_DEVICE=cpu # Options: cpu, cuda
+VIDEO_DETECTOR_DEVICE=cpu
+
+NETUID=323                           # 323 for testnet, 72 for mainnet
+SUBTENSOR_NETWORK=test             # Networks: finney, test, local
+SUBTENSOR_CHAIN_ENDPOINT=wss://test.finney.opentensor.ai:443
+                                     # Endpoints:
+                                     # - wss://entrypoint-finney.opentensor.ai:443
+                                     # - wss://test.finney.opentensor.ai:443/
+                                     
+
+# Wallet Configuration
+WALLET_NAME=
+WALLET_HOTKEY=
+
+# Miner Settings
+MINER_AXON_PORT=8091
+BLACKLIST_FORCE_VALIDATOR_PERMIT=True # Force validator permit for blacklisting
+
+# Miner details
+MODEL_URL=
+```
+
+Then, start your miner with:
 
 ```bash
 chmod +x ./start_miner.sh
