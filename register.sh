@@ -13,10 +13,13 @@ show_help() {
   echo "┌────────────────────────────────────────────────────────────┐"
   echo -e "│         ${GREEN}NATIX Street Vision economy registration${CYAN}         │"
   echo "├────────────────────────────────────────────────────────────┤"
-  echo -e "│ ${YELLOW}Usage:${CYAN} ./register.sh <uid> <bt_wallet_name> <bt_hotkey_name> <solana_keypair_path> <hf_model_path>"
+  echo -e "│ ${YELLOW}Usage:${CYAN} ./register.sh <uid> <bt_wallet_name> <bt_hotkey_name> <solana_keypair_path> <participant_type> [hf_model_path]"
   echo "│"
-  echo "│ Example:"
-  echo "│   ./register.sh 10 reyraa default ~/.config/solana/reyraa.json reyraa/roadwork"
+  echo "│ Example for miner:"
+  echo "│   ./register.sh 10 reyraa default ~/.config/solana/reyraa.json miner reyraa/roadwork"
+  echo "│"
+  echo "│ Example for validator:"
+  echo "│   ./register.sh 10 reyraa default ~/.config/solana/reyraa.json validator"
   echo "│"
   echo "│ This script will:"
   echo "│ - Generate a secure timestamp"
@@ -28,7 +31,7 @@ show_help() {
 }
 
 # Validate args
-if [ "$#" -ne 5 ]; then
+if [ "$#" -lt 5 ] || [ "$#" -gt 6 ]; then
   show_help
 fi
 
@@ -36,7 +39,19 @@ BT_UID=$1
 BT_WALLET=$2
 BT_HOTKEY=$3
 SOLANA_KEYPAIR=$4
-HF_MODEL=$5
+PARTICIPANT_TYPE=$5
+
+echo $PARTICIPANT_TYPE
+
+if [ "$PARTICIPANT_TYPE" == "miner" ]; then
+  if [ "$#" -ne 6 ]; then
+    echo -e "${RED}Error: 'miner' type requires <hf_model_path> argument.${RESET}"
+    show_help
+  fi
+  HF_MODEL=$6
+else
+  HF_MODEL=""
+fi
 
 echo "UID at start: $BT_UID"
 
@@ -81,26 +96,47 @@ BT_PUBKEY=$(btcli w list --json-out | jq -r ".wallets[] | select(.name==\"$BT_WA
 echo -e "${GREEN}Generated signature for${RESET} Bittensor"
 
 # Construct JSON
-JSON=$(jq -n \
-  --arg uid "$BT_UID" \
-  --arg msg "$TIMESTAMP" \
-  --arg bt_pk "$BT_PUBKEY" \
-  --arg bt_sig "$BT_SIGNATURE" \
-  --arg sol_pk "$SOLANA_PUBKEY" \
-  --arg sol_sig "$SOLANA_SIGNATURE" \
-  --arg type "validator" \
-  --arg repo "$HF_MODEL" \
-  '{
-    uid: $uid,
-    message: $msg,
-    public_key: $sol_pk,
-    signature: $sol_sig,
-    natix_public_key: $bt_pk,
-    natix_signature: $bt_sig,
-    type: $type,
-    model_repo: $repo
-  }'
-)
+if [ "$PARTICIPANT_TYPE" == "miner" ]; then
+  JSON=$(jq -n \
+    --arg uid "$BT_UID" \
+    --arg msg "$TIMESTAMP" \
+    --arg bt_pk "$BT_PUBKEY" \
+    --arg bt_sig "$BT_SIGNATURE" \
+    --arg sol_pk "$SOLANA_PUBKEY" \
+    --arg sol_sig "$SOLANA_SIGNATURE" \
+    --arg type "$PARTICIPANT_TYPE" \
+    --arg repo "$HF_MODEL" \
+    '{
+      uid: $uid,
+      message: $msg,
+      public_key: $sol_pk,
+      signature: $sol_sig,
+      natix_public_key: $bt_pk,
+      natix_signature: $bt_sig,
+      type: $type,
+      model_repo: $repo
+    }'
+  )
+else
+  JSON=$(jq -n \
+    --arg uid "$BT_UID" \
+    --arg msg "$TIMESTAMP" \
+    --arg bt_pk "$BT_PUBKEY" \
+    --arg bt_sig "$BT_SIGNATURE" \
+    --arg sol_pk "$SOLANA_PUBKEY" \
+    --arg sol_sig "$SOLANA_SIGNATURE" \
+    --arg type "$PARTICIPANT_TYPE" \
+    '{
+      uid: $uid,
+      message: $msg,
+      public_key: $sol_pk,
+      signature: $sol_sig,
+      natix_public_key: $bt_pk,
+      natix_signature: $bt_sig,
+      type: $type
+    }'
+  )
+fi
 
 # POST request
 echo -e "${GREEN}Sending registration request to Natix...${RESET}"
