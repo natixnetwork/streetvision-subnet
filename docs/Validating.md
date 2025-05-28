@@ -71,6 +71,7 @@ btcli s register --netuid 323 --wallet.name [wallet_name] --wallet.hotkey [walle
 Once registered on-chain, you must also register on the **Natix application server**. make sure you've registered, and received your `uid` on Bittensor (as explained above).
 To register with the Natix network, you must sign a recent timestamp with your **Bittensor** hot key.
 
+This is **required** in order to register your validator to receive organic requests that will be passed on to miners.
 
 Use the `./register.sh` script to simplify registration with the Natix application server:
 
