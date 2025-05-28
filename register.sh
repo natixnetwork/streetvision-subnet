@@ -113,7 +113,7 @@ fi
 
 # POST request
 echo -e "${GREEN}Sending registration request to Natix...${RESET}"
-curl -s -X POST http:/localhost:8000/participant/register \
+curl -s -X POST https:/hydra.natix.network/participant/register \
   -H "Content-Type: application/json" \
   -d "$JSON" | jq
 
