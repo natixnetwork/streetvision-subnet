@@ -69,23 +69,23 @@ btcli s register --netuid 168 --wallet.name [wallet_name] --wallet.hotkey [walle
 
 ## Economy registration
 Once registered on-chain, you must also register on the **Natix application server**. make sure you've registered, and received your `uid` on Bittensor (as explained above).
-To register with the Natix network, you must sign a recent timestamp with both your **Solana** and **Bittensor** keys.
+To register with the Natix network, you must sign a recent timestamp with your **Bittensor** hot key.
 
 
 Use the `./register` script to simplify registration with the Natix application server:
 
 ```bash
-./register <uid> <bt_wallet_name> <bt_hotkey_name> <solana_keypair_path> <hf_model_path>
+./register <uid> <bt_wallet_name> <bt_hotkey_name> validator
 ```
 
 **Example:**
 ```bash
-./register 10 reyraa default ~/.config/solana/reyraa.json reyraa/roadwork
+./register 10 reyraa default validator
 ```
 
 This script will:
 - Generate a fresh timestamp
-- Sign it with both your **Solana** and **Bittensor** keys
+- Sign it with your **Bittensor** hot key
 - Send a POST request to:  
   `https://hydra.natix.network/participant/register`
 
