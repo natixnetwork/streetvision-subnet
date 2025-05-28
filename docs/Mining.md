@@ -75,14 +75,29 @@ btcli s register --netuid 34 --wallet.name [wallet_name] --wallet.hotkey [wallet
 btcli s register --netuid 168 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
 
-*Note: For testnet TAO, make requests in the [Bittensor Discord's "Requests for Testnet Tao" channel](https://discord.com/channels/799672011265015819/1190048018184011867)*
+## Economy registration
+Once registered on-chain, you must also register on the **Natix application server**. make sure you've registered, and received your `uid` on Bittensor (as explained above).
+To register with the Natix network, you must sign a recent timestamp with your **Bittensor** hot key.
 
-You can also use the `./register.sh` helper script:
+
+Use the `./register` script to simplify registration with the Natix application server:
 
 ```bash
-chmod +x ./register.sh
-./register.sh
+./register <uid> <bt_wallet_name> <bt_hotkey_name> miner <hf_model_path>
 ```
+
+**Example:**
+```bash
+./register 10 reyraa default miner reyraa/roadwork
+```
+
+This script will:
+- Generate a fresh timestamp
+- Sign it with your **Bittensor** hot key
+- Send a POST request to:  
+  `https://hydra.natix.network/participant/register`
+
+---
 
 ## Mining
 
