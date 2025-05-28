@@ -91,27 +91,20 @@ else
 # StreetVision Validator Configuration
 #--------------------
 
-# Subtensor Network Configuration
-NETUID=72                            # Mainnet NETUID
-SUBTENSOR_NETWORK=finney            # Networks: finney, test, local
+NETUID=72
+SUBTENSOR_NETWORK=finney
 SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-finney.opentensor.ai:443
-                                     # Endpoints:
-                                     # - wss://entrypoint-finney.opentensor.ai:443
-                                     # - wss://test.finney.opentensor.ai:443/
 
-# Wallet Configuration
 WALLET_NAME=default
 WALLET_HOTKEY=default
 
-# Validator Settings
-VALIDATOR_AXON_PORT=8092             # If using RunPod, must be >= 70000 for symmetric mapping
+VALIDATOR_AXON_PORT=8092
 VALIDATOR_PROXY_PORT=10913
+PROXY_CLIENT_URL=https://hydra.natix.network
 DEVICE=cuda
 
-# API Keys
 WANDB_API_KEY=your_wandb_api_key_here
 HUGGING_FACE_TOKEN=your_hugging_face_token_here
-PROXY_CLIENT_URL=https://hydra.natix.network
 EOL
     echo "File 'validator.env' created."
 fi
