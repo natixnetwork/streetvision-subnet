@@ -182,6 +182,10 @@ Update your `miner.env` file to use your trained detector class and configuratio
 
 Weights should be placed under `base_miner/<detector_type>/weights`. If missing, they will be pulled from Hugging Face according to the `hf_repo` field in the config.
 
+## Training
+
+To improve beyond the baseline model, experiment with new datasets, architectures, or hyperparameters.
+
 ## TensorBoard
 
 Start TensorBoard to view training metrics:
