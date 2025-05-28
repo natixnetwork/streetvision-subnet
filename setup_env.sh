@@ -57,7 +57,7 @@ VIDEO_DETECTOR_DEVICE=cpu
 
 # Subtensor Network Configuration
 NETUID=72                            # Mainnet NETUID
-SUBTENSOR_NETWORK=mainnet            # Networks: mainnet, testnet, local
+SUBTENSOR_NETWORK=finney            # Networks: finney, testnet, local
 SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-mainnet.opentensor.ai:443
                                      # Endpoints:
                                      # - wss://entrypoint-mainnet.opentensor.ai:443
@@ -85,7 +85,7 @@ else
 
 # Subtensor Network Configuration
 NETUID=72                            # Mainnet NETUID
-SUBTENSOR_NETWORK=mainnet            # Networks: mainnet, testnet, local
+SUBTENSOR_NETWORK=finney            # Networks: finney, testnet, local
 SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-mainnet.opentensor.ai:443
                                      # Endpoints:
                                      # - wss://entrypoint-mainnet.opentensor.ai:443
