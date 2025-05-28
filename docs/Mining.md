@@ -7,8 +7,6 @@
    * [Data 📊](#data)
    * [Registration ✍️](#registration)
 2. [Mining ⛏️](#mining)
-3. [Model Submission and Improvement 📈](#model-submission-and-improvement)
-4. [Economy 📅](#economy)
 
 ## Before You Proceed ⚠️
 
@@ -173,14 +171,6 @@ Miners must publish their model to Hugging Face and include a `model_card.json` 
 ```
 
 Update the `MODE_URL` variable in your `miner.env` to reflect your Hugging Face repository.
-
-## Economy 📅
-
-To participate in mining, miners must register a wallet and submit a model URL.
-
-**Currently, validators are exempt from holding NATIX tokens or staking Alpha tokens for the first 90 days of mainnet.** However, it is still **strongly recommended** that you proceed with wallet registration to claim your model URL and on-chain identity. This ensures that your contributions are recognized and tied to your identity.
-
-Note: This registration process is separate from the model submission process described above.
 
 ## Deploy Your Model
 

@@ -105,6 +105,7 @@ WALLET_HOTKEY=default
 
 VALIDATOR_AXON_PORT=8092
 VALIDATOR_PROXY_PORT=10913
+PROXY_CLIENT_URL=https://hydra.natix.network
 DEVICE=cuda
 
 WANDB_API_KEY=your_wandb_api_key_here
