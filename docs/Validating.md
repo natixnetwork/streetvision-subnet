@@ -58,13 +58,13 @@ To validate on the Natix subnet, you must have a registered hotkey and meet **bo
 ### Mainnet Registration
 
 ```bash
-btcli s register --netuid 34 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network finney
+btcli s register --netuid 72 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network finney
 ```
 
 ### Testnet Registration
 
 ```bash
-btcli s register --netuid 168 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
+btcli s register --netuid 323 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
 
 ## Economy registration
@@ -96,7 +96,7 @@ This script will:
 Update your `validator.env` file with your configuration:
 
 ```bash
-NETUID=34
+NETUID=72
 SUBTENSOR_NETWORK=finney
 SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-finney.opentensor.ai:443
 
