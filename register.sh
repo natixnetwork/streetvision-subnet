@@ -43,11 +43,11 @@ PARTICIPANT_TYPE=$4
 echo $PARTICIPANT_TYPE
 
 if [ "$PARTICIPANT_TYPE" == "miner" ]; then
-  if [ "$#" -ne 6 ]; then
+  if [ "$#" -ne 5 ]; then
     echo -e "${RED}Error: 'miner' type requires <hf_model_path> argument.${RESET}"
     show_help
   fi
-  HF_MODEL=$6
+  HF_MODEL=$5
 else
   HF_MODEL=""
 fi
