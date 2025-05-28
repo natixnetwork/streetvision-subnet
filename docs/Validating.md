@@ -72,15 +72,15 @@ Once registered on-chain, you must also register on the **Natix application serv
 To register with the Natix network, you must sign a recent timestamp with your **Bittensor** hot key.
 
 
-Use the `./register` script to simplify registration with the Natix application server:
+Use the `./register.sh` script to simplify registration with the Natix application server:
 
 ```bash
-./register <uid> <bt_wallet_name> <bt_hotkey_name> validator
+./register.sh <uid> <bt_wallet_name> <bt_hotkey_name> validator
 ```
 
 **Example:**
 ```bash
-./register 10 reyraa default validator
+./register.sh 10 reyraa default validator
 ```
 
 This script will:
