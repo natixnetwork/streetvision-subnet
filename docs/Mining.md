@@ -7,8 +7,6 @@
    * [Data 📊](#data)
    * [Registration ✍️](#registration)
 2. [Mining ⛏️](#mining)
-3. [Model Submission and Improvement 📈](#model-submission-and-improvement)
-4. [Economy 📅](#economy)
 
 ## Before You Proceed ⚠️
 
@@ -43,7 +41,7 @@ This will install all necessary dependencies and prepare your environment.
 Optionally, pre-download the training datasets by running:
 
 ```bash
-python base_miner/datasets/download_data.py
+poetry run python base_miner/datasets/download_data.py
 ```
 
 The default list of datasets and their download location is defined in `base_miner/config.py`.
@@ -121,7 +119,7 @@ IMAGE_DETECTOR_DEVICE=cpu # Options: cpu, cuda
 VIDEO_DETECTOR_DEVICE=cpu
 
 NETUID=323                           # 323 for testnet, 72 for mainnet
-SUBTENSOR_NETWORK=test             # Networks: finney, test, local
+SUBTENSOR_NETWORK=test               # Networks: finney, test, local
 SUBTENSOR_CHAIN_ENDPOINT=wss://test.finney.opentensor.ai:443
                                      # Endpoints:
                                      # - wss://entrypoint-finney.opentensor.ai:443
@@ -174,32 +172,6 @@ Miners must publish their model to Hugging Face and include a `model_card.json` 
 
 Update the `MODE_URL` variable in your `miner.env` to reflect your Hugging Face repository.
 
-## Economy 📅
-
-To participate in mining, miners must register a wallet and submit a model URL.
-
-**Currently, validators are exempt from holding NATIX tokens or staking Alpha tokens for the first 90 days of mainnet.** However, it is still **strongly recommended** that you proceed with wallet registration to claim your model URL and on-chain identity. This ensures that your contributions are recognized and tied to your identity.
-
-Note: This registration process is separate from the model submission process described above.
-
-## Training
-
-To improve beyond the baseline model, experiment with new datasets, architectures, or hyperparameters.
-
-### NPR
-
-```bash
-cd base_miner/NPR/ && python train_detector.py
-```
-
-### UCF
-
-```bash
-cd base_miner/DFB/ && python train_detector.py --detector UCF --modality image
-```
-
-The model with the lowest accuracy will be saved to its respective checkpoint directory.
-
 ## Deploy Your Model
 
 Update your `miner.env` file to use your trained detector class and configuration.
@@ -209,6 +181,10 @@ Update your `miner.env` file to use your trained detector class and configuratio
 * UCFDetector requires a `train_config` path in its config YAML.
 
 Weights should be placed under `base_miner/<detector_type>/weights`. If missing, they will be pulled from Hugging Face according to the `hf_repo` field in the config.
+
+## Training
+
+To improve beyond the baseline model, experiment with new datasets, architectures, or hyperparameters.
 
 ## TensorBoard
 

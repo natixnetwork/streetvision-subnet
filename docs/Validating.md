@@ -105,10 +105,13 @@ WALLET_HOTKEY=default
 
 VALIDATOR_AXON_PORT=8092
 VALIDATOR_PROXY_PORT=10913
+PROXY_CLIENT_URL=https://hydra.natix.network
 DEVICE=cuda
 
 WANDB_API_KEY=your_wandb_api_key_here
 HUGGING_FACE_TOKEN=your_hugging_face_token_here
+
+PROXY_CLIENT_URL=https://hydra.natix.network
 ```
 
 To run the validator, use the `./start_validator.sh` script:
@@ -136,6 +139,11 @@ Optional flags:
 
 You may choose to manage your validator with PM2 if desired, but by default, it does **not** use PM2.
 
+
+### Exposed Ports
+Please note that you need to expose the port numbers you define by `VALIDATOR_AXON_PORT` and `VALIDATOR_PROXY_PORT` for incoming requests.
+
 ---
 
 That’s it — you’re ready to validate!
+
