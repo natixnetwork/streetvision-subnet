@@ -6,7 +6,7 @@ set +a
 
 export PYTHONPATH=$(pwd):$PYTHONPATH
 
-poetry run python neurons/miner.py \
+pm2 start neurons/miner.py --name=natix-miner -- \
   --neuron.image_detector ${IMAGE_DETECTOR:-None} \
   --neuron.image_detector_config ${IMAGE_DETECTOR_CONFIG:-None} \
   --neuron.image_detector_device ${IMAGE_DETECTOR_DEVICE:-None} \
