@@ -58,10 +58,10 @@ VIDEO_DETECTOR_DEVICE=cpu
 # Subtensor Network Configuration
 NETUID=72                            # Mainnet NETUID
 SUBTENSOR_NETWORK=finney            # Networks: finney, testnet, local
-SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-mainnet.opentensor.ai:443
+SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-finney.opentensor.ai:443
                                      # Endpoints:
-                                     # - wss://entrypoint-mainnet.opentensor.ai:443
-                                     # - wss://entrypoint-testnet.opentensor.ai:443/
+                                     # - wss://entrypoint-finney.opentensor.ai:443
+                                     # - wss://test.finney.opentensor.ai:443/
 
 # Wallet Configuration
 WALLET_NAME=default
