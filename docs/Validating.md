@@ -71,16 +71,17 @@ btcli s register --netuid 323 --wallet.name [wallet_name] --wallet.hotkey [walle
 Once registered on-chain, you must also register on the **Natix application server**. make sure you've registered, and received your `uid` on Bittensor (as explained above).
 To register with the Natix network, you must sign a recent timestamp with your **Bittensor** hot key.
 
+This is **required** in order to register your validator to receive organic requests that will be passed on to miners.
 
-Use the `./register` script to simplify registration with the Natix application server:
+Use the `./register.sh` script to simplify registration with the Natix application server:
 
 ```bash
-./register <uid> <bt_wallet_name> <bt_hotkey_name> validator
+./register.sh <uid> <bt_wallet_name> <bt_hotkey_name> validator
 ```
 
 **Example:**
 ```bash
-./register 10 reyraa default validator
+./register.sh 10 reyraa default validator
 ```
 
 This script will:
@@ -110,8 +111,6 @@ DEVICE=cuda
 
 WANDB_API_KEY=your_wandb_api_key_here
 HUGGING_FACE_TOKEN=your_hugging_face_token_here
-
-PROXY_CLIENT_URL=https://hydra.natix.network
 ```
 
 To run the validator, use the `./start_validator.sh` script:
