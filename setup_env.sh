@@ -9,6 +9,7 @@ sudo apt update -y
 
 # Install core dependencies
 sudo apt install -y \
+    python3 \
     python3-pip \
     nano \
     libgl1 \
@@ -29,6 +30,9 @@ sudo apt install -y \
 # Install process manager
 sudo npm install -g pm2@latest
 
+# Install Poetry
+curl -sSL https://install.python-poetry.org | python3 -
+
 ############################
 # Environment Files Setup  #
 ############################
@@ -38,7 +42,7 @@ if [ -f "miner.env" ]; then
     echo "File 'miner.env' already exists. Skipping creation."
 else
     cat > miner.env << 'EOL'
-# Default options
+# StreetVision Miner Configuration
 #--------------------
 
 # Detector Configuration
@@ -52,12 +56,12 @@ IMAGE_DETECTOR_DEVICE=cpu             # Options: cpu, cuda
 VIDEO_DETECTOR_DEVICE=cpu
 
 # Subtensor Network Configuration
-NETUID=34                            # Network User ID options: 34, 168
-SUBTENSOR_NETWORK=finney             # Networks: finney, test, local
-SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-finney.opentensor.ai:443
+NETUID=72                            # Mainnet NETUID
+SUBTENSOR_NETWORK=mainnet            # Networks: mainnet, testnet, local
+SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-mainnet.opentensor.ai:443
                                      # Endpoints:
-                                     # - wss://entrypoint-finney.opentensor.ai:443
-                                     # - wss://test.finney.opentensor.ai:443/
+                                     # - wss://entrypoint-mainnet.opentensor.ai:443
+                                     # - wss://entrypoint-testnet.opentensor.ai:443/
 
 # Wallet Configuration
 WALLET_NAME=default
@@ -65,7 +69,8 @@ WALLET_HOTKEY=default
 
 # Miner Settings
 MINER_AXON_PORT=8091
-BLACKLIST_FORCE_VALIDATOR_PERMIT=True # Force validator permit for blacklisting
+MODEL_URL=your_username/your_model_name # Model URL on Hugging Face
+PROXY_CLIENT_URL=https://hydra.natix.network
 EOL
     echo "File 'miner.env' created."
 fi
@@ -75,16 +80,16 @@ if [ -f "validator.env" ]; then
     echo "File 'validator.env' already exists. Skipping creation."
 else
     cat > validator.env << 'EOL'
-# Default options
+# StreetVision Validator Configuration
 #--------------------
 
 # Subtensor Network Configuration
-NETUID=34                            # Network User ID options: 34, 168
-SUBTENSOR_NETWORK=finney             # Networks: finney, test, local
-SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-finney.opentensor.ai:443
+NETUID=72                            # Mainnet NETUID
+SUBTENSOR_NETWORK=mainnet            # Networks: mainnet, testnet, local
+SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-mainnet.opentensor.ai:443
                                      # Endpoints:
-                                     # - wss://entrypoint-finney.opentensor.ai:443
-                                     # - wss://test.finney.opentensor.ai:443/
+                                     # - wss://entrypoint-mainnet.opentensor.ai:443
+                                     # - wss://entrypoint-testnet.opentensor.ai:443/
 
 # Wallet Configuration
 WALLET_NAME=default
@@ -98,8 +103,9 @@ DEVICE=cuda
 # API Keys
 WANDB_API_KEY=your_wandb_api_key_here
 HUGGING_FACE_TOKEN=your_hugging_face_token_here
+PROXY_CLIENT_URL=https://hydra.natix.network
 EOL
     echo "File 'validator.env' created."
 fi
 
-echo "Environment setup completed successfully."
+echo "Environment setup completed successfully with StreetVision."
