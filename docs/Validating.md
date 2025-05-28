@@ -109,6 +109,8 @@ DEVICE=cuda
 
 WANDB_API_KEY=your_wandb_api_key_here
 HUGGING_FACE_TOKEN=your_hugging_face_token_here
+
+PROXY_CLIENT_URL=https://hydra.natix.network
 ```
 
 To run the validator, use the `./start_validator.sh` script:
