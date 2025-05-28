@@ -44,32 +44,40 @@ else
     cat > miner.env << 'EOL'
 # StreetVision Miner Configuration
 #--------------------
+TESTNET_UID=323
+MAINNET_UID=72
+MAINNET_WANDB_PROJECT=
+TESTNET_WANDB_PROJECT=
+HUGGINGFACE_REPO=
+WANDB_ENTITY=
 
-# Detector Configuration
-IMAGE_DETECTOR=CAMO                   # Options: CAMO, UCF, NPR, None
-IMAGE_DETECTOR_CONFIG=camo.yaml       # Configs in base_miner/deepfake_detectors/configs
-VIDEO_DETECTOR=TALL                   # Options: TALL, None
-VIDEO_DETECTOR_CONFIG=tall.yaml       # Configs in base_miner/deepfake_detectors/configs
+# following are initial values
+IMAGE_DETECTOR=ViT
+IMAGE_DETECTOR_CONFIG=ViT_roadwork.yaml
+VIDEO_DETECTOR=TALL
+VIDEO_DETECTOR_CONFIG=tall.yaml
 
 # Device Settings
-IMAGE_DETECTOR_DEVICE=cpu             # Options: cpu, cuda
+IMAGE_DETECTOR_DEVICE=cpu # Options: cpu, cuda
 VIDEO_DETECTOR_DEVICE=cpu
 
-# Subtensor Network Configuration
-NETUID=72                            # Mainnet NETUID
-SUBTENSOR_NETWORK=finney            # Networks: finney, testnet, local
-SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-finney.opentensor.ai:443
+NETUID=323                           # 323 for testnet, 72 for mainnet
+SUBTENSOR_NETWORK=test               # Networks: finney, test, local
+SUBTENSOR_CHAIN_ENDPOINT=wss://test.finney.opentensor.ai:443
                                      # Endpoints:
                                      # - wss://entrypoint-finney.opentensor.ai:443
                                      # - wss://test.finney.opentensor.ai:443/
-
+                                     
 # Wallet Configuration
-WALLET_NAME=default
-WALLET_HOTKEY=default
+WALLET_NAME=
+WALLET_HOTKEY=
 
 # Miner Settings
 MINER_AXON_PORT=8091
-MODEL_URL=your_username/your_model_name # Model URL on Hugging Face
+BLACKLIST_FORCE_VALIDATOR_PERMIT=True # Force validator permit for blacklisting
+
+# Miner details
+MODEL_URL=
 PROXY_CLIENT_URL=https://hydra.natix.network
 EOL
     echo "File 'miner.env' created."
@@ -85,7 +93,7 @@ else
 
 # Subtensor Network Configuration
 NETUID=72                            # Mainnet NETUID
-SUBTENSOR_NETWORK=finney            # Networks: finney, testnet, local
+SUBTENSOR_NETWORK=finney            # Networks: finney, test, local
 SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-finney.opentensor.ai:443
                                      # Endpoints:
                                      # - wss://entrypoint-finney.opentensor.ai:443
