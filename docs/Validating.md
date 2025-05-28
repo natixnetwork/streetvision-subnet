@@ -136,6 +136,11 @@ Optional flags:
 
 You may choose to manage your validator with PM2 if desired, but by default, it does **not** use PM2.
 
+
+### Exposed Ports
+Please note that you need to expose the port numbers you define by `VALIDATOR_AXON_PORT` and `VALIDATOR_PROXY_PORT` for incoming requests.
+
 ---
 
 That’s it — you’re ready to validate!
+
