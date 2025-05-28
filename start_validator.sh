@@ -24,7 +24,6 @@ if ! huggingface-cli login --token $HUGGING_FACE_TOKEN; then
   exit 1
 fi
 
-
 echo "Starting validator process"
 poetry run python neurons/validator.py \
   --netuid $NETUID \
@@ -34,4 +33,6 @@ poetry run python neurons/validator.py \
   --wallet.hotkey $WALLET_HOTKEY \
   --axon.port $VALIDATOR_AXON_PORT \
   --proxy.port $VALIDATOR_PROXY_PORT \
+  --proxy.proxy_client_url $PROXY_CLIENT_URL\
+  --wandb.off \
   --logging.debug
