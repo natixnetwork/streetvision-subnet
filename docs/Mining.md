@@ -75,18 +75,72 @@ btcli s register --netuid 34 --wallet.name [wallet_name] --wallet.hotkey [wallet
 btcli s register --netuid 168 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
 
-*Note: For testnet TAO, make requests in the [Bittensor Discord's "Requests for Testnet Tao" channel](https://discord.com/channels/799672011265015819/1190048018184011867)*
+## Economy registration
+Once registered on-chain, you must also register on the **Natix application server**. make sure you've registered, and received your `uid` on Bittensor (as explained above).
+To register with the Natix network, you must sign a recent timestamp with your **Bittensor** hot key.
 
-You can also use the `./register.sh` helper script:
+
+Use the `./register` script to simplify registration with the Natix application server:
 
 ```bash
-chmod +x ./register.sh
-./register.sh
+./register <uid> <bt_wallet_name> <bt_hotkey_name> miner <hf_model_path>
 ```
+
+**Example:**
+```bash
+./register 10 reyraa default miner reyraa/roadwork
+```
+
+This script will:
+- Generate a fresh timestamp
+- Sign it with your **Bittensor** hot key
+- Send a POST request to:  
+  `https://hydra.natix.network/participant/register`
+
+---
 
 ## Mining
 
-Make sure to update your `miner.env` file with your wallet name, hotkey, miner port, and model configuration. Then, start your miner with:
+Make sure to update your `miner.env` file with your wallet name, hotkey, miner port, and model configuration.
+```
+TESTNET_UID=323
+MAINNET_UID=72
+MAINNET_WANDB_PROJECT=
+TESTNET_WANDB_PROJECT=
+HUGGINGFACE_REPO=
+WANDB_ENTITY=
+
+# following are initial values
+IMAGE_DETECTOR=ViT
+IMAGE_DETECTOR_CONFIG=ViT_roadwork.yaml
+VIDEO_DETECTOR=TALL
+VIDEO_DETECTOR_CONFIG=tall.yaml
+
+# Device Settings
+IMAGE_DETECTOR_DEVICE=cpu # Options: cpu, cuda
+VIDEO_DETECTOR_DEVICE=cpu
+
+NETUID=323                           # 323 for testnet, 72 for mainnet
+SUBTENSOR_NETWORK=test             # Networks: finney, test, local
+SUBTENSOR_CHAIN_ENDPOINT=wss://test.finney.opentensor.ai:443
+                                     # Endpoints:
+                                     # - wss://entrypoint-finney.opentensor.ai:443
+                                     # - wss://test.finney.opentensor.ai:443/
+                                     
+
+# Wallet Configuration
+WALLET_NAME=
+WALLET_HOTKEY=
+
+# Miner Settings
+MINER_AXON_PORT=8091
+BLACKLIST_FORCE_VALIDATOR_PERMIT=True # Force validator permit for blacklisting
+
+# Miner details
+MODEL_URL=
+```
+
+Then, start your miner with:
 
 ```bash
 chmod +x ./start_miner.sh
