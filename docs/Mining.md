@@ -98,7 +98,7 @@ This script will:
 ---
 
 ## Mining
-Run `./setup_env.sh` to generate a `miner.env` file with default configuration
+Run `./setup_env.sh` to generate a `miner.env` file with default configuration.
 
 Make sure to update your `miner.env` file with your wallet name, hotkey, miner port, and model configuration.
 ```
