@@ -14,14 +14,14 @@ from diffusers import (
 
 TARGET_IMAGE_SIZE: tuple[int, int] = (224, 224)
 
-MAINNET_UID = int(os.getenv("MAINNET_UID", 0))
-TESTNET_UID = int(os.getenv("TESTNET_UID", 0))
+MAINNET_UID = 72
+TESTNET_UID = 323
 
 # Project constants
-MAINNET_WANDB_PROJECT = os.getenv("MAINNET_WANDB_PROJECT", "no_mainnet_wandb_env")
-TESTNET_WANDB_PROJECT = os.getenv("TESTNET_WANDB_PROJECT", "no_testnet_wandb_env")
-HUGGINGFACE_REPO = os.getenv("HUGGINGFACE_REPO", "no_huggingface_repo")
-WANDB_ENTITY = os.getenv("WANDB_ENTITY", "no_wandb_entity")
+MAINNET_WANDB_PROJECT = "natix-testnet"
+TESTNET_WANDB_PROJECT = "natix-subnet"
+HUGGINGFACE_REPO = "natix-network-org"
+WANDB_ENTITY = "natix_network_org"
 
 
 # Cache directories
