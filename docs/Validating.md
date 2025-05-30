@@ -36,22 +36,6 @@ poetry shell
 
 Python **3.11** is the preferred version.
 
----
-
-## Validator Requirements ⚠️  
-**Last updated: May 20th, 2025**
-
-To validate on the Natix subnet, you must have a registered hotkey and meet **both** of the following criteria:
-
-- **$NATIX Staking**:  
-  Validators must stake **72,727,272 $NATIX**, equivalent to approximately $50,000 based on the average price over the past 30 days. This requirement is reviewed and adjusted by the subnet owner every 1–3 months.
-
-- **Alpha Token Holding**:  
-  Validators must hold **12,500 Alpha tokens**, also approximately $50,000 in value. This requirement is reviewed and adjusted periodically.
-
-> **Grace Period**: Validators who registered before **May 20th, 2025**, have a **4-week grace period** to meet these requirements.
-
----
 
 ## Acquiring a UID
 
