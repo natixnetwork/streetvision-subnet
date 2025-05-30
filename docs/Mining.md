@@ -136,7 +136,7 @@ MINER_AXON_PORT=8091
 BLACKLIST_FORCE_VALIDATOR_PERMIT=True # Force validator permit for blacklisting
 
 # Miner details
-MODEL_URL=
+MODEL_URL= # The URL to your Hugging-face repository
 ```
 
 Then, start your miner with:

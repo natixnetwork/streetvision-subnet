@@ -1,6 +1,7 @@
 import os
 import requests
 import time
+import re
 
 import bittensor as bt
 from natix.validator import model_registry
@@ -17,13 +18,36 @@ def is_valid_timestamp(ts: int) -> bool:
         ts //= 1000
     return 946684800 <= ts <= current_time
 
+def sanitize_model_repo(model_repo: str) -> str:
+    """
+    Cleans up user-provided model_repo input so it works correctly in a Hugging Face URL.
+    
+    Handles cases like:
+    - https://huggingface.co/user/model
+    - /user/model/
+    - user/model/
+    - user/model
+    """
+    # Step 1: Remove huggingface.co domain if present
+    model_repo = re.sub(r"^https?://huggingface\.co", "", model_repo.strip())
+
+    # Step 2: Remove leading and trailing slashes
+    model_repo = model_repo.strip("/")
+
+    # Step 3: Ensure format is user/repo or user/repo/subdir
+    if not re.match(r"^[\w\-]+/[\w\-]+(?:/[\w\-/]*)?$", model_repo):
+        raise ValueError(f"Invalid model repo format: {model_repo}")
+
+    return model_repo
+
 
 def fetch_model_card(model_url: str, uid: int, version: int = None):
     model_repo = f"{model_url}"
     if version:
         model_repo += f"-v{version}"
 
-    model_card_url = f"https://huggingface.co/{model_repo}/resolve/main/model_card.json"
+    clean_repo = sanitize_model_repo(model_repo)
+    model_card_url = f"https://huggingface.co/{clean_repo}/resolve/main/model_card.json"
     try:
         response = requests.get(model_card_url)
         response.raise_for_status()
