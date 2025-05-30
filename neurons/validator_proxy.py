@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 
 import bittensor as bt
-import httpx
+from httpx import HTTPStatusError, Client, Timeout
 import numpy as np
 import uvicorn
 from cryptography.exceptions import InvalidSignature
@@ -65,31 +65,45 @@ class ValidatorProxy:
             self.start_server()
 
     def get_credentials(self):
-        with httpx.Client(timeout=httpx.Timeout(30)) as client:
-            response = client.post(
-                f"{self.validator.config.proxy.proxy_client_url}/credentials/get",
-                json={
-                    "postfix": (
-                        f":{self.validator.config.proxy.port}/validator_proxy" if self.validator.config.proxy.port else ""
-                    ),
-                    "uid": self.validator.uid,
-                },
-            )
-        response.raise_for_status()
-        response = response.json()
-        message = response["message"]
-        signature = response["signature"]
-        signature = base64.b64decode(signature)
+        try:
+            with Client(timeout=Timeout(30)) as client:
+                response = client.post(
+                    f"{self.validator.config.proxy.proxy_client_url}/credentials/get",
+                    json={
+                        "postfix": (
+                            f":{self.validator.config.proxy.port}/validator_proxy" if self.validator.config.proxy.port else ""
+                        ),
+                        "uid": self.validator.uid,
+                    },
+                )
+            response.raise_for_status()
+            response = response.json()
+            message = response["message"]
+            signature = base64.b64decode(response["signature"])
 
-        def verify_credentials(public_key_bytes):
-            public_key = Ed25519PublicKey.from_public_bytes(public_key_bytes)
+            def verify_credentials(public_key_bytes):
+                public_key = Ed25519PublicKey.from_public_bytes(public_key_bytes)
+                try:
+                    public_key.verify(signature, message.encode("utf-8"))
+                except InvalidSignature:
+                    raise Exception("Invalid signature")
+
+            self.verify_credentials = verify_credentials
+
+        except HTTPStatusError as e:
+            # Extract and show full response error from server
             try:
-                public_key.verify(signature, message.encode("utf-8"))
-            except InvalidSignature:
-                raise Exception("Invalid signature")
+                error_detail = e.response.json()
+            except Exception:
+                error_detail = e.response.text
 
-        self.verify_credentials = verify_credentials
+            bt.logging.warning(f"Credential request failed: {error_detail}")
+            bt.logging.warning("Warning, proxy can't ping to proxy-client.")
+            return None
 
+        except Exception as e:
+            bt.logging.exception(f"Unexpected error while getting credentials: {e}")
+            return None
     def start_server(self):
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.executor.submit(uvicorn.run, self.app, host="0.0.0.0", port=self.validator.config.proxy.port)
