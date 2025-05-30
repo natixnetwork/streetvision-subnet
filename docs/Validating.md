@@ -51,11 +51,11 @@ btcli s register --netuid 72 --wallet.name [wallet_name] --wallet.hotkey [wallet
 btcli s register --netuid 323 --wallet.name [wallet_name] --wallet.hotkey [wallet.hotkey] --subtensor.network test
 ```
 
-## Economy registration
-Once registered on-chain, you must also register on the **Natix application server**. make sure you've registered, and received your `uid` on Bittensor (as explained above).
-To register with the Natix network, you must sign a recent timestamp with your **Bittensor** hot key.
+## Registration
+Once registered on-chain, you must also register on the **NATIX application server**. make sure you've registered, and received your `uid` on Bittensor (as explained above).
+Validatos must sign a recent timestamp with your **Bittensor** hot key to be white-listed in NATIX application sever.
 
-This is **required** in order to register your validator to receive organic requests that will be passed on to miners.
+This step is **required** in order to receive organic requests comming from NATIX Network.
 
 Use the `./register.sh` script to simplify registration with the Natix application server:
 
