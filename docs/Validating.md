@@ -56,7 +56,7 @@ Once registered on-chain, you must also register on the **NATIX Application Serv
 
 This step is **required** in order to receive organic requests comming from NATIX Network.
 
-Use the `./register.sh` script to simplify registration with the Natix application server:
+Use the `./register.sh` script to perform this step.
 
 ```bash
 ./register.sh <uid> <bt_wallet_name> <bt_hotkey_name> validator
