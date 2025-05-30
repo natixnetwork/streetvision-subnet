@@ -4,6 +4,7 @@ import os
 
 import bittensor as bt
 
+from natix.validator.scripts.util import init_wandb_run, load_validator_info
 from natix.validator.cache.image_cache import ImageCache
 from natix.validator.config import (
     CLEAR_IMAGE_CACHE_DIR,
