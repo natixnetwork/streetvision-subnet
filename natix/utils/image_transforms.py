@@ -60,6 +60,7 @@ class RandomHorizontalFlipWithParams(transforms.RandomHorizontalFlip):
         super().__init__(*args, **kwargs)
         self.params = {}
 
+
     def forward(self, img, do_flip=None):
         if do_flip is not None:
             self.params = {"do_flip": do_flip}
