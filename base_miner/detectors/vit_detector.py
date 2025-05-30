@@ -19,12 +19,12 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 @DETECTOR_REGISTRY.register_module(module_name="ViT")
 class ViTImageDetector(FeatureDetector):
     """
-    DeepfakeDetector subclass that initializes a pretrained UCF model
-    for binary classification of fake and real images.
+    ViTImageDetector subclass that initializes a pretrained model
+    for binary classification of roadwork.
 
     Attributes:
         model_name (str): Name of the detector instance.
-        config_name (str): Name of the YAML file in deepfake_detectors/config/ to load
+        config_name (str): Name of the YAML file in detectors/config/ to load
                       attributes from.
         device (str): The type of device ('cpu' or 'cuda').
     """

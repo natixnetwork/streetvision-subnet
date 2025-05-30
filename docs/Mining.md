@@ -78,15 +78,15 @@ Once registered on-chain, you must also register on the **Natix application serv
 To register with the Natix network, you must sign a recent timestamp with your **Bittensor** hot key.
 
 
-Use the `./register` script to simplify registration with the Natix application server:
+Use the `./register.sh` script to simplify registration with the Natix application server:
 
 ```bash
-./register <uid> <bt_wallet_name> <bt_hotkey_name> miner <hf_model_path>
+./register.sh <uid> <bt_wallet_name> <bt_hotkey_name> miner <hf_model_path>
 ```
 
 **Example:**
 ```bash
-./register 10 reyraa default miner reyraa/roadwork
+./register.sh 10 reyraa default miner reyraa/roadwork
 ```
 
 This script will:
@@ -98,6 +98,7 @@ This script will:
 ---
 
 ## Mining
+Run `./setup_env.sh` to generate a `miner.env` file with default configuration.
 
 Make sure to update your `miner.env` file with your wallet name, hotkey, miner port, and model configuration.
 ```
