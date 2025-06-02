@@ -27,4 +27,4 @@ if pm2 list | grep -q "$CACHE_UPDATE_PROCESS_NAME"; then
 fi
 
 echo "Starting real data cache updater process"
-pm2 start natix/validator/scripts/run_cache_updater.py --name $CACHE_UPDATE_PROCESS_NAME
+poetry run python natix/validator/scripts/run_cache_updater.py
