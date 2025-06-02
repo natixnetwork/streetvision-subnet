@@ -96,19 +96,9 @@ WANDB_API_KEY=your_wandb_api_key_here
 HUGGING_FACE_TOKEN=your_hugging_face_token_here
 ```
 
-To run the validator, use the `./start_validator.sh` script:
-
+To run the validator:
 ```bash
-chmod +x ./start_validator.sh
-./start_validator.sh
-```
-
-This script runs with **no arguments** and uses the values defined in `validator.env`.
-
-> **Note**: You may optionally run the validator using [PM2](https://pm2.keymetrics.io/), but this is not required. If you choose to use PM2:
-
-```bash
-pm2 start run_neuron.py -- --validator
+pm2 start ecosystem.validator.config.js
 ```
 
 Optional flags:
@@ -116,11 +106,6 @@ Optional flags:
 - `--no-self-heal`: Disables automatic restart every 6 hours
 
 ---
-
-### PM2 Note
-
-You may choose to manage your validator with PM2 if desired, but by default, it does **not** use PM2.
-
 
 ### Exposed Ports
 Please note that you need to expose the port numbers you define by `VALIDATOR_AXON_PORT` and `VALIDATOR_PROXY_PORT` for incoming requests.
