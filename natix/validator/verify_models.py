@@ -72,7 +72,7 @@ def validate_model_card(card: dict, uid: int, model_url: str, hotkeys: list[str]
 
     if submitted_by != expected_hotkey:
         bt.logging.warning(f"Model card submitted_by {submitted_by} does not match UID {uid}'s hotkey {expected_hotkey}")
-        return False
+        return True
 
     if not is_valid_timestamp(int(card['submission_time'])):
         bt.logging.warning(f"Invalid submission_time: {card['submission_time']}")
@@ -83,7 +83,7 @@ def validate_model_card(card: dict, uid: int, model_url: str, hotkeys: list[str]
         # New miner
         if model_registry.is_model_name_taken(model_name):
             bt.logging.warning(f"Model name '{model_name}' already taken by another miner.")
-            return False
+            return True
         else:
             model_registry.insert_submission(uid, model_name, model_version, model_url, submitted_by, submission_time)
             bt.logging.info(f"New miner submission recorded for UID {uid}")

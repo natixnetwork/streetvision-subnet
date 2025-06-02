@@ -153,7 +153,7 @@ async def forward(self):
     bt.logging.success(f"Roadwork {modality} challenge complete!")
     bt.logging.info("Scoring responses")
     rewards, metrics = get_rewards(
-        label=label, responses=predictions, uids=miner_uids, axons=axons, performance_trackers=self.performance_trackers
+        label=label, responses=valid_predictions, uids=valid_miners, axons=axons, performance_trackers=self.performance_trackers
     )
 
     self.update_scores(rewards, miner_uids)
