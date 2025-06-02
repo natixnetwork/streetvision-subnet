@@ -5,6 +5,8 @@ set -a
 source validator.env
 set +a
 
+export PYTHONPATH=$(pwd):$PYTHONPATH
+
 CACHE_UPDATE_PROCESS_NAME="natix_cache_updater"
 
 # Clear cache if specified
