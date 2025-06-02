@@ -35,13 +35,13 @@ def compute_penalty(y_pred: float) -> float:
     bad = (y_pred < 0.0) or (y_pred > 1.0)
     return 0.0 if bad else 1.0
 
-
 def get_rewards(
     label: float,
     responses: List[float],
     uids: List[int],
     axons: List[bt.axon],
-    performance_trackers: Dict[str, Any]
+    performance_trackers: Dict[str, Any],
+    invalid_uids: set = None
 ) -> Tuple[np.ndarray, List[Dict[str, Dict[str, float]]]]:
     """
     Calculate rewards for miner responses based on performance metrics.
@@ -52,14 +52,17 @@ def get_rewards(
         uids: List of miner UIDs
         axons: List of miner axons
         performance_trackers: Dict mapping modality to performance tracker
+        invalid_uids: Set of UIDs that failed model validation
 
     Returns:
         Tuple containing:
             - np.ndarray: Array of rewards for each miner
             - List[Dict]: List of performance metrics for each miner
     """
+    invalid_uids = invalid_uids or set()
     miner_rewards = []
     miner_metrics = []
+    
     for axon, uid, pred_prob in zip(axons, uids, responses):
         miner_modality_rewards = {}
         miner_modality_metrics = {}
@@ -67,19 +70,21 @@ def get_rewards(
         modality = "image"
 
         try:
-            if pred_prob == -1:
+            # Always calculate metrics regardless of prediction validity
+            miner_hotkey = axon.hotkey
+            tracked_hotkeys = tracker[modality].miner_hotkeys
+            if uid in tracked_hotkeys and tracked_hotkeys[uid] != miner_hotkey:
+                bt.logging.info(f"Miner hotkey changed for UID {uid}. Resetting performance metrics.")
+                tracker[modality].reset_miner_history(uid, miner_hotkey)
+
+            performance_trackers[modality].update(uid, pred_prob, label, miner_hotkey)
+            metrics_100 = tracker[modality].get_metrics(uid, window=100)
+            metrics_10 = tracker[modality].get_metrics(uid, window=10)
+
+            # Calculate reward based on prediction validity AND model validation
+            if pred_prob == -1 or uid in invalid_uids:
                 reward = 0.0
             else:
-                miner_hotkey = axon.hotkey
-                tracked_hotkeys = tracker[modality].miner_hotkeys
-                if uid in tracked_hotkeys and tracked_hotkeys[uid] != miner_hotkey:
-                    bt.logging.info(f"Miner hotkey changed for UID {uid}. Resetting performance metrics.")
-                    tracker[modality].reset_miner_history(uid, miner_hotkey)
-
-                performance_trackers[modality].update(uid, pred_prob, label, miner_hotkey)
-
-                metrics_100 = tracker[modality].get_metrics(uid, window=100)
-                metrics_10 = tracker[modality].get_metrics(uid, window=10)
                 reward = 0.5 * metrics_100["mcc"] + 0.5 * metrics_10["accuracy"]
                 reward *= compute_penalty(pred_prob)
 
@@ -89,7 +94,10 @@ def get_rewards(
         except Exception as e:
             bt.logging.error(f"Couldn't calculate reward for miner {uid}, prediction: {pred_prob}, label: {label}")
             bt.logging.exception(e)
+            # Still need to append something to maintain array consistency
             reward = 0.0
+            miner_modality_rewards[modality] = reward
+            miner_modality_metrics[modality] = {}  # Empty metrics dict
 
         total_reward = miner_modality_rewards.get("image", 0.0)
         miner_rewards.append(total_reward)
