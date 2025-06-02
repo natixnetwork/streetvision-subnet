@@ -31,11 +31,10 @@ from natix.validator.reward import get_rewards
 from natix.validator.verify_models import check_miner_model
 from natix.utils.wandb_utils import log_to_wandb
 
-
 def determine_challenge_type(media_cache):
     modality = "image"
     label = np.random.choice(list(CHALLENGE_TYPE.keys()))
-    cache = media_cache["Roadwork"][modality]
+    cache = media_cache[CHALLENGE_TYPE[label]][modality]
     task = None
     # if label == 1:
     #     if modality == 'video':
@@ -113,7 +112,7 @@ async def forward(self):
 
     # sample miner uids for challenge
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    bt.logging.debug(f"Miner UIDs: {miner_uids}")
+    bt.logging.debug(f"Miner UIDs to provide with synthetic challenge: {miner_uids}")
     axons = [self.metagraph.axons[uid] for uid in miner_uids]
     challenge_metadata["miner_uids"] = list(miner_uids)
     challenge_metadata["miner_hotkeys"] = list([axon.hotkey for axon in axons])
@@ -126,34 +125,32 @@ async def forward(self):
     start = time.time()
     responses = await self.dendrite(axons=axons, synapse=synapse, deserialize=False, timeout=9)
     predictions = [x.prediction for x in responses]
+    bt.logging.debug(f"Predictions of synthetic challenge: {predictions}")
 
-    # Check model URLs
+    # Check model URLs and collect invalid UIDs
     model_urls = [x.model_url for x in responses]
-    valid_miners = []
-    valid_model_urls = []
-    valid_predictions = []
-    valid_axons = []
+    invalid_uids = set()
 
-    for uid, model_url, prediction, axon in zip(miner_uids, model_urls, predictions, axons):
+    for uid, model_url in zip(miner_uids, model_urls):
         if not model_url or not isinstance(model_url, str):
-            bt.logging.warning(f"Miner UID {uid} missing or invalid model_url. Skipping.")
-            continue
-
-        if not check_miner_model(model_url, uid, self.hotkeys):
-            bt.logging.warning(f"Model at URL {model_url} (UID {uid}) failed validation. Skipping.")
-            continue
-
-        valid_miners.append(uid)
-        valid_model_urls.append(model_url)
-        valid_predictions.append(prediction)
-        valid_axons.append(axon)
-
+            bt.logging.warning(f"Miner UID {uid} missing or invalid model_url.")
+            invalid_uids.add(uid)
+        elif not check_miner_model(model_url, uid, self.hotkeys):
+            bt.logging.warning(f"Model at URL {model_url} (UID {uid}) failed validation.")
+            invalid_uids.add(uid)
 
     bt.logging.info(f"Responses received in {time.time() - start}s")
     bt.logging.success(f"Roadwork {modality} challenge complete!")
     bt.logging.info("Scoring responses")
+
+    # Pass invalid_uids to get_rewards
     rewards, metrics = get_rewards(
-        label=label, responses=valid_predictions, uids=valid_miners, axons=axons, performance_trackers=self.performance_trackers
+        label=label, 
+        responses=predictions, 
+        uids=miner_uids, 
+        axons=axons, 
+        performance_trackers=self.performance_trackers,
+        invalid_uids=invalid_uids
     )
 
     self.update_scores(rewards, miner_uids)
