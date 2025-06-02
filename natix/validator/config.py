@@ -18,8 +18,8 @@ MAINNET_UID = 72
 TESTNET_UID = 323
 
 # Project constants
-MAINNET_WANDB_PROJECT = "natix-testnet"
-TESTNET_WANDB_PROJECT = "natix-subnet"
+MAINNET_WANDB_PROJECT = "natix-subnet"
+TESTNET_WANDB_PROJECT = "natix-testnet"
 HUGGINGFACE_REPO = "natix-network-org"
 WANDB_ENTITY = "natix_network_org"
 
