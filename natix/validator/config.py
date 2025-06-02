@@ -31,12 +31,12 @@ NATIX_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 VALIDATOR_INFO_PATH: Path = NATIX_CACHE_DIR / "validator.yaml"
 
-CLEAR_CACHE_DIR: Path = NATIX_CACHE_DIR / "None"
+NONE_CACHE_DIR: Path = NATIX_CACHE_DIR / "None"
 ROADWORK_CACHE_DIR: Path = NATIX_CACHE_DIR / "Roadwork"
 SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / "Synthetic"
 
 ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / "image"
-CLEAR_IMAGE_CACHE_DIR: Path = CLEAR_CACHE_DIR / "image"
+NONE_IMAGE_CACHE_DIR: Path = NONE_CACHE_DIR / "image"
 
 
 T2V_CACHE_DIR: Path = SYNTH_CACHE_DIR / "t2v"
@@ -50,14 +50,18 @@ IMAGE_CACHE_UPDATE_INTERVAL = 1
 MAX_COMPRESSED_GB = 100
 MAX_EXTRACTED_GB = 10
 
-CHALLENGE_TYPE = {0: "Clear", 1: "Roadwork"}
+CHALLENGE_TYPE = {0: "None", 1: "Roadwork"}
 
 # Image datasets configuration
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
     "Roadwork": [
         {"path": f"{HUGGINGFACE_REPO}/roadwork"},
     ],
+    "None": [
+        {"path": f"{HUGGINGFACE_REPO}/none"},
+    ],
 }
+
 
 # Prompt generation model configurations
 IMAGE_ANNOTATION_MODEL: str = "Salesforce/blip2-opt-6.7b-coco"
@@ -181,11 +185,10 @@ def get_task(model_name):
 
 def select_random_model(task: Optional[str] = None) -> str:
     """
-    Select a random text-to-image or text-to-video model based on the specified
-    modality.
+    Select a random text-to-image
 
     Args:
-        modality: The type of model to select ('t2v', 't2i', 'i2i', or 'random').
+        modality: The type of model to select ('t2i', 'i2i', or 'random').
             If None or 'random', randomly chooses between the valid options
 
     Returns:
