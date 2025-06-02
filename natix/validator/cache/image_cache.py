@@ -64,10 +64,16 @@ class ImageCache(BaseCache):
 
     def _extract_random_items(self, n_items_per_source: Optional[int] = None) -> List[Path]:
         """
-        Extract random videos from zip files in compressed directory.
+        Extract random images from parquet files in the compressed directory.
+
+        This method reads parquet files, samples a specified number of images,
+        and extracts those images along with metadata to the cache directory.
+
+        Args:
+            n_items_per_source: Number of images to extract per parquet file.
 
         Returns:
-            List of paths to extracted video files.
+            List of paths to extracted image files.
         """
         if n_items_per_source is None:
             n_items_per_source = self.num_images_per_source

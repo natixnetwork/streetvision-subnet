@@ -31,11 +31,11 @@ from natix.validator.reward import get_rewards
 from natix.validator.verify_models import check_miner_model
 from natix.utils.wandb_utils import log_to_wandb
 
-
+# @todo How does this determine the task type?
 def determine_challenge_type(media_cache):
     modality = "image"
     label = np.random.choice(list(CHALLENGE_TYPE.keys()))
-    cache = media_cache["Roadwork"][modality]
+    cache = media_cache[label][modality] # @todo Should we use label here?
     task = None
     # if label == 1:
     #     if modality == 'video':

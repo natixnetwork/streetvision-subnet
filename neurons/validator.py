@@ -28,7 +28,7 @@ import natix
 from natix.base.validator import BaseValidatorNeuron
 from natix.validator.cache import ImageCache
 from natix.validator.config import (
-    CLEAR_IMAGE_CACHE_DIR,
+    NONE_IMAGE_CACHE_DIR,
     I2I_CACHE_DIR,
     MAINNET_UID,
     MAINNET_WANDB_PROJECT,
@@ -69,8 +69,8 @@ class Validator(BaseValidatorNeuron):
         self.roadwork_media_cache = {
             "image": ImageCache(ROADWORK_IMAGE_CACHE_DIR),
         }
-        self.clear_road_media_cache = {
-            "image": ImageCache(CLEAR_IMAGE_CACHE_DIR),
+        self.none_road_media_cache = {
+            "image": ImageCache(NONE_IMAGE_CACHE_DIR),
         }
 
         # synthetic media caches are populated by the SyntheticDataGenerator process (started by start_validator.sh)
@@ -79,7 +79,7 @@ class Validator(BaseValidatorNeuron):
         }
 
         self.media_cache = {
-            "None": self.clear_road_media_cache,
+            "None": self.none_road_media_cache,
             "Roadwork": self.roadwork_media_cache,
         }
 
