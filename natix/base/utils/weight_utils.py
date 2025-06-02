@@ -150,19 +150,11 @@ def process_weights_for_netuid(
 
     non_zero_weight_uids = uids[non_zero_weight_idx]
     non_zero_weights = weights[non_zero_weight_idx]
-    if non_zero_weights.size == 0 or metagraph.n < min_allowed_weights:
-        bittensor.logging.warning("No non-zero weights returning all ones.")
-        final_weights = np.ones(metagraph.n) / metagraph.n
-        bittensor.logging.debug("final_weights", final_weights)
-        return np.arange(len(final_weights)), final_weights
-
-    elif non_zero_weights.size < min_allowed_weights:
-        bittensor.logging.warning("No non-zero weights less then min allowed weight, returning all ones.")
-        weights = np.ones(metagraph.n) * 1e-5  # creating minimum even non-zero weights
-        weights[non_zero_weight_idx] += non_zero_weights
-        bittensor.logging.debug("final_weights", weights)
-        normalized_weights = normalize_max_weight(x=weights, limit=max_weight_limit)
-        return np.arange(len(normalized_weights)), normalized_weights
+    # Handle all zeros case or insufficient valid weights
+    if non_zero_weights.size == 0 or non_zero_weights.size < min_allowed_weights or metagraph.n < min_allowed_weights:
+        bittensor.logging.warning("No valid weights or insufficient weights, assigning all weight to burn uid (uid 0).")
+        # Give all weight to burn uid (uid 0)
+        return np.array([0]), np.array([1.0])
 
     bittensor.logging.debug("non_zero_weights", non_zero_weights)
 
