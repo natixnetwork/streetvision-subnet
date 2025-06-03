@@ -44,13 +44,6 @@ else
     cat > miner.env << 'EOL'
 # StreetVision Miner Configuration
 #--------------------
-TESTNET_UID=323
-MAINNET_UID=72
-MAINNET_WANDB_PROJECT=
-TESTNET_WANDB_PROJECT=
-HUGGINGFACE_REPO=
-WANDB_ENTITY=
-
 # following are initial values
 IMAGE_DETECTOR=ViT
 IMAGE_DETECTOR_CONFIG=ViT_roadwork.yaml
@@ -90,7 +83,6 @@ else
     cat > validator.env << 'EOL'
 # StreetVision Validator Configuration
 #--------------------
-
 NETUID=72
 SUBTENSOR_NETWORK=finney
 SUBTENSOR_CHAIN_ENDPOINT=wss://entrypoint-finney.opentensor.ai:443
