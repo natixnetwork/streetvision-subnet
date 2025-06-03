@@ -4,7 +4,6 @@ import os
 
 import bittensor as bt
 
-from natix.validator.scripts.util import init_wandb_run, load_validator_info
 from natix.validator.cache.image_cache import ImageCache
 from natix.validator.config import (
     NONE_IMAGE_CACHE_DIR,
@@ -77,7 +76,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     bt.logging.set_info()
-    init_wandb_run(run_base_name='cache-updater', **load_validator_info())
 
     try:
         asyncio.run(main(args))
