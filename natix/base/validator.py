@@ -363,7 +363,8 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Compute forward pass rewards, assumes uids are mutually exclusive.
         # shape: [ metagraph.n ]
-        scattered_rewards: np.ndarray = np.full_like(self.scores, 0.5)
+        # Use current scores for non-evaluated miners to maintain their existing scores
+        scattered_rewards: np.ndarray = self.scores.copy()
         vali_uids = [
             uid
             for uid in range(len(scattered_rewards))
