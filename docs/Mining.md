@@ -102,13 +102,6 @@ Run `./setup_env.sh` to generate a `miner.env` file with default configuration.
 
 Make sure to update your `miner.env` file with your wallet name, hotkey, miner port, and model configuration.
 ```
-TESTNET_UID=323
-MAINNET_UID=72
-MAINNET_WANDB_PROJECT=
-TESTNET_WANDB_PROJECT=
-HUGGINGFACE_REPO=
-WANDB_ENTITY=
-
 # following are initial values
 IMAGE_DETECTOR=ViT
 IMAGE_DETECTOR_CONFIG=ViT_roadwork.yaml
