@@ -27,7 +27,7 @@ def download_files(urls: List[str], output_dir: Union[str, Path], chunk_size: in
     for url in urls:
         try:
             bt.logging.info(f"Downloading {url}")
-            response = requests.get(url, stream=True)
+            response = requests.get(url, stream=True, timeout=60)  # 60-second timeout
             if response.status_code != 200:
                 bt.logging.error(f"Failed to download {url}: Status {response.status_code}")
                 continue

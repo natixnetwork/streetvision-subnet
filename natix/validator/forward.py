@@ -135,9 +135,14 @@ async def forward(self):
         if not model_url or not isinstance(model_url, str):
             bt.logging.warning(f"Miner UID {uid} missing or invalid model_url.")
             invalid_uids.add(uid)
-        elif not check_miner_model(model_url, uid, self.hotkeys):
-            bt.logging.warning(f"Model at URL {model_url} (UID {uid}) failed validation.")
-            invalid_uids.add(uid)
+        else:
+            try:
+                if not check_miner_model(model_url, uid, self.hotkeys):
+                    bt.logging.warning(f"Model at URL {model_url} (UID {uid}) failed validation.")
+                    invalid_uids.add(uid)
+            except Exception as e:
+                bt.logging.error(f"Error validating model for UID {uid} at URL {model_url}: {e}")
+                invalid_uids.add(uid)
 
     bt.logging.info(f"Responses received in {time.time() - start}s")
     bt.logging.success(f"Roadwork {modality} challenge complete!")
