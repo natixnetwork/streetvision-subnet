@@ -149,6 +149,11 @@ class BaseValidatorNeuron(BaseNeuron):
         self.sync()
 
         bt.logging.info(f"Validator starting at block: {self.block}")
+        
+        # Track health metrics
+        last_successful_forward = time.time()
+        consecutive_errors = 0
+        max_consecutive_errors = 5
 
         # This loop maintains the validator's operations until intentionally stopped.
         try:
@@ -163,15 +168,35 @@ class BaseValidatorNeuron(BaseNeuron):
                         bt.logging.warning(e)
                         bt.logging.warning("Warning, proxy can't ping to proxy-client.")
 
-                # Run multiple forwards concurrently.
-                self.loop.run_until_complete(self.concurrent_forward())
+                # Run multiple forwards concurrently with error handling
+                try:
+                    self.loop.run_until_complete(self.concurrent_forward())
+                    last_successful_forward = time.time()
+                    consecutive_errors = 0
+                except Exception as e:
+                    consecutive_errors += 1
+                    bt.logging.error(f"Error in concurrent_forward: {e}")
+                    if consecutive_errors >= max_consecutive_errors:
+                        bt.logging.error(f"Too many consecutive errors ({consecutive_errors}), sleeping for recovery")
+                        time.sleep(300)  # Sleep 5 minutes for recovery
+                        consecutive_errors = 0
 
                 # Check if we should exit.
                 if self.should_exit:
                     break
 
+                # Check health status
+                time_since_last_forward = time.time() - last_successful_forward
+                if time_since_last_forward > 600:  # 10 minutes
+                    bt.logging.warning(f"No successful forward in {time_since_last_forward:.0f} seconds")
+                
                 # Sync metagraph and potentially set weights.
-                self.sync()
+                try:
+                    self.sync()
+                except Exception as e:
+                    bt.logging.error(f"Error during sync: {e}")
+                    # Continue running even if sync fails
+                
                 time.sleep(60)
                 self.step += 1
 
@@ -185,6 +210,10 @@ class BaseValidatorNeuron(BaseNeuron):
         except Exception as err:
             bt.logging.error(f"Error during validation: {str(err)}")
             bt.logging.debug(str(print_exception(type(err), err, err.__traceback__)))
+            # Attempt to recover by restarting the loop
+            time.sleep(60)
+            bt.logging.info("Attempting to restart validator loop after error")
+            self.run()
 
     def run_in_background_thread(self):
         """
@@ -305,8 +334,19 @@ class BaseValidatorNeuron(BaseNeuron):
         # Copies state of metagraph before syncing.
         previous_metagraph = copy.deepcopy(self.metagraph)
 
-        # Sync the metagraph.
-        self.metagraph.sync(subtensor=self.subtensor)
+        # Sync the metagraph with timeout to prevent hanging
+        try:
+            # Run sync in a separate thread with timeout since it's a blocking call
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(self.metagraph.sync, subtensor=self.subtensor)
+                future.result(timeout=60)  # 60-second timeout
+        except concurrent.futures.TimeoutError:
+            bt.logging.error("Metagraph sync timed out after 60 seconds")
+            return
+        except Exception as e:
+            bt.logging.error(f"Error during metagraph sync: {e}")
+            return
 
         # Check if the metagraph axon info has changed.
         if previous_metagraph.axons == self.metagraph.axons:
