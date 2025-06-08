@@ -1,7 +1,7 @@
 # Network Incentive Mechanism
 
 This document covers the current state of the network's incentive mechanism, designed to encourage high-quality performance and continuous improvement among miners and validators.
-This document covers the current state of SN34's incentive mechanism.
+This document covers the current state of SN72's incentive mechanism.
 1. [Overview](#overview)
 2. [Rewards for Miners](#Rewards-for-Miners)
 2. [Rewards for Validators](#Rewards-for-Validators)
