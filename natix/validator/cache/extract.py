@@ -141,13 +141,47 @@ def extract_images_from_parquet(
             img_data = row[image_col]
             if isinstance(img_data, dict):
                 key = next((k for k in img_data if "bytes" in k.lower() or "image" in k.lower()), None)
+                if key is None:
+                    raise ValueError("No image data key found in dictionary")
                 img_data = img_data[key]
+
+            # Skip if img_data is None or empty
+            if img_data is None or (isinstance(img_data, (str, bytes)) and len(img_data) == 0):
+                raise ValueError("Empty or None image data")
 
             try:
                 img = Image.open(BytesIO(img_data))
             except Exception:
-                img_data = base64.b64decode(img_data)
+                try:
+                    # Fix base64 padding if needed
+                    if isinstance(img_data, str):
+                        # Add padding if missing
+                        missing_padding = len(img_data) % 4
+                        if missing_padding:
+                            img_data += '=' * (4 - missing_padding)
+                    img_data = base64.b64decode(img_data)
+                    
+                    # Validate decoded data is not empty
+                    if len(img_data) == 0:
+                        raise ValueError("Decoded image data is empty")
+                    
+                    img = Image.open(BytesIO(img_data))
+                except Exception:
+                    # If still can't decode, skip this image
+                    raise
+            
+            # Verify image was loaded successfully
+            img.verify()
+            # Reload image since verify() closes it
+            if isinstance(img_data, bytes):
                 img = Image.open(BytesIO(img_data))
+            else:
+                # Re-decode if it was base64
+                try:
+                    decoded_data = base64.b64decode(img_data)
+                    img = Image.open(BytesIO(decoded_data))
+                except:
+                    img = Image.open(BytesIO(img_data))
 
             base_filename = f"{parquet_prefix}__image_{idx}"
             image_format = img.format.lower() if img.format else "png"
