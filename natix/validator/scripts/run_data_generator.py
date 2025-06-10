@@ -6,7 +6,6 @@ import bittensor as bt
 from natix.synthetic_data_generation import SyntheticDataGenerator
 from natix.validator.cache import ImageCache
 from natix.validator.config import MODEL_NAMES, ROADWORK_IMAGE_CACHE_DIR, SYNTH_CACHE_DIR, get_task
-from natix.validator.scripts.util import init_wandb_run, load_validator_info
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -34,7 +33,6 @@ if __name__ == "__main__":
         bt.logging.info("No model selected.")
 
     bt.logging.set_info()
-    init_wandb_run(run_base_name="data-generator", **load_validator_info())
 
     image_cache = ImageCache(args.image_cache_dir)
     while True:
