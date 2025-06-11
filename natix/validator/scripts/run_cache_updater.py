@@ -2,6 +2,11 @@ import argparse
 import asyncio
 import os
 
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["TF_CPP_MIN_VLOG_LEVEL"] = "3"
+
 import bittensor as bt
 
 from natix.validator.scripts.util import init_wandb_run, load_validator_info
@@ -15,8 +20,6 @@ from natix.validator.config import (
     MAX_EXTRACTED_GB,
     ROADWORK_IMAGE_CACHE_DIR,
 )
-
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 
 async def main(args):
@@ -53,9 +56,20 @@ async def main(args):
     if not caches:
         raise ValueError(f"Invalid mode: {args.mode}")
 
-    while True:
-        bt.logging.info(f"Running cache updaters for: {args.mode}")
-        await asyncio.sleep(600)  # Status update every 10 minutes
+    try:
+        while True:
+            bt.logging.info(f"Running cache updaters for: {args.mode}")
+            # Periodic garbage collection to help with memory management
+            import gc
+            gc.collect()
+            await asyncio.sleep(600)  # Status update every 10 minutes
+    finally:
+        # Cleanup caches on exit
+        for cache in caches:
+            if hasattr(cache, '_extracted_updater_task'):
+                cache._extracted_updater_task.cancel()
+            if hasattr(cache, '_compressed_updater_task'):
+                cache._compressed_updater_task.cancel()
 
 
 if __name__ == "__main__":
