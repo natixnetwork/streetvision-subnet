@@ -144,7 +144,27 @@ class BaseValidatorNeuron(BaseNeuron):
             KeyboardInterrupt: If the miner is stopped by a manual interruption.
             Exception: For unforeseen errors during the miner's operation, which are logged for diagnosis.
         """
+        
+        # Restart loop - handles full cycle restarts on critical errors
+        while True:
+            try:
+                self._run_main_loop()
+                break  # Normal exit
+            except KeyboardInterrupt:
+                self.axon.stop()
+                bt.logging.success("Validator killed by keyboard interrupt.")
+                exit()
+            except Exception as err:
+                bt.logging.error(f"Error during validation: {str(err)}")
+                bt.logging.debug(str(print_exception(type(err), err, err.__traceback__)))
+                # Sleep and restart the entire cycle
+                time.sleep(60)
+                bt.logging.info("Restarting validator cycle after error")
+                # Loop continues to restart
 
+    def _run_main_loop(self):
+        """Main validator loop that can be restarted cleanly"""
+        
         # Check that validator is registered on the network.
         self.sync()
 
@@ -156,64 +176,47 @@ class BaseValidatorNeuron(BaseNeuron):
         max_consecutive_errors = 5
 
         # This loop maintains the validator's operations until intentionally stopped.
-        try:
-            while True:
-                bt.logging.info(f"step({self.step}) block({self.block})")
+        while True:
+            bt.logging.info(f"step({self.step}) block({self.block})")
 
-                if self.config.proxy.port:
-                    try:
-                        self.validator_proxy.get_credentials()
-                        bt.logging.info("Validator proxy ping to proxy-client successfully")
-                    except Exception as e:
-                        bt.logging.warning(e)
-                        bt.logging.warning("Warning, proxy can't ping to proxy-client.")
-
-                # Run multiple forwards concurrently with error handling
+            if self.config.proxy.port:
                 try:
-                    self.loop.run_until_complete(self.concurrent_forward())
-                    last_successful_forward = time.time()
-                    consecutive_errors = 0
+                    self.validator_proxy.get_credentials()
+                    bt.logging.info("Validator proxy ping to proxy-client successfully")
                 except Exception as e:
-                    consecutive_errors += 1
-                    bt.logging.error(f"Error in concurrent_forward: {e}")
-                    if consecutive_errors >= max_consecutive_errors:
-                        bt.logging.error(f"Too many consecutive errors ({consecutive_errors}), sleeping for recovery")
-                        time.sleep(300)  # Sleep 5 minutes for recovery
-                        consecutive_errors = 0
+                    bt.logging.warning(e)
+                    bt.logging.warning("Warning, proxy can't ping to proxy-client.")
 
-                # Check if we should exit.
-                if self.should_exit:
-                    break
+            # Run multiple forwards concurrently with error handling
+            try:
+                self.loop.run_until_complete(self.concurrent_forward())
+                last_successful_forward = time.time()
+                consecutive_errors = 0
+            except Exception as e:
+                consecutive_errors += 1
+                bt.logging.error(f"Error in concurrent_forward: {e}")
+                if consecutive_errors >= max_consecutive_errors:
+                    bt.logging.error(f"Too many consecutive errors ({consecutive_errors}), restarting validator cycle")
+                    return  # Return to trigger full restart
 
-                # Check health status
-                time_since_last_forward = time.time() - last_successful_forward
-                if time_since_last_forward > 600:  # 10 minutes
-                    bt.logging.warning(f"No successful forward in {time_since_last_forward:.0f} seconds")
-                
-                # Sync metagraph and potentially set weights.
-                try:
-                    self.sync()
-                except Exception as e:
-                    bt.logging.error(f"Error during sync: {e}")
-                    # Continue running even if sync fails
-                
-                time.sleep(60)
-                self.step += 1
+            # Check if we should exit.
+            if self.should_exit:
+                break
 
-        # If someone intentionally stops the validator, it'll safely terminate operations.
-        except KeyboardInterrupt:
-            self.axon.stop()
-            bt.logging.success("Validator killed by keyboard interrupt.")
-            exit()
-
-        # In case of unforeseen errors, the validator will log the error and continue operations.
-        except Exception as err:
-            bt.logging.error(f"Error during validation: {str(err)}")
-            bt.logging.debug(str(print_exception(type(err), err, err.__traceback__)))
-            # Attempt to recover by restarting the loop
+            # Check health status
+            time_since_last_forward = time.time() - last_successful_forward
+            if time_since_last_forward > 600:  # 10 minutes
+                bt.logging.warning(f"No successful forward in {time_since_last_forward:.0f} seconds")
+            
+            # Sync metagraph and potentially set weights.
+            try:
+                self.sync()
+            except Exception as e:
+                bt.logging.error(f"Error during sync: {e}")
+                # Continue running even if sync fails
+            
             time.sleep(60)
-            bt.logging.info("Attempting to restart validator loop after error")
-            self.run()
+            self.step += 1
 
     def run_in_background_thread(self):
         """
