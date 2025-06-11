@@ -155,26 +155,26 @@ class BaseValidatorNeuron(BaseNeuron):
                 bt.logging.success("Validator killed by keyboard interrupt.")
                 exit()
             except Exception as err:
-                bt.logging.error(f"Error during validation: {str(err)}")
+                bt.logging.error(f"CRITICAL ERROR in validator main loop: {str(err)}")
+                bt.logging.error(f"Error type: {type(err).__name__}")
                 bt.logging.debug(str(print_exception(type(err), err, err.__traceback__)))
+                bt.logging.warning("=" * 60)
+                bt.logging.warning("VALIDATOR RESTART TRIGGERED - Sleeping 60 seconds before restart")
+                bt.logging.warning("=" * 60)
                 # Sleep and restart the entire cycle
                 time.sleep(60)
-                bt.logging.info("Restarting validator cycle after error")
+                bt.logging.info("RESTARTING validator main loop after critical error")
                 # Loop continues to restart
 
     def _run_main_loop(self):
         """Main validator loop that can be restarted cleanly"""
         
-        # TEMP: Error injection for testing restart mechanism
-        if os.environ.get('TEST_CRITICAL_ERROR'):
-            bt.logging.info("TEST: Injecting critical error")
-            os.environ.pop('TEST_CRITICAL_ERROR')
-            raise RuntimeError("TEST: Injected critical error for restart testing")
-        
         # Check that validator is registered on the network.
         self.sync()
 
-        bt.logging.info(f"Validator starting at block: {self.block}")
+        bt.logging.info("=" * 60)
+        bt.logging.info(f"VALIDATOR MAIN LOOP STARTED - Block: {self.block}, Step: {self.step}")
+        bt.logging.info("=" * 60)
         
         # Track health metrics
         last_successful_forward = time.time()
@@ -195,25 +195,17 @@ class BaseValidatorNeuron(BaseNeuron):
 
             # Run multiple forwards concurrently with error handling
             try:
-                # TEMP: Error injection for testing restart mechanism
-                if os.environ.get('TEST_FORWARD_ERROR'):
-                    bt.logging.info("TEST: Injecting forward error")
-                    os.environ.pop('TEST_FORWARD_ERROR')
-                    raise RuntimeError("TEST: Injected forward error for restart testing")
-                
-                # TEMP: Error injection for testing consecutive errors
-                if os.environ.get('TEST_CONSECUTIVE_ERRORS'):
-                    bt.logging.info("TEST: Injecting consecutive error to trigger restart")
-                    raise RuntimeError("TEST: Injected consecutive error for restart testing")
-                
                 self.loop.run_until_complete(self.concurrent_forward())
                 last_successful_forward = time.time()
                 consecutive_errors = 0
             except Exception as e:
                 consecutive_errors += 1
-                bt.logging.error(f"Error in concurrent_forward: {e}")
+                bt.logging.error(f"Error in concurrent_forward ({consecutive_errors}/{max_consecutive_errors}): {e}")
                 if consecutive_errors >= max_consecutive_errors:
-                    bt.logging.error(f"Too many consecutive errors ({consecutive_errors}), restarting validator cycle")
+                    bt.logging.error("=" * 60)
+                    bt.logging.error(f"CONSECUTIVE ERROR LIMIT REACHED ({consecutive_errors}/{max_consecutive_errors})")
+                    bt.logging.error("VALIDATOR RESTART TRIGGERED - Too many consecutive forward errors")
+                    bt.logging.error("=" * 60)
                     return  # Return to trigger full restart
 
             # Check if we should exit.
@@ -227,12 +219,6 @@ class BaseValidatorNeuron(BaseNeuron):
             
             # Sync metagraph and potentially set weights.
             try:
-                # TEMP: Error injection for testing restart mechanism
-                if os.environ.get('TEST_SYNC_ERROR'):
-                    bt.logging.info("TEST: Injecting sync error")
-                    os.environ.pop('TEST_SYNC_ERROR')
-                    raise RuntimeError("TEST: Injected sync error for restart testing")
-                
                 self.sync()
             except Exception as e:
                 bt.logging.error(f"Error during sync: {e}")
