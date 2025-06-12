@@ -80,7 +80,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     bt.logging.set_info()
-    init_wandb_run(run_base_name='cache-updater', **load_validator_info())
 
     try:
         asyncio.run(main(args))
