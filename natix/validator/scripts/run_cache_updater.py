@@ -56,21 +56,9 @@ async def main(args):
     if not caches:
         raise ValueError(f"Invalid mode: {args.mode}")
 
-    try:
-        while True:
-            bt.logging.info(f"Running cache updaters for: {args.mode}")
-            # Periodic garbage collection to help with memory management
-            import gc
-            gc.collect()
-            await asyncio.sleep(600)  # Status update every 10 minutes
-    finally:
-        # Cleanup caches on exit
-        for cache in caches:
-            if hasattr(cache, '_extracted_updater_task'):
-                cache._extracted_updater_task.cancel()
-            if hasattr(cache, '_compressed_updater_task'):
-                cache._compressed_updater_task.cancel()
-
+    while True:
+        bt.logging.info(f"Running cache updaters for: {args.mode}")
+        await asyncio.sleep(600)  # Status update every 10 minutes
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
