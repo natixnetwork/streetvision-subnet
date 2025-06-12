@@ -60,6 +60,7 @@ async def main(args):
         bt.logging.info(f"Running cache updaters for: {args.mode}")
         await asyncio.sleep(600)  # Status update every 10 minutes
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="all", choices=["all", "image"], help="Which cache updater(s) to run")
