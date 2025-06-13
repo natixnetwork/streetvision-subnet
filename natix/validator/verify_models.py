@@ -2,6 +2,7 @@ import os
 import requests
 import time
 import re
+from datetime import datetime
 
 import bittensor as bt
 from natix.validator import model_registry
@@ -49,7 +50,7 @@ def fetch_model_card(model_url: str, uid: int, version: int = None):
     clean_repo = sanitize_model_repo(model_repo)
     model_card_url = f"https://huggingface.co/{clean_repo}/resolve/main/model_card.json"
     try:
-        response = requests.get(model_card_url)
+        response = requests.get(model_card_url, timeout=30)  # 30-second timeout
         response.raise_for_status()
         model_card = response.json()
     except requests.RequestException as e:
@@ -74,8 +75,24 @@ def validate_model_card(card: dict, uid: int, model_url: str, hotkeys: list[str]
         bt.logging.warning(f"Model card submitted_by {submitted_by} does not match UID {uid}'s hotkey {expected_hotkey}")
         return False
 
-    if not is_valid_timestamp(int(card['submission_time'])):
-        bt.logging.warning(f"Invalid submission_time: {card['submission_time']}")
+    # Handle both Unix timestamp and ISO format datetime strings
+    try:
+        submission_timestamp = card['submission_time']
+        if isinstance(submission_timestamp, str):
+            # Try to parse ISO format datetime
+            if 'T' in submission_timestamp:
+                dt = datetime.fromisoformat(submission_timestamp.replace('Z', '+00:00'))
+                submission_timestamp = int(dt.timestamp())
+            else:
+                submission_timestamp = int(submission_timestamp)
+        else:
+            submission_timestamp = int(submission_timestamp)
+            
+        if not is_valid_timestamp(submission_timestamp):
+            bt.logging.warning(f"Invalid submission_time: {card['submission_time']} (parsed as {submission_timestamp})")
+            return False
+    except (ValueError, TypeError) as e:
+        bt.logging.warning(f"Failed to parse submission_time '{card['submission_time']}': {e}")
         return False
     
     latest = model_registry.get_latest_submission(uid)
