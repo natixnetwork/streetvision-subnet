@@ -144,47 +144,88 @@ class BaseValidatorNeuron(BaseNeuron):
             KeyboardInterrupt: If the miner is stopped by a manual interruption.
             Exception: For unforeseen errors during the miner's operation, which are logged for diagnosis.
         """
+        
+        # Restart loop - handles full cycle restarts on critical errors
+        while True:
+            try:
+                self._run_main_loop()
+                break  # Normal exit
+            except KeyboardInterrupt:
+                self.axon.stop()
+                bt.logging.success("Validator killed by keyboard interrupt.")
+                exit()
+            except Exception as err:
+                bt.logging.error(f"CRITICAL ERROR in validator main loop: {str(err)}")
+                bt.logging.error(f"Error type: {type(err).__name__}")
+                bt.logging.debug(str(print_exception(type(err), err, err.__traceback__)))
+                bt.logging.warning("=" * 60)
+                bt.logging.warning("VALIDATOR RESTART TRIGGERED - Sleeping 60 seconds before restart")
+                bt.logging.warning("=" * 60)
+                # Sleep and restart the entire cycle
+                time.sleep(60)
+                bt.logging.info("RESTARTING validator main loop after critical error")
+                # Loop continues to restart
 
+    def _run_main_loop(self):
+        """Main validator loop that can be restarted cleanly"""
+        
         # Check that validator is registered on the network.
         self.sync()
 
-        bt.logging.info(f"Validator starting at block: {self.block}")
+        bt.logging.info("=" * 60)
+        bt.logging.info(f"VALIDATOR MAIN LOOP STARTED - Block: {self.block}, Step: {self.step}")
+        bt.logging.info("=" * 60)
+        
+        # Track health metrics
+        last_successful_forward = time.time()
+        consecutive_errors = 0
+        max_consecutive_errors = 5
 
         # This loop maintains the validator's operations until intentionally stopped.
-        try:
-            while True:
-                bt.logging.info(f"step({self.step}) block({self.block})")
+        while True:
+            bt.logging.info(f"step({self.step}) block({self.block})")
 
-                if self.config.proxy.port:
-                    try:
-                        self.validator_proxy.get_credentials()
-                        bt.logging.info("Validator proxy ping to proxy-client successfully")
-                    except Exception as e:
-                        bt.logging.warning(e)
-                        bt.logging.warning("Warning, proxy can't ping to proxy-client.")
+            if self.config.proxy.port:
+                try:
+                    self.validator_proxy.get_credentials()
+                    bt.logging.info("Validator proxy ping to proxy-client successfully")
+                except Exception as e:
+                    bt.logging.warning(e)
+                    bt.logging.warning("Warning, proxy can't ping to proxy-client.")
 
-                # Run multiple forwards concurrently.
+            # Run multiple forwards concurrently with error handling
+            try:
                 self.loop.run_until_complete(self.concurrent_forward())
+                last_successful_forward = time.time()
+                consecutive_errors = 0
+            except Exception as e:
+                consecutive_errors += 1
+                bt.logging.error(f"Error in concurrent_forward ({consecutive_errors}/{max_consecutive_errors}): {e}")
+                if consecutive_errors >= max_consecutive_errors:
+                    bt.logging.error("=" * 60)
+                    bt.logging.error(f"CONSECUTIVE ERROR LIMIT REACHED ({consecutive_errors}/{max_consecutive_errors})")
+                    bt.logging.error("VALIDATOR RESTART TRIGGERED - Too many consecutive forward errors")
+                    bt.logging.error("=" * 60)
+                    return  # Return to trigger full restart
 
-                # Check if we should exit.
-                if self.should_exit:
-                    break
+            # Check if we should exit.
+            if self.should_exit:
+                break
 
-                # Sync metagraph and potentially set weights.
+            # Check health status
+            time_since_last_forward = time.time() - last_successful_forward
+            if time_since_last_forward > 600:  # 10 minutes
+                bt.logging.warning(f"No successful forward in {time_since_last_forward:.0f} seconds")
+            
+            # Sync metagraph and potentially set weights.
+            try:
                 self.sync()
-                time.sleep(60)
-                self.step += 1
-
-        # If someone intentionally stops the validator, it'll safely terminate operations.
-        except KeyboardInterrupt:
-            self.axon.stop()
-            bt.logging.success("Validator killed by keyboard interrupt.")
-            exit()
-
-        # In case of unforeseen errors, the validator will log the error and continue operations.
-        except Exception as err:
-            bt.logging.error(f"Error during validation: {str(err)}")
-            bt.logging.debug(str(print_exception(type(err), err, err.__traceback__)))
+            except Exception as e:
+                bt.logging.error(f"Error during sync: {e}")
+                # Continue running even if sync fails
+            
+            time.sleep(60)
+            self.step += 1
 
     def run_in_background_thread(self):
         """
@@ -305,8 +346,19 @@ class BaseValidatorNeuron(BaseNeuron):
         # Copies state of metagraph before syncing.
         previous_metagraph = copy.deepcopy(self.metagraph)
 
-        # Sync the metagraph.
-        self.metagraph.sync(subtensor=self.subtensor)
+        # Sync the metagraph with timeout to prevent hanging
+        try:
+            # Run sync in a separate thread with timeout since it's a blocking call
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(self.metagraph.sync, subtensor=self.subtensor)
+                future.result(timeout=60)  # 60-second timeout
+        except concurrent.futures.TimeoutError:
+            bt.logging.error("Metagraph sync timed out after 60 seconds")
+            return
+        except Exception as e:
+            bt.logging.error(f"Error during metagraph sync: {e}")
+            return
 
         # Check if the metagraph axon info has changed.
         if previous_metagraph.axons == self.metagraph.axons:
