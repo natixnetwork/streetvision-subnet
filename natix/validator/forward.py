@@ -34,7 +34,7 @@ from natix.utils.wandb_utils import log_to_wandb
 def determine_challenge_type(media_cache):
     modality = "image"
     label = np.random.choice(list(CHALLENGE_TYPE.keys()))
-    cache = media_cache[CHALLENGE_TYPE[label]][modality]
+    cache = media_cache["Roadwork"][modality]
     task = None
     # if label == 1:
     #     if modality == 'video':
