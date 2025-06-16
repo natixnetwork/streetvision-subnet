@@ -1,111 +1,12 @@
 import base64
-import hashlib
 import json
-import logging
-import mimetypes
-import os
-import random
 import warnings
-from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
-from zipfile import ZipFile
+from typing import List, Optional, Tuple
 
-import bittensor as bt
 import pyarrow.parquet as pq
 from PIL import Image
-
-
-def extract_videos_from_zip(
-    zip_path: Path,
-    dest_dir: Path,
-    num_videos: int,
-    file_extensions: Set[str] = {".mp4", ".avi", ".mov", ".mkv", ".wmv"},
-    include_checksums: bool = True,
-) -> List[Tuple[str, str]]:
-    """
-        Extract random videos and their metadata from a zip file and save them to disk.
-    q
-        Args:
-            zip_path: Path to the zip file
-            dest_dir: Directory to save videos and metadata
-            num_videos: Number of videos to extract
-            file_extensions: Set of valid video file extensions
-            include_checksums: Whether to calculate and include file checksums in metadata
-
-        Returns:
-            List of tuples containing (video_path, metadata_path)
-    """
-    dest_dir = Path(dest_dir)
-    dest_dir.mkdir(parents=True, exist_ok=True)
-
-    extracted_files = []
-    try:
-        with ZipFile(zip_path) as zip_file:
-            video_files = [f for f in zip_file.namelist() if any(f.lower().endswith(ext) for ext in file_extensions)]
-            if not video_files:
-                bt.logging.warning(f"No video files found in {zip_path}")
-                return extracted_files
-
-            bt.logging.info(f"{len(video_files)} video files found in {zip_path}")
-            selected_videos = random.sample(video_files, min(num_videos, len(video_files)))
-
-            bt.logging.info(f"Extracting {len(selected_videos)} randomly sampled video files from {zip_path}")
-            for idx, video in enumerate(selected_videos):
-                try:
-                    zip_basename = zip_path.name.split(".zip")[0]
-                    original_filename = Path(video).name
-                    base_filename = f"{zip_basename}__{idx}_{original_filename}"
-
-                    # extract video and get metadata
-                    video_path = dest_dir / base_filename
-                    temp_path = Path(zip_file.extract(video, path=dest_dir))
-                    temp_path.rename(video_path)
-
-                    video_info = zip_file.getinfo(video)
-                    metadata = {
-                        "source_zip": str(zip_path),
-                        "original_filename": original_filename,
-                        "original_path_in_zip": video,
-                        "extraction_date": datetime.now().isoformat(),
-                        "file_size": os.path.getsize(video_path),
-                        "mime_type": mimetypes.guess_type(video_path)[0],
-                        "zip_metadata": {
-                            "compress_size": video_info.compress_size,
-                            "file_size": video_info.file_size,
-                            "compress_type": video_info.compress_type,
-                            "date_time": datetime.strftime(datetime(*video_info.date_time), "%Y-%m-%d %H:%M:%S"),
-                        },
-                    }
-
-                    if include_checksums:
-                        with open(video_path, "rb") as f:
-                            file_data = f.read()
-                            metadata["checksums"] = {
-                                "md5": hashlib.md5(file_data).hexdigest(),
-                                "sha256": hashlib.sha256(file_data).hexdigest(),
-                            }
-
-                    metadata_filename = f"{video_path.stem}.json"
-                    metadata_path = dest_dir / metadata_filename
-
-                    with open(metadata_path, "w", encoding="utf-8") as f:
-                        json.dump(metadata, f, indent=2, ensure_ascii=False)
-
-                    extracted_files.append((str(video_path), str(metadata_path)))
-                    logging.info(f"Extracted {original_filename} from {zip_path}")
-
-                except Exception as e:
-                    bt.logging.warning(f"Error extracting {video}: {e}")
-                    if "temp_path" in locals() and temp_path.exists():
-                        temp_path.unlink()
-                    continue
-
-    except Exception as e:
-        bt.logging.warning(f"Error processing zip file {zip_path}: {e}")
-
-    return extracted_files
 
 
 def extract_images_from_parquet(
