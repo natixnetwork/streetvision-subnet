@@ -21,6 +21,7 @@ from natix.utils.image_transforms import get_base_transforms
 from natix.utils.uids import get_random_uids
 from natix.validator.config import TARGET_IMAGE_SIZE
 from natix.validator.proxy import ProxyCounter
+from natix.validator.organic_distribution import OrganicTaskDistributor
 
 base_transforms = get_base_transforms(TARGET_IMAGE_SIZE)
 
@@ -61,6 +62,20 @@ class ValidatorProxy:
 
         self.loop = asyncio.get_event_loop()
         self.proxy_counter = ProxyCounter(os.path.join(self.validator.config.neuron.full_path, "proxy_counter.json"))
+        
+        # Initialize organic task distributor
+        self.organic_distributor = OrganicTaskDistributor(
+            validator=self.validator,
+            miners_per_task=getattr(self.validator.config.organic, 'miners_per_task', 3),
+            deduplication_window_seconds=getattr(self.validator.config.organic, 'deduplication_window_seconds', 300),
+            miner_cooldown_seconds=getattr(self.validator.config.organic, 'miner_cooldown_seconds', 60),
+            max_concurrent_tasks=getattr(self.validator.config.organic, 'max_concurrent_tasks', 10),
+            stagger_delay_range=(
+                getattr(self.validator.config.organic, 'stagger_delay_min', 0.1),
+                getattr(self.validator.config.organic, 'stagger_delay_max', 2.0)
+            )
+        )
+        
         if self.validator.config.proxy.port:
             self.start_server()
 
@@ -140,47 +155,83 @@ class ValidatorProxy:
         if "seed" not in payload:
             payload["seed"] = random.randint(0, int(1e9))
 
-        metagraph = self.validator.metagraph
-        miner_uids = self.validator.last_responding_miner_uids
-        if len(miner_uids) == 0:
-            bt.logging.warning("[ORGANIC] No recent miner uids found, sampling random uids")
-            miner_uids = get_random_uids(self.validator, k=self.validator.config.neuron.sample_size)
-
+        # Preprocess image
         image = preprocess_image(payload["image"])
-
-        bt.logging.info(f"[ORGANIC] Querying {len(miner_uids)} miners...")
-        predictions = await self.dendrite(
-            axons=[metagraph.axons[uid] for uid in miner_uids],
-            synapse=prepare_synapse(image, modality="image"),
-            deserialize=True,
-            timeout=9,
+        image_bytes = base64.b64decode(payload["image"])
+        
+        # Prepare synapse
+        synapse = prepare_synapse(image, modality="image")
+        
+        # Use organic task distributor
+        task_result = await self.organic_distributor.distribute_task(
+            image_data=image_bytes,
+            synapse=synapse,
+            additional_params={"seed": payload["seed"]}
         )
-
-        bt.logging.info(f"[ORGANIC] {predictions}")
-        valid_pred_idx = np.array([i for i, v in enumerate(predictions) if v != -1.0])
-        if len(valid_pred_idx) > 0:
-            valid_preds = np.array(predictions)[valid_pred_idx]
-            valid_pred_uids = np.array(miner_uids)[valid_pred_idx]
-            if len(valid_preds) > 0:
+        
+        bt.logging.info(f"[ORGANIC] Task result: {task_result}")
+        
+        # Handle different task statuses
+        if task_result['status'] == 'duplicate':
+            bt.logging.info(f"[ORGANIC] Duplicate task {task_result['task_hash']}")
+            self.proxy_counter.update(is_success=False)
+            self.proxy_counter.save()
+            return HTTPException(status_code=429, detail="Duplicate task within time window")
+        
+        elif task_result['status'] == 'rejected':
+            bt.logging.warning(f"[ORGANIC] Task rejected: {task_result.get('reason', 'unknown')}")
+            self.proxy_counter.update(is_success=False)
+            self.proxy_counter.save()
+            return HTTPException(status_code=503, detail=f"Task rejected: {task_result.get('reason', 'unknown')}")
+        
+        elif task_result['status'] == 'error':
+            bt.logging.error(f"[ORGANIC] Task error: {task_result.get('error', 'unknown')}")
+            self.proxy_counter.update(is_success=False)
+            self.proxy_counter.save()
+            return HTTPException(status_code=500, detail="Internal server error")
+        
+        elif task_result['status'] == 'completed':
+            valid_results = task_result['valid_results']
+            
+            if valid_results:
                 self.proxy_counter.update(is_success=True)
                 self.proxy_counter.save()
-
-                data = {"preds": [float(p) for p in list(valid_preds)], "fqdn": socket.getfqdn()}
+                
+                # Extract predictions and UIDs
+                valid_preds = [result['result'] for result in valid_results]
+                valid_pred_uids = [result['miner_uid'] for result in valid_results]
+                
+                data = {
+                    "preds": [float(p) for p in valid_preds], 
+                    "fqdn": socket.getfqdn(),
+                    "task_hash": task_result['task_hash'],
+                    "miners_queried": task_result['total_miners_queried'],
+                    "valid_responses": task_result['valid_responses']
+                }
 
                 rich_response: bool = payload.get("rich", "false").lower() == "true"
                 if rich_response:
-                    data["uids"] = ([int(uid) for uid in valid_pred_uids],)
-                    data["ranks"] = ([float(metagraph.R[uid]) for uid in valid_pred_uids],)
+                    metagraph = self.validator.metagraph
+                    data["uids"] = [int(uid) for uid in valid_pred_uids]
+                    data["ranks"] = [float(metagraph.R[uid]) for uid in valid_pred_uids]
                     data["incentives"] = [float(metagraph.I[uid]) for uid in valid_pred_uids]
                     data["emissions"] = [float(metagraph.E[uid]) for uid in valid_pred_uids]
                     data["hotkeys"] = [str(metagraph.hotkeys[uid]) for uid in valid_pred_uids]
                     data["coldkeys"] = [str(metagraph.coldkeys[uid]) for uid in valid_pred_uids]
-                print(f"[ORGANIC] {data}")
-                return data
+                    data["selected_miners"] = task_result['selected_miners']
+                    data["distribution_stats"] = self.organic_distributor.get_task_statistics()
 
+                bt.logging.success(f"[ORGANIC] Successfully processed task {task_result['task_hash']}: {len(valid_preds)} valid responses")
+                return data
+            else:
+                self.proxy_counter.update(is_success=False)
+                self.proxy_counter.save()
+                return HTTPException(status_code=500, detail="No valid responses received")
+        
+        # Fallback
         self.proxy_counter.update(is_success=False)
         self.proxy_counter.save()
-        return HTTPException(status_code=500, detail="No valid response received")
+        return HTTPException(status_code=500, detail="Unknown task status")
 
     async def get_self(self):
         return self

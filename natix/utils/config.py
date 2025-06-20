@@ -334,6 +334,48 @@ def add_validator_args(cls, parser):
         default="https://hydra.dev.natix.network"
     )
 
+    parser.add_argument(
+        "--organic.miners_per_task",
+        type=int,
+        help="Number of miners to query per organic task.",
+        default=3,
+    )
+
+    parser.add_argument(
+        "--organic.deduplication_window_seconds",
+        type=int,
+        help="Time window in seconds to check for duplicate organic tasks.",
+        default=300,
+    )
+
+    parser.add_argument(
+        "--organic.miner_cooldown_seconds",
+        type=int,
+        help="Cooldown period in seconds before reassigning similar tasks to the same miner.",
+        default=60,
+    )
+
+    parser.add_argument(
+        "--organic.max_concurrent_tasks",
+        type=int,
+        help="Maximum number of concurrent organic tasks.",
+        default=10,
+    )
+
+    parser.add_argument(
+        "--organic.stagger_delay_min",
+        type=float,
+        help="Minimum delay in seconds between staggered miner queries.",
+        default=0.1,
+    )
+
+    parser.add_argument(
+        "--organic.stagger_delay_max",
+        type=float,
+        help="Maximum delay in seconds between staggered miner queries.",
+        default=2.0,
+    )
+
 
 def add_all_args(cls):
     parser = argparse.ArgumentParser()
