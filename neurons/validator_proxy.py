@@ -76,8 +76,7 @@ class ValidatorProxy:
             getattr(self.validator.config.organic, 'stagger_delay_min', 0.1),
             getattr(self.validator.config.organic, 'stagger_delay_max', 2.0)
         )
-        
-        # Organic task tracking state
+
         self._organic_lock = threading.RLock()
         self._recent_tasks = {}
         self._miner_recent_assignments = defaultdict(lambda: deque(maxlen=100)) 
@@ -163,17 +162,11 @@ class ValidatorProxy:
         if "seed" not in payload:
             payload["seed"] = random.randint(0, int(1e9))
 
-        # Preprocess image
         image = preprocess_image(payload["image"])
         image_bytes = base64.b64decode(payload["image"])
-        
-        # Prepare synapse
         synapse = prepare_synapse(image, modality="image")
-        
-        # Use integrated organic task distribution
         additional_params = {"seed": payload["seed"]}
-        
-        # Add specific miner UIDs if provided in request
+
         if "miner_uids" in payload:
             additional_params["miner_uids"] = payload["miner_uids"]
         
@@ -184,8 +177,7 @@ class ValidatorProxy:
         )
         
         bt.logging.info(f"[ORGANIC] Task result: {task_result}")
-        
-        # Handle different task statuses
+
         if task_result['status'] == 'duplicate':
             bt.logging.info(f"[ORGANIC] Duplicate task {task_result['task_hash']}")
             self.proxy_counter.update(is_success=False)
@@ -210,8 +202,6 @@ class ValidatorProxy:
             if valid_results:
                 self.proxy_counter.update(is_success=True)
                 self.proxy_counter.save()
-                
-                # Extract predictions and UIDs
                 valid_preds = [result['result'] for result in valid_results]
                 valid_pred_uids = [result['miner_uid'] for result in valid_results]
                 
@@ -233,7 +223,7 @@ class ValidatorProxy:
                     data["hotkeys"] = [str(metagraph.hotkeys[uid]) for uid in valid_pred_uids]
                     data["coldkeys"] = [str(metagraph.coldkeys[uid]) for uid in valid_pred_uids]
                     data["selected_miners"] = task_result['selected_miners']
-                    data["distribution_stats"] = self.organic_distributor.get_task_statistics()
+                    data["distribution_stats"] = self._get_task_statistics()
 
                 bt.logging.success(f"[ORGANIC] Successfully processed task {task_result['task_hash']}: {len(valid_preds)} valid responses")
                 return data
@@ -247,7 +237,6 @@ class ValidatorProxy:
         self.proxy_counter.save()
         return HTTPException(status_code=500, detail="Unknown task status")
 
-    # Organic task distribution methods
     async def _distribute_organic_task(
         self, 
         image_data: bytes, 
@@ -269,13 +258,10 @@ class ValidatorProxy:
         """
         
         with self._organic_lock:
-            # Clean up old entries
             self._cleanup_old_entries()
-            
-            # Generate task hash
+
             task_hash = self._generate_task_hash(image_data, additional_params)
-            
-            # Check for duplicate task
+
             if not force_new_task and self._is_duplicate_task(task_hash):
                 existing_timestamp, existing_task_id = self._recent_tasks[task_hash]
                 bt.logging.info(
@@ -288,8 +274,7 @@ class ValidatorProxy:
                     'original_task_id': existing_task_id,
                     'timestamp': existing_timestamp
                 }
-            
-            # Check concurrency limit
+
             if len(self._active_tasks) >= self.max_concurrent_tasks:
                 bt.logging.warning(
                     f"[ORGANIC] Maximum concurrent tasks ({self.max_concurrent_tasks}) reached. "
@@ -302,8 +287,6 @@ class ValidatorProxy:
                     'active_tasks': len(self._active_tasks)
                 }
             
-            # Select miners for this task
-            # Check if specific miner UIDs are provided
             if additional_params and "miner_uids" in additional_params:
                 selected_miners = additional_params["miner_uids"]
                 bt.logging.info(f"[ORGANIC] Using specified miner UIDs: {selected_miners}")
@@ -317,8 +300,7 @@ class ValidatorProxy:
                     'status': 'failed',
                     'reason': 'no_available_miners'
                 }
-            
-            # Record task
+
             current_time = time.time()
             self._recent_tasks[task_hash] = (current_time, task_hash)
             self._active_tasks.add(task_hash)
@@ -328,18 +310,15 @@ class ValidatorProxy:
             )
         
         try:
-            # Prepare task data
             task_data = {
                 'task_hash': task_hash,
                 'synapse': synapse,
                 'selected_miners': selected_miners,
                 'timestamp': current_time
             }
-            
-            # Distribute with staggering
+
             results = await self._staggered_distribution(selected_miners, task_data)
             
-            # Process results
             valid_results = []
             invalid_results = []
             
@@ -392,17 +371,15 @@ class ValidatorProxy:
         hasher.update(image_data)
         
         if additional_params:
-            # Sort params for consistent hashing
             sorted_params = sorted(additional_params.items())
             hasher.update(str(sorted_params).encode())
         
-        return hasher.hexdigest()[:16]  # Use first 16 chars for readability
+        return hasher.hexdigest()[:16]
     
     def _cleanup_old_entries(self):
         """Clean up old entries from tracking dictionaries."""
         current_time = time.time()
         
-        # Clean up recent tasks
         expired_hashes = [
             task_hash for task_hash, (timestamp, _) in self._recent_tasks.items()
             if current_time - timestamp > self.deduplication_window_seconds
@@ -410,7 +387,6 @@ class ValidatorProxy:
         for task_hash in expired_hashes:
             del self._recent_tasks[task_hash]
         
-        # Clean up miner assignments
         for miner_uid, assignments in self._miner_recent_assignments.items():
             while assignments and current_time - assignments[0][0] > self.miner_cooldown_seconds:
                 assignments.popleft()
@@ -428,17 +404,15 @@ class ValidatorProxy:
         current_time = time.time()
         all_available_uids = get_random_uids(
             self.validator, 
-            k=self.validator.metagraph.n.item(),  # Get all available miners
+            k=self.validator.metagraph.n.item(),
             exclude=exclude_uids or []
         )
-        
-        # Filter out miners who have been assigned this task recently
+
         available_miners = []
         for uid in all_available_uids:
-            uid = int(uid)  # Ensure it's an int
+            uid = int(uid)
             recent_assignments = self._miner_recent_assignments[uid]
-            
-            # Check if miner has been assigned this specific task hash recently
+
             has_recent_assignment = any(
                 task_hash == assigned_hash and current_time - timestamp < self.miner_cooldown_seconds
                 for timestamp, assigned_hash in recent_assignments
@@ -459,11 +433,9 @@ class ValidatorProxy:
                 f"requested {self.miners_per_task}. Using all available miners."
             )
             return available_miners
-        
-        # Randomly select miners
+
         selected_miners = random.sample(available_miners, self.miners_per_task)
         
-        # Record assignments
         current_time = time.time()
         for miner_uid in selected_miners:
             self._miner_recent_assignments[miner_uid].append((current_time, task_hash))
@@ -475,17 +447,15 @@ class ValidatorProxy:
         results = []
         
         for i, miner_uid in enumerate(miners):
-            # Add random delay except for the first miner
             if i > 0:
                 delay = random.uniform(*self.stagger_delay_range)
                 await asyncio.sleep(delay)
             
             try:
-                # Send task to individual miner
                 axon = self.validator.metagraph.axons[miner_uid]
                 bt.logging.info(f"[ORGANIC] Sending task {task_data['task_hash']} to miner UID {miner_uid}")
                 
-                result = await self.dendrite(  # Use self.dendrite (proxy's dendrite)
+                result = await self.dendrite(
                     axons=[axon],
                     synapse=task_data['synapse'],
                     deserialize=True,
@@ -510,6 +480,32 @@ class ValidatorProxy:
                 })
         
         return results
+    
+    def _get_task_statistics(self) -> Dict:
+        """Get statistics about task distribution."""
+        with self._organic_lock:
+            current_time = time.time()
+            
+            recent_task_count = sum(
+                1 for timestamp, _ in self._recent_tasks.values()
+                if current_time - timestamp < self.deduplication_window_seconds
+            )
+
+            active_miners = sum(
+                1 for assignments in self._miner_recent_assignments.values()
+                if assignments and current_time - assignments[-1][0] < self.miner_cooldown_seconds
+            )
+            
+            return {
+                'recent_tasks': recent_task_count,
+                'active_tasks': len(self._active_tasks),
+                'completed_tasks': len(self._completed_tasks),
+                'active_miners': active_miners,
+                'total_tracked_miners': len(self._miner_recent_assignments),
+                'deduplication_window_seconds': self.deduplication_window_seconds,
+                'miners_per_task': self.miners_per_task,
+                'miner_cooldown_seconds': self.miner_cooldown_seconds
+            }
 
     async def get_self(self):
         return self
