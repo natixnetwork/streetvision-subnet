@@ -1,11 +1,16 @@
 import asyncio
 import base64
+import hashlib
 import os
 import random
 import socket
+import threading
+import time
 import traceback
+from collections import defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
+from typing import Dict, List, Optional, Set, Tuple
 
 import bittensor as bt
 from httpx import HTTPStatusError, Client, Timeout
@@ -21,7 +26,6 @@ from natix.utils.image_transforms import get_base_transforms
 from natix.utils.uids import get_random_uids
 from natix.validator.config import TARGET_IMAGE_SIZE
 from natix.validator.proxy import ProxyCounter
-from natix.validator.organic_distribution import OrganicTaskDistributor
 
 base_transforms = get_base_transforms(TARGET_IMAGE_SIZE)
 
@@ -63,18 +67,22 @@ class ValidatorProxy:
         self.loop = asyncio.get_event_loop()
         self.proxy_counter = ProxyCounter(os.path.join(self.validator.config.neuron.full_path, "proxy_counter.json"))
         
-        # Initialize organic task distributor
-        self.organic_distributor = OrganicTaskDistributor(
-            validator=self.validator,
-            miners_per_task=getattr(self.validator.config.organic, 'miners_per_task', 3),
-            deduplication_window_seconds=getattr(self.validator.config.organic, 'deduplication_window_seconds', 300),
-            miner_cooldown_seconds=getattr(self.validator.config.organic, 'miner_cooldown_seconds', 60),
-            max_concurrent_tasks=getattr(self.validator.config.organic, 'max_concurrent_tasks', 10),
-            stagger_delay_range=(
-                getattr(self.validator.config.organic, 'stagger_delay_min', 0.1),
-                getattr(self.validator.config.organic, 'stagger_delay_max', 2.0)
-            )
+        # Organic task distribution state and configuration
+        self.miners_per_task = getattr(self.validator.config.organic, 'miners_per_task', 3)
+        self.deduplication_window_seconds = getattr(self.validator.config.organic, 'deduplication_window_seconds', 300)
+        self.miner_cooldown_seconds = getattr(self.validator.config.organic, 'miner_cooldown_seconds', 60)
+        self.max_concurrent_tasks = getattr(self.validator.config.organic, 'max_concurrent_tasks', 10)
+        self.stagger_delay_range = (
+            getattr(self.validator.config.organic, 'stagger_delay_min', 0.1),
+            getattr(self.validator.config.organic, 'stagger_delay_max', 2.0)
         )
+        
+        # Organic task tracking state
+        self._organic_lock = threading.RLock()
+        self._recent_tasks = {}
+        self._miner_recent_assignments = defaultdict(lambda: deque(maxlen=100)) 
+        self._active_tasks = set() 
+        self._completed_tasks = {} 
         
         if self.validator.config.proxy.port:
             self.start_server()
@@ -162,14 +170,14 @@ class ValidatorProxy:
         # Prepare synapse
         synapse = prepare_synapse(image, modality="image")
         
-        # Use organic task distributor
+        # Use integrated organic task distribution
         additional_params = {"seed": payload["seed"]}
         
         # Add specific miner UIDs if provided in request
         if "miner_uids" in payload:
             additional_params["miner_uids"] = payload["miner_uids"]
         
-        task_result = await self.organic_distributor.distribute_task(
+        task_result = await self._distribute_organic_task(
             image_data=image_bytes,
             synapse=synapse,
             additional_params=additional_params
@@ -238,6 +246,270 @@ class ValidatorProxy:
         self.proxy_counter.update(is_success=False)
         self.proxy_counter.save()
         return HTTPException(status_code=500, detail="Unknown task status")
+
+    # Organic task distribution methods
+    async def _distribute_organic_task(
+        self, 
+        image_data: bytes, 
+        synapse, 
+        additional_params: Optional[Dict] = None,
+        force_new_task: bool = False
+    ) -> Dict:
+        """
+        Distribute an organic task to selected miners with deduplication and staggering.
+        
+        Args:
+            image_data: Raw image bytes for task identification
+            synapse: Prepared synapse object for querying miners
+            additional_params: Additional parameters for task uniqueness
+            force_new_task: If True, bypass deduplication check
+            
+        Returns:
+            Dict containing task results and metadata
+        """
+        
+        with self._organic_lock:
+            # Clean up old entries
+            self._cleanup_old_entries()
+            
+            # Generate task hash
+            task_hash = self._generate_task_hash(image_data, additional_params)
+            
+            # Check for duplicate task
+            if not force_new_task and self._is_duplicate_task(task_hash):
+                existing_timestamp, existing_task_id = self._recent_tasks[task_hash]
+                bt.logging.info(
+                    f"[ORGANIC] Duplicate task detected {task_hash}, "
+                    f"original submitted {time.time() - existing_timestamp:.1f}s ago"
+                )
+                return {
+                    'task_hash': task_hash,
+                    'status': 'duplicate',
+                    'original_task_id': existing_task_id,
+                    'timestamp': existing_timestamp
+                }
+            
+            # Check concurrency limit
+            if len(self._active_tasks) >= self.max_concurrent_tasks:
+                bt.logging.warning(
+                    f"[ORGANIC] Maximum concurrent tasks ({self.max_concurrent_tasks}) reached. "
+                    f"Rejecting task {task_hash}"
+                )
+                return {
+                    'task_hash': task_hash,
+                    'status': 'rejected',
+                    'reason': 'max_concurrent_tasks_reached',
+                    'active_tasks': len(self._active_tasks)
+                }
+            
+            # Select miners for this task
+            # Check if specific miner UIDs are provided
+            if additional_params and "miner_uids" in additional_params:
+                selected_miners = additional_params["miner_uids"]
+                bt.logging.info(f"[ORGANIC] Using specified miner UIDs: {selected_miners}")
+            else:
+                selected_miners = self._select_miners_for_task(task_hash)
+            
+            if not selected_miners:
+                bt.logging.error(f"[ORGANIC] No available miners for task {task_hash}")
+                return {
+                    'task_hash': task_hash,
+                    'status': 'failed',
+                    'reason': 'no_available_miners'
+                }
+            
+            # Record task
+            current_time = time.time()
+            self._recent_tasks[task_hash] = (current_time, task_hash)
+            self._active_tasks.add(task_hash)
+            
+            bt.logging.info(
+                f"[ORGANIC] Distributing task {task_hash} to {len(selected_miners)} miners: {selected_miners}"
+            )
+        
+        try:
+            # Prepare task data
+            task_data = {
+                'task_hash': task_hash,
+                'synapse': synapse,
+                'selected_miners': selected_miners,
+                'timestamp': current_time
+            }
+            
+            # Distribute with staggering
+            results = await self._staggered_distribution(selected_miners, task_data)
+            
+            # Process results
+            valid_results = []
+            invalid_results = []
+            
+            for result in results:
+                if result.get('result') is not None and result['result'] != -1.0:
+                    valid_results.append(result)
+                else:
+                    invalid_results.append(result)
+            
+            task_result = {
+                'task_hash': task_hash,
+                'status': 'completed',
+                'selected_miners': selected_miners,
+                'valid_results': valid_results,
+                'invalid_results': invalid_results,
+                'total_miners_queried': len(selected_miners),
+                'valid_responses': len(valid_results),
+                'timestamp': current_time,
+                'completion_time': time.time()
+            }
+            
+            # Store completed task
+            with self._organic_lock:
+                self._completed_tasks[task_hash] = task_result
+                self._active_tasks.discard(task_hash)
+            
+            bt.logging.success(
+                f"[ORGANIC] Task {task_hash} completed: {len(valid_results)}/{len(selected_miners)} valid responses"
+            )
+            
+            return task_result
+            
+        except Exception as e:
+            bt.logging.error(f"[ORGANIC] Error distributing task {task_hash}: {e}")
+            
+            with self._organic_lock:
+                self._active_tasks.discard(task_hash)
+            
+            return {
+                'task_hash': task_hash,
+                'status': 'error',
+                'error': str(e),
+                'selected_miners': selected_miners,
+                'timestamp': current_time
+            }
+    
+    def _generate_task_hash(self, image_data: bytes, additional_params: Optional[Dict] = None) -> str:
+        """Generate a unique hash for the task based on image content and parameters."""
+        hasher = hashlib.sha256()
+        hasher.update(image_data)
+        
+        if additional_params:
+            # Sort params for consistent hashing
+            sorted_params = sorted(additional_params.items())
+            hasher.update(str(sorted_params).encode())
+        
+        return hasher.hexdigest()[:16]  # Use first 16 chars for readability
+    
+    def _cleanup_old_entries(self):
+        """Clean up old entries from tracking dictionaries."""
+        current_time = time.time()
+        
+        # Clean up recent tasks
+        expired_hashes = [
+            task_hash for task_hash, (timestamp, _) in self._recent_tasks.items()
+            if current_time - timestamp > self.deduplication_window_seconds
+        ]
+        for task_hash in expired_hashes:
+            del self._recent_tasks[task_hash]
+        
+        # Clean up miner assignments
+        for miner_uid, assignments in self._miner_recent_assignments.items():
+            while assignments and current_time - assignments[0][0] > self.miner_cooldown_seconds:
+                assignments.popleft()
+    
+    def _is_duplicate_task(self, task_hash: str) -> bool:
+        """Check if a task is a duplicate within the deduplication window."""
+        if task_hash not in self._recent_tasks:
+            return False
+        
+        timestamp, _ = self._recent_tasks[task_hash]
+        return time.time() - timestamp < self.deduplication_window_seconds
+    
+    def _get_available_miners(self, task_hash: str, exclude_uids: Optional[List[int]] = None) -> List[int]:
+        """Get miners that haven't been assigned similar tasks recently."""
+        current_time = time.time()
+        all_available_uids = get_random_uids(
+            self.validator, 
+            k=self.validator.metagraph.n.item(),  # Get all available miners
+            exclude=exclude_uids or []
+        )
+        
+        # Filter out miners who have been assigned this task recently
+        available_miners = []
+        for uid in all_available_uids:
+            uid = int(uid)  # Ensure it's an int
+            recent_assignments = self._miner_recent_assignments[uid]
+            
+            # Check if miner has been assigned this specific task hash recently
+            has_recent_assignment = any(
+                task_hash == assigned_hash and current_time - timestamp < self.miner_cooldown_seconds
+                for timestamp, assigned_hash in recent_assignments
+            )
+            
+            if not has_recent_assignment:
+                available_miners.append(uid)
+        
+        return available_miners
+    
+    def _select_miners_for_task(self, task_hash: str, exclude_uids: Optional[List[int]] = None) -> List[int]:
+        """Select N random miners for a task, avoiding recent assignments."""
+        available_miners = self._get_available_miners(task_hash, exclude_uids)
+        
+        if len(available_miners) < self.miners_per_task:
+            bt.logging.warning(
+                f"[ORGANIC] Only {len(available_miners)} miners available for task {task_hash}, "
+                f"requested {self.miners_per_task}. Using all available miners."
+            )
+            return available_miners
+        
+        # Randomly select miners
+        selected_miners = random.sample(available_miners, self.miners_per_task)
+        
+        # Record assignments
+        current_time = time.time()
+        for miner_uid in selected_miners:
+            self._miner_recent_assignments[miner_uid].append((current_time, task_hash))
+        
+        return selected_miners
+    
+    async def _staggered_distribution(self, miners: List[int], task_data: Dict) -> List:
+        """Distribute task to miners with random staggering to prevent batch sends."""
+        results = []
+        
+        for i, miner_uid in enumerate(miners):
+            # Add random delay except for the first miner
+            if i > 0:
+                delay = random.uniform(*self.stagger_delay_range)
+                await asyncio.sleep(delay)
+            
+            try:
+                # Send task to individual miner
+                axon = self.validator.metagraph.axons[miner_uid]
+                bt.logging.info(f"[ORGANIC] Sending task {task_data['task_hash']} to miner UID {miner_uid}")
+                
+                result = await self.dendrite(  # Use self.dendrite (proxy's dendrite)
+                    axons=[axon],
+                    synapse=task_data['synapse'],
+                    deserialize=True,
+                    timeout=9
+                )
+                
+                results.append({
+                    'miner_uid': miner_uid,
+                    'result': result[0] if result else None,
+                    'timestamp': time.time()
+                })
+                
+                bt.logging.success(f"[ORGANIC] Received response from miner UID {miner_uid} for task {task_data['task_hash']}")
+                
+            except Exception as e:
+                bt.logging.error(f"[ORGANIC] Error querying miner UID {miner_uid} for task {task_data['task_hash']}: {e}")
+                results.append({
+                    'miner_uid': miner_uid,
+                    'result': None,
+                    'error': str(e),
+                    'timestamp': time.time()
+                })
+        
+        return results
 
     async def get_self(self):
         return self
