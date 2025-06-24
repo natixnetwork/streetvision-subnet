@@ -233,7 +233,12 @@ class OrganicTaskDistributor:
                 }
             
             # Select miners for this task
-            selected_miners = self._select_miners_for_task(task_hash)
+            # Check if specific miner UIDs are provided
+            if additional_params and "miner_uids" in additional_params:
+                selected_miners = additional_params["miner_uids"]
+                bt.logging.info(f"[ORGANIC] Using specified miner UIDs: {selected_miners}")
+            else:
+                selected_miners = self._select_miners_for_task(task_hash)
             
             if not selected_miners:
                 bt.logging.error(f"[ORGANIC] No available miners for task {task_hash}")

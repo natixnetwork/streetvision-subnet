@@ -99,7 +99,8 @@ class OrganicRequestTester:
         img_bytes = buffer.getvalue()
         return base64.b64encode(img_bytes).decode()
     
-    async def send_organic_request(self, image_b64: str, seed: Optional[int] = None) -> Dict:
+    async def send_organic_request(self, image_b64: str, seed: Optional[int] = None, 
+                                  miner_uids: Optional[List[int]] = None) -> Dict:
         """Send a single organic request to the validator proxy."""
         
         if seed is None:
@@ -109,6 +110,10 @@ class OrganicRequestTester:
             "image": image_b64,
             "seed": seed
         }
+        
+        # Add specific miner UIDs if provided
+        if miner_uids is not None:
+            payload["miner_uids"] = miner_uids
         
         headers = {
             "Content-Type": "application/json",
@@ -178,10 +183,12 @@ class OrganicRequestTester:
             print(f"❌ Health check error: {e}")
             return False
     
-    async def test_single_request(self):
+    async def test_single_request(self, miner_uids: Optional[List[int]] = None):
         """Test a single organic request."""
         print("\n" + "="*60)
         print("SINGLE REQUEST TEST")
+        if miner_uids:
+            print(f"Targeting specific miners: {miner_uids}")
         print("="*60)
         
         # Test health first
@@ -190,7 +197,7 @@ class OrganicRequestTester:
         
         # Generate and send request
         image_b64 = self.generate_test_image(image_type="synthetic")
-        result = await self.send_organic_request(image_b64)
+        result = await self.send_organic_request(image_b64, miner_uids=miner_uids)
         
         print(f"\nResult: {result}")
     
@@ -308,6 +315,8 @@ async def main():
                        help="Delay between requests for load test")
     parser.add_argument("--no-auth-bypass", action="store_true", 
                        help="Don't use authentication bypass")
+    parser.add_argument("--miner-uids", type=int, nargs='+', 
+                       help="Specific miner UIDs to target (e.g., --miner-uids 1 5 10)")
     
     args = parser.parse_args()
     
@@ -315,6 +324,8 @@ async def main():
     print("="*60)
     print(f"Target: {args.host}:{args.port}")
     print(f"Auth bypass: {'No' if args.no_auth_bypass else 'Yes'}")
+    if args.miner_uids:
+        print(f"Targeting miners: {args.miner_uids}")
     print("="*60)
     
     tester = OrganicRequestTester(
@@ -325,7 +336,7 @@ async def main():
     
     try:
         if args.test == "single" or args.test == "all":
-            await tester.test_single_request()
+            await tester.test_single_request(miner_uids=args.miner_uids)
         
         if args.test == "duplicate" or args.test == "all":
             await tester.test_duplicate_detection()

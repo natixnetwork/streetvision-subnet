@@ -163,10 +163,16 @@ class ValidatorProxy:
         synapse = prepare_synapse(image, modality="image")
         
         # Use organic task distributor
+        additional_params = {"seed": payload["seed"]}
+        
+        # Add specific miner UIDs if provided in request
+        if "miner_uids" in payload:
+            additional_params["miner_uids"] = payload["miner_uids"]
+        
         task_result = await self.organic_distributor.distribute_task(
             image_data=image_bytes,
             synapse=synapse,
-            additional_params={"seed": payload["seed"]}
+            additional_params=additional_params
         )
         
         bt.logging.info(f"[ORGANIC] Task result: {task_result}")
