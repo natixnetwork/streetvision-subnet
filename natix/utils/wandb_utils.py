@@ -4,21 +4,48 @@ import wandb
 import bittensor as bt
 
 def clean_nans_for_json(obj):
-    """Replace NaN values with None for JSON serialization"""
-    if isinstance(obj, float) and np.isnan(obj):
-        return None
+    """Replace NaN values with None for JSON serialization and handle various non-serializable types"""
+    if hasattr(obj, 'item') and callable(getattr(obj, 'item')):
+        try:
+            return obj.item()
+        except:
+            pass
+    
+    if hasattr(obj, 'tolist') and callable(getattr(obj, 'tolist')):
+        try:
+            return obj.tolist()
+        except:
+            pass
+    
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        if np.isnan(obj):
+            return None
+        elif np.isinf(obj):
+            return None
+        return float(obj)
+    elif isinstance(obj, float):
+        if np.isnan(obj):
+            return None
+        elif np.isinf(obj):
+            return None
+        return obj
     elif isinstance(obj, dict):
         return {k: clean_nans_for_json(v) for k, v in obj.items()}
     elif isinstance(obj, list):
         return [clean_nans_for_json(i) for i in obj]
     elif isinstance(obj, tuple):
-        return [clean_nans_for_json(i) for i in obj] 
-    elif isinstance(obj, np.integer):
-        return int(obj) 
-    elif isinstance(obj, np.floating):
-        return float(obj) 
-    else:
+        return [clean_nans_for_json(i) for i in obj]
+    elif isinstance(obj, (str, int, bool, type(None))):
         return obj
+    else:
+        try:
+            return str(obj)
+        except:
+            return None
 
 def log_to_wandb(challenge_metadata, responses, rewards, metrics, scores, axons):
     """Log challenge metadata to wandb in the same format as the original code"""
