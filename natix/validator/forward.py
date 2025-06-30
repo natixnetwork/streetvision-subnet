@@ -163,7 +163,7 @@ async def forward(self):
     for metric_name in list(metrics[0][modality].keys()):
         challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
 
-    challenge_metadata["predictions"] = responses
+    challenge_metadata["predictions"] = predictions
     challenge_metadata["rewards"] = rewards
     challenge_metadata["scores"] = list(self.scores)
     challenge_metadata["model_urls"] = model_urls
