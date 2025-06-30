@@ -104,9 +104,9 @@ def log_to_wandb(challenge_metadata, responses, rewards, metrics, scores, axons)
     }
     
     for i, (uid, pred, reward, score) in enumerate(zip(miner_uids, predictions, rewards, [scores[uid] for uid in miner_uids])):
-        wandb_log_data[f"individual_miner_data/miner_{uid}/prediction"] = pred
-        wandb_log_data[f"individual_miner_data/miner_{uid}/reward"] = reward
-        wandb_log_data[f"individual_miner_data/miner_{uid}/score"] = score
+        wandb_log_data[f"miner_predictions/uid_{uid}"] = pred
+        wandb_log_data[f"miner_rewards/uid_{uid}"] = reward
+        wandb_log_data[f"miner_scores/uid_{uid}"] = score
 
         if i < len(metrics) and modality in metrics[i] and metrics[i][modality]:
             miner_metrics = metrics[i][modality]
@@ -115,7 +115,7 @@ def log_to_wandb(challenge_metadata, responses, rewards, metrics, scores, axons)
                     metric_value = miner_metrics[metric_name]
                     metric_value = clean_nans_for_json(metric_value)
                     if metric_value is not None:
-                        wandb_log_data[f"individual_miner_data/miner_{uid}/{metric_name}"] = metric_value
+                        wandb_log_data[f"miner_{metric_name}/uid_{uid}"] = metric_value
     
     numeric_fields = {"label", "data_aug_level"}
     
