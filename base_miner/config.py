@@ -8,7 +8,4 @@ IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
     "Roadwork": [
         {"path": f"{HUGGINGFACE_REPO}/roadwork"},
     ],
-    "None": [
-        {"path": f"{HUGGINGFACE_REPO}/none"},
-    ],
 }
