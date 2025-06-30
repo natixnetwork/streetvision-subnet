@@ -103,27 +103,24 @@ def log_to_wandb(challenge_metadata, responses, rewards, metrics, scores, axons)
         "metadata": metadata_html,
     }
     
-    # Add time series data for each miner
     for i, (uid, pred, reward, score) in enumerate(zip(miner_uids, predictions, rewards, [scores[uid] for uid in miner_uids])):
-        # Log basic metrics for each miner
-        wandb_log_data[f"miner_{uid}/prediction"] = pred
-        wandb_log_data[f"miner_{uid}/reward"] = reward
-        wandb_log_data[f"miner_{uid}/score"] = score
-        
-        # Log performance metrics if available
+        wandb_log_data[f"individual_miner_data/miner_{uid}/prediction"] = pred
+        wandb_log_data[f"individual_miner_data/miner_{uid}/reward"] = reward
+        wandb_log_data[f"individual_miner_data/miner_{uid}/score"] = score
+
         if i < len(metrics) and modality in metrics[i] and metrics[i][modality]:
             miner_metrics = metrics[i][modality]
-            # Log each metric that was requested
             for metric_name in ["accuracy", "auc", "f1_score", "mcc", "precision", "recall"]:
                 if metric_name in miner_metrics:
                     metric_value = miner_metrics[metric_name]
-                    # Clean the metric value for wandb
                     metric_value = clean_nans_for_json(metric_value)
                     if metric_value is not None:
-                        wandb_log_data[f"miner_{uid}/{metric_name}"] = metric_value
+                        wandb_log_data[f"individual_miner_data/miner_{uid}/{metric_name}"] = metric_value
+    
+    numeric_fields = {"label", "data_aug_level"}
     
     for k, v in challenge_metadata.items():
-        if k not in wandb_log_data and not k.startswith(("miner_", "predictions", "rewards", "scores")):
+        if k in numeric_fields and k not in wandb_log_data:
             wandb_log_data[k] = v
     
     try:
