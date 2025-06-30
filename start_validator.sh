@@ -34,5 +34,4 @@ poetry run python neurons/validator.py \
   --axon.port $VALIDATOR_AXON_PORT \
   --proxy.port $VALIDATOR_PROXY_PORT \
   --proxy.proxy_client_url $PROXY_CLIENT_URL\
-  --wandb.off \
   --logging.debug
