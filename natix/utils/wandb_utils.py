@@ -62,33 +62,42 @@ def log_to_wandb(challenge_metadata, responses, rewards, metrics, scores, axons)
     
     predictions = [x.prediction for x in responses]
     
+    # Calculate aggregated statistics
+    miner_scores = [scores[uid] for uid in miner_uids]
+    
+    # Basic aggregates
+    aggregated_stats = {
+        "total_reward": sum(rewards),
+        "avg_reward": np.mean(rewards),
+        "std_reward": np.std(rewards),
+        "min_reward": np.min(rewards),
+        "max_reward": np.max(rewards),
+        "avg_score": np.mean(miner_scores),
+        "std_score": np.std(miner_scores),
+        "min_score": np.min(miner_scores),
+        "max_score": np.max(miner_scores),
+        "num_miners": len(miner_uids)
+    }
+    
     metric_names = set()
     for m in metrics:
         if modality in m and m[modality]: 
             metric_names.update(m[modality].keys())
     
-    table_columns = ["miner_uid", "miner_hotkey", "prediction", "reward", "score"]
-    for metric_name in sorted(metric_names):
-        table_columns.append(metric_name)
-    
-    miner_table = wandb.Table(columns=table_columns)
-
-    for i, (uid, hotkey, pred, reward, score) in enumerate(zip(
-        miner_uids, 
-        [axon.hotkey for axon in axons], 
-        predictions, 
-        rewards, 
-        [scores[uid] for uid in miner_uids]
-    )):
-        row_data = [uid, hotkey, pred, reward, score]
-        
-        for metric_name in sorted(metric_names):
-            metric_value = None
-            if i < len(metrics) and modality in metrics[i] and metrics[i][modality]:
-                metric_value = metrics[i][modality].get(metric_name, None)
-            row_data.append(metric_value)
-
-        miner_table.add_data(*row_data)
+    for metric_name in ["accuracy", "auc", "f1_score", "mcc", "precision", "recall"]:
+        if metric_name in metric_names:
+            metric_values = []
+            for i, m in enumerate(metrics):
+                if modality in m and m[modality] and metric_name in m[modality]:
+                    val = m[modality][metric_name]
+                    if val is not None and not (isinstance(val, float) and np.isnan(val)):
+                        metric_values.append(val)
+            
+            if metric_values:
+                aggregated_stats[f"avg_{metric_name}"] = np.mean(metric_values)
+                aggregated_stats[f"std_{metric_name}"] = np.std(metric_values)
+                aggregated_stats[f"min_{metric_name}"] = np.min(metric_values)
+                aggregated_stats[f"max_{metric_name}"] = np.max(metric_values)
     
     metadata_dict = clean_nans_for_json(challenge_metadata)
     metadata_json = json.dumps(metadata_dict, indent=4)
@@ -99,9 +108,11 @@ def log_to_wandb(challenge_metadata, responses, rewards, metrics, scores, axons)
         metadata_html = None
     
     wandb_log_data = {
-        "miner_performance": miner_table,
         "metadata": metadata_html,
     }
+    
+    for stat_name, stat_value in aggregated_stats.items():
+        wandb_log_data[f"aggregated/{stat_name}"] = clean_nans_for_json(stat_value)
     
     for i, (uid, pred, reward, score) in enumerate(zip(miner_uids, predictions, rewards, [scores[uid] for uid in miner_uids])):
         wandb_log_data[f"miner_predictions/uid_{uid}"] = pred
