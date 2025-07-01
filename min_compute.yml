@@ -56,13 +56,13 @@ compute_spec:
       architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
 
     gpu:
-      required: True                            # Does the application require a GPU?
-      min_vram: 12                              # Minimum GPU VRAM (GB)
-      recommended_vram: 16                      # Recommended GPU VRAM (GB)
-      min_compute_capability: 7.5               # Minimum CUDA compute capability
-      cuda_cores: 6000                          # typical for RTX 3080
-      recommended_compute_capability: 8.6       # Recommended CUDA compute capability
-      recommended_gpu: "NVIDIA RTX 3080 12GB"  # Recommended GPU to purchase/rent
+      required: False                           # GPU optional - validator runs on CPU
+      min_vram: 0                               # No minimum GPU VRAM required
+      recommended_vram: 12                      # Recommended GPU VRAM (GB) for future features
+      min_compute_capability: 0                 # No minimum CUDA compute capability
+      cuda_cores: 0                             # No minimum CUDA cores
+      recommended_compute_capability: 7.5       # Recommended CUDA compute capability
+      recommended_gpu: "CPU-only or NVIDIA RTX 3080 12GB"  # CPU sufficient, GPU for future features
 
     memory:
       min_ram: 16          # Minimum RAM (GB)
