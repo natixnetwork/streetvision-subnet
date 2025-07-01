@@ -31,12 +31,10 @@ NATIX_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 VALIDATOR_INFO_PATH: Path = NATIX_CACHE_DIR / "validator.yaml"
 
-NONE_CACHE_DIR: Path = NATIX_CACHE_DIR / "None"
 ROADWORK_CACHE_DIR: Path = NATIX_CACHE_DIR / "Roadwork"
 SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / "Synthetic"
 
 ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / "image"
-NONE_IMAGE_CACHE_DIR: Path = NONE_CACHE_DIR / "image"
 
 
 T2V_CACHE_DIR: Path = SYNTH_CACHE_DIR / "t2v"
@@ -56,9 +54,6 @@ CHALLENGE_TYPE = {0: "None", 1: "Roadwork"}
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
     "Roadwork": [
         {"path": f"{HUGGINGFACE_REPO}/roadwork"},
-    ],
-    "None": [
-        {"path": f"{HUGGINGFACE_REPO}/none"},
     ],
 }
 
