@@ -35,14 +35,14 @@ torch = ">=2.0.0"
 
 [package.extras]
 deepspeed = ["deepspeed"]
-dev = ["bitsandbytes", "black (>=23.1,<24.0)", "datasets", "diffusers", "evaluate", "hf-doc-builder (>=0.3.0)", "parameterized", "pytest (>=7.2.0,<=8.0.0)", "pytest-order", "pytest-subtests", "pytest-xdist", "rich", "ruff (>=0.6.4,<0.7.0)", "scikit-learn", "scipy", "timm", "torchdata (>=0.8.0)", "torchpippy (>=0.2.0)", "tqdm", "transformers"]
+dev = ["black (>=23.1,<24.0)", "datasets", "diffusers", "evaluate", "hf-doc-builder (>=0.3.0)", "parameterized", "pytest (>=7.2.0,<=8.0.0)", "pytest-order", "pytest-subtests", "pytest-xdist", "rich", "ruff (>=0.6.4,<0.7.0)", "scikit-learn", "scipy", "timm", "torchdata (>=0.8.0)", "torchpippy (>=0.2.0)", "tqdm", "transformers"]
 quality = ["black (>=23.1,<24.0)", "hf-doc-builder (>=0.3.0)", "ruff (>=0.6.4,<0.7.0)"]
 rich = ["rich"]
 sagemaker = ["sagemaker"]
-test-dev = ["bitsandbytes", "datasets", "diffusers", "evaluate", "scikit-learn", "scipy", "timm", "torchdata (>=0.8.0)", "torchpippy (>=0.2.0)", "tqdm", "transformers"]
+test-dev = ["datasets", "diffusers", "evaluate", "scikit-learn", "scipy", "timm", "torchdata (>=0.8.0)", "torchpippy (>=0.2.0)", "tqdm", "transformers"]
 test-prod = ["parameterized", "pytest (>=7.2.0,<=8.0.0)", "pytest-order", "pytest-subtests", "pytest-xdist"]
 test-trackers = ["comet-ml", "dvclive", "tensorboard", "wandb"]
-testing = ["bitsandbytes", "datasets", "diffusers", "evaluate", "parameterized", "pytest (>=7.2.0,<=8.0.0)", "pytest-order", "pytest-subtests", "pytest-xdist", "scikit-learn", "scipy", "timm", "torchdata (>=0.8.0)", "torchpippy (>=0.2.0)", "tqdm", "transformers"]
+testing = ["datasets", "diffusers", "evaluate", "parameterized", "pytest (>=7.2.0,<=8.0.0)", "pytest-order", "pytest-subtests", "pytest-xdist", "scikit-learn", "scipy", "timm", "torchdata (>=0.8.0)", "torchpippy (>=0.2.0)", "tqdm", "transformers"]
 
 [[package]]
 name = "aiohappyeyeballs"
@@ -322,18 +322,6 @@ files = [
 
 [package.extras]
 tests = ["PyHamcrest (>=2.0.2)", "mypy", "pytest (>=4.6)", "pytest-benchmark", "pytest-cov", "pytest-flake8"]
-
-[[package]]
-name = "bitsandbytes"
-version = "0.41.0"
-description = "k-bit optimizers and matrix multiplication routines."
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "bitsandbytes-0.41.0-py3-none-any.whl", hash = "sha256:dfaebbdcf48bff6628ca04880877a10b4da61e4fff62cdd3433764b1571ab3d1"},
-    {file = "bitsandbytes-0.41.0.tar.gz", hash = "sha256:5c7439f16b81e9379d648b2840c7efb7017a724f8cae2c9eab535addeb697192"},
-]
 
 [[package]]
 name = "bittensor"
@@ -5986,4 +5974,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "0e397d9930183cb514fc5bcb22b157103dbc72d00d0aafc5bb0a44c79a3f9403"
+content-hash = "7e086242d3da0e3675521de27d53e09be6f3b5a1436f096ef1f9f7edf4068d82"
