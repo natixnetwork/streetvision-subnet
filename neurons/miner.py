@@ -24,7 +24,6 @@ import typing
 import bittensor as bt
 from PIL import Image
 
-from base_miner.detectors import RoadworkDetector, ViTImageDetector  # noqa: F401
 from base_miner.registry import DETECTOR_REGISTRY
 from natix.base.miner import BaseMinerNeuron
 from natix.protocol import ExtendedImageSynapse

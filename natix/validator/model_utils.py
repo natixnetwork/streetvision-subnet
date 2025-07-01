@@ -1,10 +1,8 @@
 from typing import Any, Dict, Optional
 
 import bittensor as bt
-import numpy as np
-import PIL.Image
 import torch
-from diffusers import DiffusionPipeline, MotionAdapter
+from diffusers import MotionAdapter
 from huggingface_hub import hf_hub_download
 from safetensors.torch import load_file
 

@@ -172,7 +172,6 @@ if __name__ == "__main__":
         description="Download Hugging Face datasets for validator challenge generation and miner training."
     )
     parser.add_argument("--force_redownload", action="store_true", help="force redownload of datasets")
-    parser.add_argument("--modality", default="image", choices=["video", "image"], help="download image or video datasets")
     parser.add_argument("--cache_dir", type=str, default=HUGGINGFACE_CACHE_DIR, help="huggingface cache directory")
     args = parser.parse_args()
 
@@ -183,10 +182,7 @@ if __name__ == "__main__":
     os.makedirs(args.cache_dir, exist_ok=True)
     clean_cache(args.cache_dir)  # Clear the cache of lock and incomplete files.
 
-    if args.modality == "image":
-        dataset_meta = IMAGE_DATASETS
-    # elif args.modality == 'video':
-    #    dataset_meta = VIDEO_DATASET_META
+    dataset_meta = IMAGE_DATASETS
 
     for dataset_type in dataset_meta:
         for dataset in dataset_meta[dataset_type]:

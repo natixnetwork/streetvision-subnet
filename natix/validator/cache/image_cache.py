@@ -118,7 +118,7 @@ class ImageCache(BaseCache):
             try:
                 metadata = json.loads(image_path.with_suffix(".json").read_text())
                 if label is not None:
-                    if metadata["label"] != label:
+                    if (metadata["scene_description"] and label == 0) or (not metadata["scene_description"] and label == 1):
                         continue
                 image = Image.open(image_path)
                 if remove_from_cache:

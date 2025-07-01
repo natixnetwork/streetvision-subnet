@@ -63,11 +63,9 @@ class BaseValidatorNeuron(BaseNeuron):
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
 
         # Dendrite lets us send messages to other nodes (axons) in the network.
-        if self.config.mock:
-            self.dendrite = MockDendrite(wallet=self.wallet)
-        else:
-            self.dendrite = bt.dendrite(wallet=self.wallet)
-        bt.logging.info(f"Dendrite: {self.dendrite}")
+        # Initialize as None, will be created lazily in async context
+        self._dendrite = None
+        bt.logging.info("Dendrite will be initialized on first use")
 
         # Set up initial scoring weights for validation
         bt.logging.info("Building validation weights.")
@@ -118,6 +116,18 @@ class BaseValidatorNeuron(BaseNeuron):
         except Exception as e:
             bt.logging.error(f"Failed to create Axon initialize with exception: {e}")
             pass
+
+    @property
+    def dendrite(self):
+        """Lazy initialization of dendrite in async context"""
+        if self._dendrite is None:
+            if self.config.mock:
+                from natix.utils.mock import MockDendrite
+                self._dendrite = MockDendrite(wallet=self.wallet)
+            else:
+                self._dendrite = bt.dendrite(wallet=self.wallet)
+            bt.logging.info(f"Dendrite initialized: {self._dendrite}")
+        return self._dendrite
 
     async def concurrent_forward(self):
         coroutines = [self.forward() for _ in range(self.config.neuron.num_concurrent_forwards)]
