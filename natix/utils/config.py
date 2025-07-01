@@ -166,27 +166,6 @@ def add_miner_args(cls, parser):
     )
 
     parser.add_argument(
-        "--neuron.video_detector_config",
-        type=str,
-        help=".yaml file name in base_miner/deepfake_detectors/configs/ to load for trained model.",
-        default="tall.yaml",
-    )
-
-    parser.add_argument(
-        "--neuron.video_detector",
-        type=str,
-        help="The DETECTOR_REGISTRY module name of the DeepfakeDetector subclass to use for inference.",
-        default="TALL",
-    )
-
-    parser.add_argument(
-        "--neuron.video_detector_device",
-        type=str,
-        help="Device to run image detection model on.",
-        default=get_device(),
-    )
-
-    parser.add_argument(
         "--neuron.name",
         type=str,
         help="Trials for this neuron go in neuron.root / (wallet_cold - wallet_hot) / neuron.name. ",

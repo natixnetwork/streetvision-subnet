@@ -105,12 +105,9 @@ Make sure to update your `miner.env` file with your wallet name, hotkey, miner p
 # following are initial values
 IMAGE_DETECTOR=ViT
 IMAGE_DETECTOR_CONFIG=ViT_roadwork.yaml
-VIDEO_DETECTOR=TALL
-VIDEO_DETECTOR_CONFIG=tall.yaml
 
 # Device Settings
 IMAGE_DETECTOR_DEVICE=cpu # Options: cpu, cuda
-VIDEO_DETECTOR_DEVICE=cpu
 
 NETUID=323                           # 323 for testnet, 72 for mainnet
 SUBTENSOR_NETWORK=test               # Networks: finney, test, local
