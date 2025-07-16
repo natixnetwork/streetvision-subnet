@@ -269,7 +269,9 @@ class SyntheticDataGenerator:
                 gen_args["width"] = gen_args["resolution"][1]
                 del gen_args["resolution"]
 
-            truncated_prompt = truncate_prompt_if_too_long(prompt, self.model)
+            # Enhance prompt for photorealism
+            enhanced_prompt = f"{prompt}, photorealistic, natural lighting, professional photography, high resolution, sharp focus, realistic"
+            truncated_prompt = truncate_prompt_if_too_long(enhanced_prompt, self.model)
             bt.logging.info(f"Generating media from prompt: {truncated_prompt}")
             bt.logging.info(f"Generation args: {gen_args}")
 

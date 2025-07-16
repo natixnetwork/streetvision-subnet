@@ -73,6 +73,7 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
             "guidance_scale": 7.5,
             "num_inference_steps": 50,
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
+            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi",
         },
     },
 }
@@ -88,6 +89,7 @@ I2I_MODELS: Dict[str, Dict[str, Any]] = {
             "num_inference_steps": 50,
             "strength": 0.99,
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
+            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi",
         },
     }
 }
