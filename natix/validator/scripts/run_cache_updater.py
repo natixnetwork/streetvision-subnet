@@ -2,11 +2,6 @@ import argparse
 import asyncio
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-os.environ["TF_CPP_MIN_VLOG_LEVEL"] = "3"
-
 import bittensor as bt
 
 from natix.validator.cache.image_cache import ImageCache
