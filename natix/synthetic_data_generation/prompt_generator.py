@@ -114,7 +114,7 @@ class PromptGenerator:
 
         for i, prompt in enumerate(prompts):
             description += prompt + " "
-            inputs = self.vlm_processor(image, text=description, return_tensors="pt").to(self.device, torch.float16)
+            inputs = self.vlm_processor(image, text=description, return_tensors="pt").to(self.device)
 
             generated_ids = self.vlm.generate(**inputs, max_new_tokens=max_new_tokens)
             answer = self.vlm_processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
