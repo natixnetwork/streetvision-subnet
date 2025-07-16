@@ -154,7 +154,7 @@ class SyntheticDataGenerator:
                 bt.logging.info(f"Started generation {i+1}/{batch_size} | Model: {model_name} | Label: {labels[i]} | Prompt: {prompt}")
 
                 # Generate image/video from current model and prompt
-                output = self._run_generation(prompt, task=task, model_name=model_name, image=images[i])
+                output = self._run_generation(prompt, task=task, model_name=model_name, image=images[i], label=labels[i])
                 
                 # Add label to output metadata
                 output["label"] = labels[i]
@@ -192,7 +192,7 @@ class SyntheticDataGenerator:
         """
         prompt = self.generate_prompt(image, clear_gpu=True)
         bt.logging.info("Generating synthetic data...")
-        gen_data = self._run_generation(prompt, task, model_name, image)
+        gen_data = self._run_generation(prompt, task, model_name, image, label=1)
         self.clear_gpu()
         return gen_data
 
@@ -216,6 +216,7 @@ class SyntheticDataGenerator:
         task: Optional[str] = None,
         model_name: Optional[str] = None,
         image: Optional[Image.Image] = None,
+        label: Optional[int] = None,
         generate_at_target_size: bool = False,
     ) -> Dict[str, Any]:
         """
@@ -269,8 +270,11 @@ class SyntheticDataGenerator:
                 gen_args["width"] = gen_args["resolution"][1]
                 del gen_args["resolution"]
 
-            # Enhance prompt for photorealism
-            enhanced_prompt = f"{prompt}, photorealistic, natural lighting, professional photography, high resolution, sharp focus, realistic"
+            # Enhance prompt for dashcam realism based on label
+            if label == 1:  # Roadwork
+                enhanced_prompt = f"{prompt}, dashcam footage, car dashboard camera view, driver's perspective, realistic road scene with construction work, roadwork signs, traffic cones, construction barriers, natural daylight, automotive photography, street level view"
+            else:  # No roadwork
+                enhanced_prompt = f"{prompt}, dashcam footage, car dashboard camera view, driver's perspective, realistic road scene, clear road, normal traffic, natural daylight, automotive photography, street level view"
             truncated_prompt = truncate_prompt_if_too_long(enhanced_prompt, self.model)
             bt.logging.info(f"Generating media from prompt: {truncated_prompt}")
             bt.logging.info(f"Generation args: {gen_args}")
