@@ -130,19 +130,12 @@ async def forward(self):
     # Check model URLs and collect invalid UIDs
     model_urls = [x.model_url for x in responses]
     invalid_uids = set()
+    model_validity = check_miner_model(self.config.proxy.proxy_client_url, miner_uids)
 
-    for uid, model_url in zip(miner_uids, model_urls):
-        if not model_url or not isinstance(model_url, str):
+    for uid, validity in zip(miner_uids, model_validity):
+        if not validity:
             bt.logging.warning(f"Miner UID {uid} missing or invalid model_url.")
             invalid_uids.add(uid)
-        else:
-            try:
-                if not check_miner_model(model_url, uid, self.hotkeys):
-                    bt.logging.warning(f"Model at URL {model_url} (UID {uid}) failed validation.")
-                    invalid_uids.add(uid)
-            except Exception as e:
-                bt.logging.error(f"Error validating model for UID {uid} at URL {model_url}: {e}")
-                invalid_uids.add(uid)
 
     bt.logging.info(f"Responses received in {time.time() - start}s")
     bt.logging.success(f"Roadwork {modality} challenge complete!")

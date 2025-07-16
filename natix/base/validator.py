@@ -30,7 +30,6 @@ import bittensor as bt
 import joblib
 import numpy as np
 
-from natix.validator import model_registry
 from natix.base.neuron import BaseNeuron
 from natix.base.utils.weight_utils import convert_weights_and_uids_for_emit, process_weights_for_netuid
 from natix.utils.config import add_validator_args
@@ -88,7 +87,6 @@ class BaseValidatorNeuron(BaseNeuron):
         self.is_running: bool = False
         self.thread: Union[threading.Thread, None] = None
         self.lock = asyncio.Lock()
-        model_registry.create_db()
 
     def serve_axon(self):
         """Serve axon to enable external connections."""

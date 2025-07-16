@@ -3,124 +3,25 @@ import requests
 import time
 import re
 from datetime import datetime
+from typing import List
 
 import bittensor as bt
-from natix.validator import model_registry
 from natix.synthetic_data_generation import SyntheticDataGenerator
 from natix.validator.config import IMAGE_ANNOTATION_MODEL, MODEL_NAMES, TEXT_MODERATION_MODEL
-from natix.utils.model_format import REQUIRED_MODEL_CARD_KEYS, OPTIONAL_MODEL_CARD_KEYS
-
-def uid_to_hotkey(uid: int, hotkeys: list[str]) -> str:
-    return hotkeys[uid]
-
-def is_valid_timestamp(ts: int) -> bool:
-    current_time = int(time.time())
-    if ts > 10**12:  # If in milliseconds
-        ts //= 1000
-    return 946684800 <= ts <= current_time
-
-def sanitize_model_repo(model_repo: str) -> str:
-    """
-    Cleans up user-provided model_repo input so it works correctly in a Hugging Face URL.
-    
-    Handles cases like:
-    - https://huggingface.co/user/model
-    - /user/model/
-    - user/model/
-    - user/model
-    """
-    # Step 1: Remove huggingface.co domain if present
-    model_repo = re.sub(r"^https?://huggingface\.co", "", model_repo.strip())
-
-    # Step 2: Remove leading and trailing slashes
-    model_repo = model_repo.strip("/")
-
-    # Step 3: Ensure format is user/repo or user/repo/subdir
-    if not re.match(r"^[\w\-]+/[\w\-]+(?:/[\w\-/]*)?$", model_repo):
-        raise ValueError(f"Invalid model repo format: {model_repo}")
-
-    return model_repo
 
 
-def fetch_model_card(model_url: str, uid: int, version: int = None):
-    model_repo = f"{model_url}"
-    if version:
-        model_repo += f"-v{version}"
-
-    clean_repo = sanitize_model_repo(model_repo)
-    model_card_url = f"https://huggingface.co/{clean_repo}/resolve/main/model_card.json"
+def check_miner_model(proxy_client_url: str, miner_uids: List[int]):
     try:
-        response = requests.get(model_card_url, timeout=30)  # 30-second timeout
+        url = f"{proxy_client_url}/participant/model-validity"
+        uid_list = [str(uid) for uid in miner_uids]
+        response = requests.post(url, json={"uid_list": uid_list}, timeout=30)
         response.raise_for_status()
-        model_card = response.json()
+        model_validity = response.json()
+        return model_validity
     except requests.RequestException as e:
-        bt.logging.warning(f"Error fetching model card for {model_repo}: {e}")
-        return None
+        bt.logging.warning(f"Error fetching model cards: {e}")
+        return [False] * len(miner_uids)
 
-    return model_card
-
-def validate_model_card(card: dict, uid: int, model_url: str, hotkeys: list[str]):
-    missing_keys = [k for k in REQUIRED_MODEL_CARD_KEYS if k not in card]
-    if missing_keys:
-        bt.logging.warning(f"Invalid model card: missing keys {missing_keys}")
-        return False
-
-    submitted_by = card["submitted_by"]
-    submission_time = card["submission_time"]
-    model_name = card["model_name"]
-    model_version = card["version"]
-    expected_hotkey = uid_to_hotkey(uid, hotkeys)
-
-    if submitted_by != expected_hotkey:
-        bt.logging.warning(f"Model card submitted_by {submitted_by} does not match UID {uid}'s hotkey {expected_hotkey}")
-        return False
-
-    # Handle both Unix timestamp and ISO format datetime strings
-    try:
-        submission_timestamp = card['submission_time']
-        if isinstance(submission_timestamp, str):
-            # Try to parse ISO format datetime
-            if 'T' in submission_timestamp:
-                dt = datetime.fromisoformat(submission_timestamp.replace('Z', '+00:00'))
-                submission_timestamp = int(dt.timestamp())
-            else:
-                submission_timestamp = int(submission_timestamp)
-        else:
-            submission_timestamp = int(submission_timestamp)
-            
-        if not is_valid_timestamp(submission_timestamp):
-            bt.logging.warning(f"Invalid submission_time: {card['submission_time']} (parsed as {submission_timestamp})")
-            return False
-    except (ValueError, TypeError) as e:
-        bt.logging.warning(f"Failed to parse submission_time '{card['submission_time']}': {e}")
-        return False
-    
-    latest = model_registry.get_latest_submission(uid)
-    if latest is None:
-        # New miner
-        if model_registry.is_model_name_taken(model_name):
-            bt.logging.warning(f"Model name '{model_name}' already taken by another miner.")
-            return False
-        else:
-            model_registry.insert_submission(uid, model_name, model_version, model_url, submitted_by, submission_time)
-            bt.logging.info(f"New miner submission recorded for UID {uid}")
-            return True
-
-    bt.logging.info(f"The submitted model for UID: {uid} was valid.")
-    return True
-
-def check_miner_model(model_url: str, uid: int, hotkeys: list[str]):
-    card = fetch_model_card(model_url, uid)
-    if not card:
-        bt.logging.warning(f"No model found for uid: {uid} with model url: {model_url}")
-        return False
-
-    if validate_model_card(card, uid, model_url, hotkeys):
-        bt.logging.info(f"Model card for uid: {uid} and model url: {model_url} is valid")
-        return True
-    else:
-        bt.logging.warning(f"Invalid model card for uid: {uid} and model url: {model_url}")
-        return False
 
 def is_model_cached(model_name):
     """
