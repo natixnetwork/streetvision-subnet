@@ -63,7 +63,7 @@ def prepare_image_synapse(image: Image):
         ImageSynapse: An instance of ImageSynapse containing the encoded image and a default prediction value.
     """
     image_bytes = BytesIO()
-    image.save(image_bytes, format="JPEG")
+    image.save(image_bytes, format="PNG")
     b64_encoded_image = base64.b64encode(image_bytes.getvalue())
     return ExtendedImageSynapse(image=b64_encoded_image)
 
