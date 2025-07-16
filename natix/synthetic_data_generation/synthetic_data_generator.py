@@ -108,7 +108,6 @@ class SyntheticDataGenerator:
 
         self.output_dir = Path(output_dir) if output_dir else None
         if self.output_dir:
-            (self.output_dir / "t2v").mkdir(parents=True, exist_ok=True)
             (self.output_dir / "t2i").mkdir(parents=True, exist_ok=True)
             (self.output_dir / "i2i").mkdir(parents=True, exist_ok=True)
 

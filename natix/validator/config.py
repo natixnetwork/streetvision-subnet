@@ -123,7 +123,7 @@ def select_random_model(task: Optional[str] = None) -> str:
         NotImplementedError: If the specified modality is not supported.
     """
     if task is None or task == "random":
-        task = np.random.choice(["t2i", "i2i", "t2v"])
+        task = np.random.choice(["t2i", "i2i"])
 
     if task == "t2i":
         return np.random.choice(T2I_MODEL_NAMES)
