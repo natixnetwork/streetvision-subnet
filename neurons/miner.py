@@ -26,6 +26,7 @@ from PIL import Image
 
 import base_miner.detectors
 from base_miner.registry import DETECTOR_REGISTRY
+import base_miner.detectors
 from natix.base.miner import BaseMinerNeuron
 from natix.protocol import ExtendedImageSynapse
 from natix.utils.config import get_device
