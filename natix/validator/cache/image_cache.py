@@ -118,9 +118,9 @@ class ImageCache(BaseCache):
             try:
                 metadata = json.loads(image_path.with_suffix(".json").read_text())
                 if label is not None:
-                    if (metadata["scene_description"] and metadata["label"] == 0) or (not metadata["scene_description"] and metadata["label"] == 1):
+                    if (metadata.get("scene_description") and metadata.get("label") == 0) or (not metadata.get("scene_description") and metadata.get("label") == 1):
                         continue
-                    if metadata["label"] != label:
+                    if metadata.get("label") != label:
                         continue
 
                 image = Image.open(image_path)

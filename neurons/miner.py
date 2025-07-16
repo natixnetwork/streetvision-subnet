@@ -24,6 +24,7 @@ import typing
 import bittensor as bt
 from PIL import Image
 
+import base_miner.detectors
 from base_miner.registry import DETECTOR_REGISTRY
 from natix.base.miner import BaseMinerNeuron
 from natix.protocol import ExtendedImageSynapse
