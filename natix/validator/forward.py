@@ -31,19 +31,22 @@ from natix.validator.reward import get_rewards
 from natix.validator.verify_models import check_miner_model
 from natix.utils.wandb_utils import log_to_wandb
 
-def determine_challenge_type(media_cache):
+def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
     modality = "image"
     label = np.random.choice(list(CHALLENGE_TYPE.keys()))
-    cache = media_cache["Roadwork"][modality]
-    task = None
-    # if label == 1:
-    #     if modality == 'video':
-    #         task = 't2v'
-    #     elif modality == 'image':
-    #         # 20% chance to use i2i (in-painting)
-    #         task = 'i2i' if np.random.rand() < 0.2 else 't2i'
-    #     cache = cache[task]
-    return label, modality, task, cache
+    
+    use_synthetic = np.random.rand() < fake_prob
+    
+    if use_synthetic:
+        task = 'i2i' if np.random.rand() < 0.5 else 't2i'
+        cache = synthetic_cache[modality][task]
+        source = "synthetic"
+    else:
+        cache = media_cache["Roadwork"][modality]
+        task = "real"
+        source = "real"
+    
+    return label, modality, task, cache, source
 
 
 async def forward(self):
@@ -65,12 +68,15 @@ async def forward(self):
     """
     challenge_metadata = {}  # for bookkeeping
     challenge = {}  # for querying miners
-    label, modality, source_model_task, cache = determine_challenge_type(self.media_cache)
+    label, modality, source_model_task, cache, source = determine_challenge_type(
+        self.media_cache, self.synthetic_media_cache, self._fake_prob
+    )
     challenge_metadata["label"] = label
     challenge_metadata["modality"] = modality
     challenge_metadata["source_model_task"] = source_model_task
+    challenge_metadata["source"] = source
 
-    bt.logging.info(f"Sampling data from {modality} cache")
+    bt.logging.info(f"Sampling {source} {modality} from {source_model_task if source == 'synthetic' else 'real'} cache")
 
     if modality != "image":
         bt.logging.error(f"Unexpected modality: {modality}")
