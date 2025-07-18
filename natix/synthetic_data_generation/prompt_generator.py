@@ -61,9 +61,13 @@ class PromptGenerator:
         bt.logging.info(f"Loading caption generation model {self.vlm_name}")
         self.vlm_processor = Blip2Processor.from_pretrained(self.vlm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
         self.vlm = Blip2ForConditionalGeneration.from_pretrained(
-            self.vlm_name, torch_dtype=torch.float16, cache_dir=HUGGINGFACE_CACHE_DIR
+            self.vlm_name, torch_dtype=torch.float32, cache_dir=HUGGINGFACE_CACHE_DIR
         )
         self.vlm.to(self.device)
+        
+        # Enable CPU offloading for memory efficiency
+        if hasattr(self.vlm, 'enable_model_cpu_offload'):
+            self.vlm.enable_model_cpu_offload()
         bt.logging.info(f"Loaded image annotation model {self.vlm_name}")
 
         bt.logging.info(f"Loading caption moderation model {self.llm_name}")
