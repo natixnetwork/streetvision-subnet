@@ -62,12 +62,15 @@ class PromptGenerator:
         self.vlm_processor = Blip2Processor.from_pretrained(self.vlm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
         self.vlm = Blip2ForConditionalGeneration.from_pretrained(
             self.vlm_name, 
-            torch_dtype=torch.float16,
-            device_map="auto",
-            load_in_8bit=True,
+            torch_dtype=torch.float32,  # Load in float32 first
             cache_dir=HUGGINGFACE_CACHE_DIR
         )
-        # Don't call .to(device) when using device_map="auto"
+        self.vlm.to(self.device)
+        
+        # Convert all float32 parameters to float16 to save memory
+        for param in self.vlm.parameters():
+            if param.dtype == torch.float32:
+                param.data = param.data.to(torch.float16)
         
         # Enable CPU offloading for memory efficiency
         if hasattr(self.vlm, 'enable_model_cpu_offload'):
@@ -90,8 +93,7 @@ class PromptGenerator:
         """
         bt.logging.info("Clearing GPU memory after prompt generation")
         if self.vlm:
-            # For models loaded with device_map="auto", just delete them
-            # The device_map handles memory management automatically
+            self.vlm.to("cpu")
             del self.vlm
             self.vlm = None
 
