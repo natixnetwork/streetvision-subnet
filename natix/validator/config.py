@@ -65,6 +65,9 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
         "pipeline_cls": StableDiffusionXLPipeline,
         "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
         "use_autocast": False,
+        "enable_model_cpu_offload": True,
+        "vae_enable_slicing": True,
+        "vae_enable_tiling": True,
         "generate_args": {
             "guidance_scale": 7.5,
             "num_inference_steps": 50,
@@ -80,6 +83,9 @@ I2I_MODELS: Dict[str, Dict[str, Any]] = {
     "diffusers/stable-diffusion-xl-1.0-inpainting-0.1": {
         "pipeline_cls": AutoPipelineForInpainting,
         "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
+        "enable_model_cpu_offload": True,
+        "vae_enable_slicing": True,
+        "vae_enable_tiling": True,
         "generate_args": {
             "guidance_scale": 7.5,
             "num_inference_steps": 50,
