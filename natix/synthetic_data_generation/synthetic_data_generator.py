@@ -12,13 +12,8 @@ import bittensor as bt
 import numpy as np
 import torch
 from diffusers.utils import export_to_video
-from diffusers.utils import logging as diffusers_logging
 from PIL import Image
 
-# Suppress verbose logging
-os.environ["TRANSFORMERS_VERBOSITY"] = "error"
-os.environ["HF_HUB_VERBOSITY"] = "error"
-os.environ["DIFFUSERS_VERBOSITY"] = "error"
 
 from natix.synthetic_data_generation.image_utils import create_random_mask
 from natix.synthetic_data_generation.prompt_generator import PromptGenerator
@@ -43,9 +38,6 @@ future_warning_modules_to_ignore = ["diffusers", "transformers.tokenization_util
 
 for module in future_warning_modules_to_ignore:
     warnings.filterwarnings("ignore", category=FutureWarning, module=module)
-
-# Suppress diffusers logging
-diffusers_logging.set_verbosity_error()
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True

@@ -9,12 +9,6 @@ export PYTHONPATH=$(pwd):$PYTHONPATH
 # Using batch size 1 to avoid memory issues with large models
 BATCH_SIZE=${SYNTHETIC_BATCH_SIZE:-1}
 
-# Suppress verbose HuggingFace and diffusers logging
-export TRANSFORMERS_VERBOSITY=error
-export HF_HUB_VERBOSITY=error
-export DIFFUSERS_VERBOSITY=error
 export TOKENIZERS_PARALLELISM=false
-export HF_DATASETS_VERBOSITY=error
-export PYTHONWARNINGS="ignore"
 
 poetry run python natix/validator/scripts/run_data_generator.py --batch-size $BATCH_SIZE
