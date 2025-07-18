@@ -131,7 +131,7 @@ class SyntheticDataGenerator:
             images.append(image_sample["image"])
             labels.append(label)
             bt.logging.info(f"Sampled image {i+1}/{batch_size} for captioning (label={label}): {image_sample['path']}")
-            prompts.append(self.generate_prompt(image=image_sample["image"], clear_gpu=i == batch_size - 1))
+            prompts.append(self.generate_prompt(image=image_sample["image"], clear_gpu=True))
             bt.logging.info(f"Caption {i+1}/{batch_size} generated: {prompts[-1]}")
 
         # If specific model is set, use only that model
@@ -154,6 +154,9 @@ class SyntheticDataGenerator:
 
                 # Generate image/video from current model and prompt
                 output = self._run_generation(prompt, task=task, model_name=model_name, image=images[i], label=labels[i])
+                
+                # Clear GPU memory after generation
+                self.clear_gpu()
                 
                 # Add label to output metadata
                 output["label"] = labels[i]
