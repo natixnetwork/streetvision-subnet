@@ -14,6 +14,7 @@ import torch
 from diffusers.utils import export_to_video
 from PIL import Image
 
+
 from natix.synthetic_data_generation.image_utils import create_random_mask
 from natix.synthetic_data_generation.prompt_generator import PromptGenerator
 from natix.synthetic_data_generation.prompt_utils import truncate_prompt_if_too_long
@@ -108,7 +109,6 @@ class SyntheticDataGenerator:
 
         self.output_dir = Path(output_dir) if output_dir else None
         if self.output_dir:
-            (self.output_dir / "t2v").mkdir(parents=True, exist_ok=True)
             (self.output_dir / "t2i").mkdir(parents=True, exist_ok=True)
             (self.output_dir / "i2i").mkdir(parents=True, exist_ok=True)
 
@@ -121,14 +121,20 @@ class SyntheticDataGenerator:
         """
         prompts = []
         images = []
+        labels = []
         bt.logging.info(f"Generating {batch_size} prompts")
 
         # Generate all prompts first
         for i in range(batch_size):
-            image_sample = self.image_cache.sample()
+            label = random.choice([0, 1])
+            image_sample = self.image_cache.sample(label)
+            if image_sample is None:
+                bt.logging.warning(f"No image found for label {label}, skipping")
+                continue
             images.append(image_sample["image"])
-            bt.logging.info(f"Sampled image {i+1}/{batch_size} for captioning: {image_sample['path']}")
-            prompts.append(self.generate_prompt(image=image_sample["image"], clear_gpu=i == batch_size - 1))
+            labels.append(label)
+            bt.logging.info(f"Sampled image {i+1}/{batch_size} for captioning (label={label}): {image_sample['path']}")
+            prompts.append(self.generate_prompt(image=image_sample["image"], clear_gpu=True))
             bt.logging.info(f"Caption {i+1}/{batch_size} generated: {prompts[-1]}")
 
         # If specific model is set, use only that model
@@ -147,10 +153,18 @@ class SyntheticDataGenerator:
             modality = get_modality(model_name)
             task = get_task(model_name)
             for i, prompt in enumerate(prompts):
-                bt.logging.info(f"Started generation {i+1}/{batch_size} | Model: {model_name} | Prompt: {prompt}")
+                bt.logging.info(f"Started generation {i+1}/{batch_size} | Model: {model_name} | Label: {labels[i]} | Prompt: {prompt}")
 
                 # Generate image/video from current model and prompt
-                output = self._run_generation(prompt, task=task, model_name=model_name, image=images[i])
+                output = self._run_generation(prompt, task=task, model_name=model_name, image=images[i], label=labels[i])
+                
+                # Clear GPU memory after generation
+                self.clear_gpu()
+                
+                # Add label to output metadata
+                output["label"] = labels[i]
+                # Add scene_description field expected by the image cache
+                output["scene_description"] = prompt if labels[i] == 1 else ""
 
                 bt.logging.info(f"Writing to cache {self.output_dir}")
                 base_path = self.output_dir / task / str(output["time"])
@@ -185,7 +199,7 @@ class SyntheticDataGenerator:
         """
         prompt = self.generate_prompt(image, clear_gpu=True)
         bt.logging.info("Generating synthetic data...")
-        gen_data = self._run_generation(prompt, task, model_name, image)
+        gen_data = self._run_generation(prompt, task, model_name, image, label=1)
         self.clear_gpu()
         return gen_data
 
@@ -209,6 +223,7 @@ class SyntheticDataGenerator:
         task: Optional[str] = None,
         model_name: Optional[str] = None,
         image: Optional[Image.Image] = None,
+        label: Optional[int] = None,
         generate_at_target_size: bool = False,
     ) -> Dict[str, Any]:
         """
@@ -262,7 +277,12 @@ class SyntheticDataGenerator:
                 gen_args["width"] = gen_args["resolution"][1]
                 del gen_args["resolution"]
 
-            truncated_prompt = truncate_prompt_if_too_long(prompt, self.model)
+            # Enhance prompt for dashcam realism based on label
+            if label == 1:  # Roadwork
+                enhanced_prompt = f"{prompt}, dashcam footage, car dashboard camera view, driver's perspective, realistic road scene with construction work, roadwork signs, traffic cones, construction barriers, natural daylight, automotive photography, street level view"
+            else:  # No roadwork
+                enhanced_prompt = f"{prompt}, dashcam footage, car dashboard camera view, driver's perspective, realistic road scene, clear road, normal traffic, natural daylight, automotive photography, street level view"
+            truncated_prompt = truncate_prompt_if_too_long(enhanced_prompt, self.model)
             bt.logging.info(f"Generating media from prompt: {truncated_prompt}")
             bt.logging.info(f"Generation args: {gen_args}")
 

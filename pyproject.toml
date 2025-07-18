@@ -1,6 +1,6 @@
 [project]
 name = "natix"
-version = "0.1.0"
+version = "2.0.0"
 description = ""
 authors = [
     {name = "hayden-yuma",email = "hayden@yumaai.com"}
@@ -23,7 +23,7 @@ scikit-learn = "^1.5.2"
 transformers = "^4.47.0"
 diffusers = "^0.32.2"
 accelerate = "^1.2.0"
-bitsandbytes = "0.41.0"
+bitsandbytes = "0.46.1"
 sentencepiece = "^0.2.0"
 timm = "^1.0.12"
 einops = "^0.8.0"

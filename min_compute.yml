@@ -1,87 +1,79 @@
-# Use this document to specify the minimum compute requirements.
-# This document will be used to generate a list of recommended hardware for your subnet.
-
-# This is intended to give a rough estimate of the minimum requirements
-# so that the user can make an informed decision about whether or not
-# they want to run a miner or validator on their machine.
-
-# NOTE: Specification for miners may be different from validators
-
-version: '1.1' # update this version key as needed, ideally should match your release version
+version: '1.1'
 
 compute_spec:
 
   miner:
 
     cpu:
-      min_cores: 2            # Minimum number of CPU cores
-      min_speed: 2.5          # Minimum speed per core (GHz)
-      recommended_cores: 4    # Recommended number of CPU cores
-      recommended_speed: 3.5  # Recommended speed per core (GHz)
-      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+      min_cores: 2
+      min_speed: 2.5
+      recommended_cores: 4
+      recommended_speed: 3.5
+      architecture: "x86_64"
 
     gpu:
-      required: True                   # Does the application require a GPU?
-      min_vram: 4                      # Minimum GPU VRAM (GB)
-      recommended_vram: 8               # Recommended GPU VRAM (GB)
-      cuda_cores: 2000                     # Minimum number of CUDA cores (if applicable)
-      min_compute_capability: 6.1         # Minimum CUDA compute capability
-      recommended_compute_capability: 7.5 # Recommended CUDA compute capability
-      recommended_gpu: "NVIDIA GTX 1660 Super"            # provide a recommended GPU to purchase/rent
+      required: True
+      min_vram: 4
+      recommended_vram: 8
+      cuda_cores: 2000
+      min_compute_capability: 6.1
+      recommended_compute_capability: 7.5
+      recommended_gpu: "NVIDIA GTX 1660 Super"
 
     memory:
-      min_ram: 8           # Minimum RAM (GB)
-      min_swap: 2          # Minimum swap space (GB)
-      recommended_swap: 4  # Recommended swap space (GB)
-      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+      min_ram: 8
+      min_swap: 2
+      recommended_swap: 4
+      ram_type: "DDR4"
 
     storage:
-      min_space: 50           # Minimum free storage space (GB)
-      recommended_space: 100  # Recommended free storage space (GB)
-      type: "SSD"             # Preferred storage type (e.g., SSD, HDD)
-      min_iops: 500          # Minimum I/O operations per second (if applicable)
-      recommended_iops: 1000  # Recommended I/O operations per second
+      min_space: 50
+      recommended_space: 100
+      type: "SSD"
+      min_iops: 500
+      recommended_iops: 1000
 
     os:
-      name: "Ubuntu"  # Name of the preferred operating system(s)
-      version: 22.04  # Version of the preferred operating system(s)
+      name: "Ubuntu"
+      version: 22.04
 
   validator:
 
     cpu:
-      min_cores: 4            # Minimum number of CPU cores
-      min_speed: 2.5          # Minimum speed per core (GHz)
-      recommended_cores: 8    # Recommended number of CPU cores
-      recommended_speed: 3.5  # Recommended speed per core (GHz)
-      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+      min_cores: 4
+      min_speed: 2.5
+      recommended_cores: 8
+      recommended_speed: 3.5
+      architecture: "x86_64"
 
     gpu:
-      required: True                            # Does the application require a GPU?
-      min_vram: 12                              # Minimum GPU VRAM (GB)
-      recommended_vram: 16                      # Recommended GPU VRAM (GB)
-      min_compute_capability: 7.5               # Minimum CUDA compute capability
-      cuda_cores: 6000                          # typical for RTX 3080
-      recommended_compute_capability: 8.6       # Recommended CUDA compute capability
-      recommended_gpu: "NVIDIA RTX 3080 12GB"  # Recommended GPU to purchase/rent
+      required: True
+      min_vram: 20
+      recommended_vram: 24
+      min_compute_capability: 7.5
+      cuda_cores: 8000
+      recommended_compute_capability: 8.6
+      recommended_gpu: "NVIDIA RTX A5000 24GB"
 
     memory:
-      min_ram: 16          # Minimum RAM (GB)
-      min_swap: 4          # Minimum swap space (GB)
-      recommended_swap: 8  # Recommended swap space (GB)
-      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+      min_ram: 32
+      recommended_ram: 64
+      min_swap: 8
+      recommended_swap: 16
+      ram_type: "DDR4"
 
     storage:
-      min_space: 100           # Minimum free storage space (GB)
-      recommended_space: 400  # Recommended free storage space (GB)
-      type: "SSD"              # Preferred storage type (e.g., SSD, HDD)
-      min_iops: 1000           # Minimum I/O operations per second (if applicable)
-      recommended_iops: 5000   # Recommended I/O operations per second
+      min_space: 150
+      recommended_space: 500
+      type: "SSD"
+      min_iops: 1000
+      recommended_iops: 5000
 
     os:
-      name: "Ubuntu"  # Name of the preferred operating system(s)
-      version: 22.04  # Version of the preferred operating system(s)
+      name: "Ubuntu"
+      version: 22.04
 
 network_spec:
   bandwidth:
-    download: 100  # Minimum download bandwidth (Mbps)
-    upload: 20     # Minimum upload bandwidth (Mbps)
+    download: 100
+    upload: 20

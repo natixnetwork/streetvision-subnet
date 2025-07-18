@@ -9,6 +9,11 @@ module.exports = {
       name: "natix_cache_updater",
       script: "start_cache_updater.sh",
       interpreter: "bash",
+    },
+    {
+      name: "natix_synthetic_generator",
+      script: "start_synthetic_generator.sh",
+      interpreter: "bash",
     }
   ]
 }
