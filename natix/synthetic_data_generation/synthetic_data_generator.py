@@ -134,9 +134,11 @@ class SyntheticDataGenerator:
 
         # Generate all prompts first
         for i in range(batch_size):
-            # Sample from both labels (0: no roadwork, 1: roadwork)
             label = random.choice([0, 1])
             image_sample = self.image_cache.sample(label)
+            if image_sample is None:
+                bt.logging.warning(f"No image found for label {label}, skipping")
+                continue
             images.append(image_sample["image"])
             labels.append(label)
             bt.logging.info(f"Sampled image {i+1}/{batch_size} for captioning (label={label}): {image_sample['path']}")

@@ -14,5 +14,7 @@ export TRANSFORMERS_VERBOSITY=error
 export HF_HUB_VERBOSITY=error
 export DIFFUSERS_VERBOSITY=error
 export TOKENIZERS_PARALLELISM=false
+export HF_DATASETS_VERBOSITY=error
+export PYTHONWARNINGS="ignore"
 
 poetry run python natix/validator/scripts/run_data_generator.py --batch-size $BATCH_SIZE

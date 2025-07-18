@@ -17,10 +17,13 @@ set_verbosity_error()
 
 # Additional logging suppression
 import logging
-logging.getLogger("transformers").setLevel(logging.ERROR)
-logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
-logging.getLogger("transformers.configuration_utils").setLevel(logging.ERROR)
-logging.getLogger("transformers.tokenization_utils_base").setLevel(logging.ERROR)
+logging.getLogger("transformers").setLevel(logging.CRITICAL)
+logging.getLogger("transformers.modeling_utils").setLevel(logging.CRITICAL)
+logging.getLogger("transformers.configuration_utils").setLevel(logging.CRITICAL)
+logging.getLogger("transformers.tokenization_utils_base").setLevel(logging.CRITICAL)
+logging.getLogger("transformers.models").setLevel(logging.CRITICAL)
+logging.getLogger("transformers.models.blip_2").setLevel(logging.CRITICAL)
+logging.getLogger("transformers.models.opt").setLevel(logging.CRITICAL)
 
 
 class PromptGenerator:
