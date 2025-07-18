@@ -10,7 +10,9 @@ from transformers.utils.logging import disable_progress_bar
 
 from natix.validator.config import HUGGINGFACE_CACHE_DIR
 
+# Suppress verbose HuggingFace logging
 disable_progress_bar()
+transformers_logging.set_verbosity_error()
 
 
 class PromptGenerator:

@@ -14,6 +14,10 @@ import torch
 from diffusers.utils import export_to_video
 from PIL import Image
 
+# Suppress verbose logging
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["HF_HUB_VERBOSITY"] = "error"
+
 from natix.synthetic_data_generation.image_utils import create_random_mask
 from natix.synthetic_data_generation.prompt_generator import PromptGenerator
 from natix.synthetic_data_generation.prompt_utils import truncate_prompt_if_too_long
