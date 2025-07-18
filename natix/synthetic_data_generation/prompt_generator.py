@@ -47,7 +47,7 @@ class PromptGenerator:
         self.device = device
 
     def are_models_loaded(self) -> bool:
-        return (self.vlm is not None)  # LLM pipeline disabled for memory efficiency
+        return (self.vlm is not None) and (self.llm_pipeline is not None)
 
     def load_models(self) -> None:
         """
@@ -77,14 +77,18 @@ class PromptGenerator:
             self.vlm.enable_model_cpu_offload()
         bt.logging.info(f"Loaded image annotation model {self.vlm_name}")
 
-        bt.logging.info(f"Skipping caption moderation model {self.llm_name} to save memory")
-        # Temporarily disable LLM to save memory
-        # llm = AutoModelForCausalLM.from_pretrained(self.llm_name, torch_dtype=torch.bfloat16, cache_dir=HUGGINGFACE_CACHE_DIR)
-        # tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
-        # llm = llm.to(self.device)
-        # self.llm_pipeline = pipeline("text-generation", model=llm, tokenizer=tokenizer)
-        self.llm_pipeline = None
-        bt.logging.info(f"Caption moderation disabled for memory efficiency")
+        bt.logging.info(f"Loading caption moderation model {self.llm_name}")
+        llm = AutoModelForCausalLM.from_pretrained(self.llm_name, torch_dtype=torch.bfloat16, cache_dir=HUGGINGFACE_CACHE_DIR)
+        tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
+        llm = llm.to(self.device)
+        
+        # Convert any float32 parameters to float16 for memory efficiency
+        for param in llm.parameters():
+            if param.dtype == torch.float32:
+                param.data = param.data.to(torch.float16)
+                
+        self.llm_pipeline = pipeline("text-generation", model=llm, tokenizer=tokenizer)
+        bt.logging.info(f"Loaded caption moderation model {self.llm_name}")
 
     def clear_gpu(self) -> None:
         """
@@ -162,9 +166,8 @@ class PromptGenerator:
         if not description.endswith("."):
             description += "."
 
-        # Skip moderation to save memory
-        # moderated_description = self.moderate(description)
-        return description
+        moderated_description = self.moderate(description)
+        return moderated_description
 
     def moderate(self, description: str, max_new_tokens: int = 80) -> str:
         """
