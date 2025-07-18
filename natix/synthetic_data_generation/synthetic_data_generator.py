@@ -160,6 +160,8 @@ class SyntheticDataGenerator:
                 
                 # Add label to output metadata
                 output["label"] = labels[i]
+                # Add scene_description field expected by the image cache
+                output["scene_description"] = prompt if labels[i] == 1 else ""
 
                 bt.logging.info(f"Writing to cache {self.output_dir}")
                 base_path = self.output_dir / task / str(output["time"])
