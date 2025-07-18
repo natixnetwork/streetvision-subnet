@@ -87,6 +87,10 @@ async def forward(self):
     if challenge is None:
         bt.logging.warning("Waiting for cache to populate. Challenge skipped.")
         return
+    
+    # Log challenge details
+    scene_desc = challenge.get("metadata", {}).get("scene_description", "N/A")
+    bt.logging.info(f"Challenge details - Label: {label}, Scene description: {scene_desc}")
 
     # try:
     #     if modality == "video":
@@ -118,12 +122,11 @@ async def forward(self):
 
     # sample miner uids for challenge
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    bt.logging.debug(f"Miner UIDs to provide with synthetic challenge: {miner_uids}")
+    bt.logging.debug(f"Miner UIDs to provide with {source} challenge: {miner_uids}")
     axons = [self.metagraph.axons[uid] for uid in miner_uids]
     challenge_metadata["miner_uids"] = miner_uids.tolist()
     challenge_metadata["miner_hotkeys"] = list([axon.hotkey for axon in axons])
 
-    bt.logging.debug(f"{input_data}")
     # prepare synapse
     synapse = prepare_synapse(input_data, modality=modality)
 
