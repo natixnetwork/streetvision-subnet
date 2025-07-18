@@ -47,7 +47,7 @@ class PromptGenerator:
         self.device = device
 
     def are_models_loaded(self) -> bool:
-        return (self.vlm is not None) and (self.llm_pipeline is not None)
+        return (self.vlm is not None)  # LLM pipeline disabled for memory efficiency
 
     def load_models(self) -> None:
         """
@@ -70,12 +70,14 @@ class PromptGenerator:
             self.vlm.enable_model_cpu_offload()
         bt.logging.info(f"Loaded image annotation model {self.vlm_name}")
 
-        bt.logging.info(f"Loading caption moderation model {self.llm_name}")
-        llm = AutoModelForCausalLM.from_pretrained(self.llm_name, torch_dtype=torch.bfloat16, cache_dir=HUGGINGFACE_CACHE_DIR)
-        tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
-        llm = llm.to(self.device)
-        self.llm_pipeline = pipeline("text-generation", model=llm, tokenizer=tokenizer)
-        bt.logging.info(f"Loaded caption moderation model {self.llm_name}")
+        bt.logging.info(f"Skipping caption moderation model {self.llm_name} to save memory")
+        # Temporarily disable LLM to save memory
+        # llm = AutoModelForCausalLM.from_pretrained(self.llm_name, torch_dtype=torch.bfloat16, cache_dir=HUGGINGFACE_CACHE_DIR)
+        # tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
+        # llm = llm.to(self.device)
+        # self.llm_pipeline = pipeline("text-generation", model=llm, tokenizer=tokenizer)
+        self.llm_pipeline = None
+        bt.logging.info(f"Caption moderation disabled for memory efficiency")
 
     def clear_gpu(self) -> None:
         """
@@ -88,13 +90,21 @@ class PromptGenerator:
             del self.vlm
             self.vlm = None
 
+        if self.vlm_processor:
+            del self.vlm_processor
+            self.vlm_processor = None
+
         if self.llm_pipeline:
             self.llm_pipeline.model.to("cpu")
             del self.llm_pipeline
             self.llm_pipeline = None
 
-        gc.collect()
-        torch.cuda.empty_cache()
+        # Multiple rounds of garbage collection and cache clearing
+        for _ in range(3):
+            gc.collect()
+            torch.cuda.empty_cache()
+        
+        bt.logging.info("GPU memory cleared")
 
     def generate(self, image: Image.Image, max_new_tokens: int = 20, verbose: bool = False) -> str:
         """
@@ -145,8 +155,9 @@ class PromptGenerator:
         if not description.endswith("."):
             description += "."
 
-        moderated_description = self.moderate(description)
-        return moderated_description
+        # Skip moderation to save memory
+        # moderated_description = self.moderate(description)
+        return description
 
     def moderate(self, description: str, max_new_tokens: int = 80) -> str:
         """
