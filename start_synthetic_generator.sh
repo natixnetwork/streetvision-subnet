@@ -6,6 +6,7 @@ set +a
 export PYTHONPATH=$(pwd):$PYTHONPATH
 
 # Default batch size - can be overridden by environment variable
-BATCH_SIZE=${SYNTHETIC_BATCH_SIZE:-3}
+# Using batch size 1 to avoid memory issues with large models
+BATCH_SIZE=${SYNTHETIC_BATCH_SIZE:-1}
 
 poetry run python natix/validator/scripts/run_data_generator.py --batch-size $BATCH_SIZE
