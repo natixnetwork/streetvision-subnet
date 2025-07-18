@@ -6,13 +6,21 @@ from PIL import Image
 from transformers import AutoModelForCausalLM, AutoTokenizer, Blip2ForConditionalGeneration, Blip2Processor
 from transformers import logging as transformers_logging
 from transformers import pipeline
-from transformers.utils.logging import disable_progress_bar
+from transformers.utils.logging import disable_progress_bar, set_verbosity_error
 
 from natix.validator.config import HUGGINGFACE_CACHE_DIR
 
 # Suppress verbose HuggingFace logging
 disable_progress_bar()
 transformers_logging.set_verbosity_error()
+set_verbosity_error()
+
+# Additional logging suppression
+import logging
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
+logging.getLogger("transformers.configuration_utils").setLevel(logging.ERROR)
+logging.getLogger("transformers.tokenization_utils_base").setLevel(logging.ERROR)
 
 
 class PromptGenerator:
@@ -62,9 +70,11 @@ class PromptGenerator:
 
         bt.logging.info(f"Loading caption generation model {self.vlm_name}")
         self.vlm_processor = Blip2Processor.from_pretrained(self.vlm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
+        transformers_logging.set_verbosity(transformers_logging.CRITICAL)
+        
         self.vlm = Blip2ForConditionalGeneration.from_pretrained(
             self.vlm_name, 
-            torch_dtype=torch.float32,  # Load in float32 first
+            torch_dtype=torch.float32,
             cache_dir=HUGGINGFACE_CACHE_DIR
         )
         self.vlm.to(self.device)
@@ -80,6 +90,8 @@ class PromptGenerator:
         bt.logging.info(f"Loaded image annotation model {self.vlm_name}")
 
         bt.logging.info(f"Loading caption moderation model {self.llm_name}")
+        transformers_logging.set_verbosity(transformers_logging.CRITICAL)
+        
         llm = AutoModelForCausalLM.from_pretrained(self.llm_name, torch_dtype=torch.bfloat16, cache_dir=HUGGINGFACE_CACHE_DIR)
         tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
         llm = llm.to(self.device)
