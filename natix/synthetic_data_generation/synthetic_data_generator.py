@@ -179,6 +179,9 @@ class SyntheticDataGenerator:
                     out_path = str(base_path.with_suffix(".mp4"))
                     export_to_video(output["gen_output"].frames[0], out_path, fps=30)
                 bt.logging.info(f"Wrote to {out_path}")
+            
+            # Unload model after processing all prompts for this model
+            self.unload_model()
 
     def generate(
         self, image: Optional[Image.Image] = None, task: Optional[str] = None, model_name: Optional[str] = None
@@ -410,3 +413,25 @@ class SyntheticDataGenerator:
             self.model = None
             gc.collect()
             torch.cuda.empty_cache()
+    
+    def unload_model(self) -> None:
+        """Completely unload the current model from memory."""
+        if self.model is not None:
+            bt.logging.info(f"Unloading model {self.model_name}")
+            # Clear the model
+            del self.model
+            self.model = None
+            self.model_name = None
+            
+            # Force garbage collection
+            gc.collect()
+            
+            # Clear GPU cache and synchronize
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+                
+                # Log memory stats
+                allocated = torch.cuda.memory_allocated() / 1024**3
+                reserved = torch.cuda.memory_reserved() / 1024**3
+                bt.logging.info(f"After unload - GPU Memory Allocated: {allocated:.2f}GB, Reserved: {reserved:.2f}GB")
