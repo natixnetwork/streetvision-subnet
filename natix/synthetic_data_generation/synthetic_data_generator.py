@@ -280,12 +280,7 @@ class SyntheticDataGenerator:
                 gen_args["width"] = gen_args["resolution"][1]
                 del gen_args["resolution"]
 
-            # Enhance prompt for dashcam realism based on label
-            if label == 1:  # Roadwork
-                enhanced_prompt = f"{prompt}, dashcam footage, car dashboard camera view, driver's perspective, realistic road scene with construction work, roadwork signs, traffic cones, construction barriers, natural daylight, automotive photography, street level view"
-            else:  # No roadwork
-                enhanced_prompt = f"{prompt}, dashcam footage, car dashboard camera view, driver's perspective, realistic road scene, clear road, normal traffic, natural daylight, automotive photography, street level view"
-            truncated_prompt = truncate_prompt_if_too_long(enhanced_prompt, self.model)
+            truncated_prompt = truncate_prompt_if_too_long(prompt, self.model)
             bt.logging.info(f"Generating media from prompt: {truncated_prompt}")
             bt.logging.info(f"Generation args: {gen_args}")
 
