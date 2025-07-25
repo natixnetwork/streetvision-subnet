@@ -90,7 +90,8 @@ async def forward(self):
     
     # Log challenge details
     scene_desc = challenge.get("metadata", {}).get("scene_description", "N/A")
-    bt.logging.info(f"Challenge details - Label: {label}, Scene description: {scene_desc}")
+    image_path = challenge.get("path", "N/A")
+    bt.logging.info(f"Challenge details - Label: {label}, Scene description: {scene_desc}, Image path: {image_path}")
 
     # try:
     #     if modality == "video":
