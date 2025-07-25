@@ -1,12 +1,14 @@
 import argparse
 import time
+import os
+import psutil
+import torch
 
 import bittensor as bt
 
 from natix.synthetic_data_generation import SyntheticDataGenerator
 from natix.validator.cache import ImageCache
 from natix.validator.config import MODEL_NAMES, ROADWORK_IMAGE_CACHE_DIR, SYNTH_CACHE_DIR, get_task
-from natix.validator.scripts.util import init_wandb_run, load_validator_info
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -56,9 +58,39 @@ if __name__ == "__main__":
     bt.logging.info("Starting data generator service")
     sdg.batch_generate(batch_size=1)
 
+    # Get process for memory monitoring
+    process = psutil.Process(os.getpid())
+    batch_count = 0
+
     while True:
         try:
+            batch_count += 1
+            
+            # Monitor memory before generation
+            ram_gb = process.memory_info().rss / 1024**3
+            bt.logging.info(f"Batch {batch_count} - RAM: {ram_gb:.2f}GB")
+            
+            # Monitor GPU memory if available
+            if torch.cuda.is_available():
+                vram_allocated_gb = torch.cuda.memory_allocated() / 1024**3
+                vram_reserved_gb = torch.cuda.memory_reserved() / 1024**3
+                bt.logging.info(f"Batch {batch_count} - VRAM Allocated: {vram_allocated_gb:.2f}GB, Reserved: {vram_reserved_gb:.2f}GB")
+            
+            # Run batch generation
             sdg.batch_generate(batch_size=args.batch_size)
+            
+            # Monitor memory after generation
+            ram_gb_after = process.memory_info().rss / 1024**3
+            ram_delta = ram_gb_after - ram_gb
+            bt.logging.info(f"After batch {batch_count} - RAM: {ram_gb_after:.2f}GB (delta: {ram_delta:+.2f}GB)")
+            
+            if torch.cuda.is_available():
+                vram_allocated_gb_after = torch.cuda.memory_allocated() / 1024**3
+                vram_reserved_gb_after = torch.cuda.memory_reserved() / 1024**3
+                vram_delta = vram_allocated_gb_after - vram_allocated_gb
+                bt.logging.info(f"After batch {batch_count} - VRAM Allocated: {vram_allocated_gb_after:.2f}GB (delta: {vram_delta:+.2f}GB), Reserved: {vram_reserved_gb_after:.2f}GB")
+                
         except Exception as e:
             bt.logging.error(f"Error in batch generation: {str(e)}")
+            bt.logging.error(f"Traceback: {e.__class__.__name__}: {str(e)}")
             time.sleep(5)

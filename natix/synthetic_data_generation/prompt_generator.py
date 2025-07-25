@@ -6,11 +6,9 @@ from PIL import Image
 from transformers import AutoModelForCausalLM, AutoTokenizer, Blip2ForConditionalGeneration, Blip2Processor
 from transformers import logging as transformers_logging
 from transformers import pipeline
-from transformers.utils.logging import disable_progress_bar
 
 from natix.validator.config import HUGGINGFACE_CACHE_DIR
 
-disable_progress_bar()
 
 
 class PromptGenerator:
@@ -61,15 +59,32 @@ class PromptGenerator:
         bt.logging.info(f"Loading caption generation model {self.vlm_name}")
         self.vlm_processor = Blip2Processor.from_pretrained(self.vlm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
         self.vlm = Blip2ForConditionalGeneration.from_pretrained(
-            self.vlm_name, torch_dtype=torch.float16, cache_dir=HUGGINGFACE_CACHE_DIR
+            self.vlm_name, 
+            torch_dtype=torch.float32,
+            cache_dir=HUGGINGFACE_CACHE_DIR
         )
         self.vlm.to(self.device)
+        
+        # Convert all float32 parameters to float16 to save memory
+        for param in self.vlm.parameters():
+            if param.dtype == torch.float32:
+                param.data = param.data.to(torch.float16)
+        
+        # Enable CPU offloading for memory efficiency
+        if hasattr(self.vlm, 'enable_model_cpu_offload'):
+            self.vlm.enable_model_cpu_offload()
         bt.logging.info(f"Loaded image annotation model {self.vlm_name}")
 
         bt.logging.info(f"Loading caption moderation model {self.llm_name}")
         llm = AutoModelForCausalLM.from_pretrained(self.llm_name, torch_dtype=torch.bfloat16, cache_dir=HUGGINGFACE_CACHE_DIR)
         tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=HUGGINGFACE_CACHE_DIR)
         llm = llm.to(self.device)
+        
+        # Convert any float32 parameters to float16 for memory efficiency
+        for param in llm.parameters():
+            if param.dtype == torch.float32:
+                param.data = param.data.to(torch.float16)
+                
         self.llm_pipeline = pipeline("text-generation", model=llm, tokenizer=tokenizer)
         bt.logging.info(f"Loaded caption moderation model {self.llm_name}")
 
@@ -84,13 +99,21 @@ class PromptGenerator:
             del self.vlm
             self.vlm = None
 
+        if self.vlm_processor:
+            del self.vlm_processor
+            self.vlm_processor = None
+
         if self.llm_pipeline:
             self.llm_pipeline.model.to("cpu")
             del self.llm_pipeline
             self.llm_pipeline = None
 
-        gc.collect()
-        torch.cuda.empty_cache()
+        # Multiple rounds of garbage collection and cache clearing
+        for _ in range(3):
+            gc.collect()
+            torch.cuda.empty_cache()
+        
+        bt.logging.info("GPU memory cleared")
 
     def generate(self, image: Image.Image, max_new_tokens: int = 20, verbose: bool = False) -> str:
         """
@@ -110,11 +133,11 @@ class PromptGenerator:
             transformers_logging.set_verbosity_error()
 
         description = ""
-        prompts = ["An image of", "The setting is", "The background is", "The image type/style is"]
+        prompts = ["A dashcam view of", "The road scene shows", "The traffic situation is", "The driving conditions are"]
 
         for i, prompt in enumerate(prompts):
             description += prompt + " "
-            inputs = self.vlm_processor(image, text=description, return_tensors="pt").to(self.device, torch.float16)
+            inputs = self.vlm_processor(image, text=description, return_tensors="pt").to(self.device)
 
             generated_ids = self.vlm.generate(**inputs, max_new_tokens=max_new_tokens)
             answer = self.vlm_processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
@@ -142,7 +165,7 @@ class PromptGenerator:
             description += "."
 
         moderated_description = self.moderate(description)
-        return self.enhance(moderated_description)
+        return moderated_description
 
     def moderate(self, description: str, max_new_tokens: int = 80) -> str:
         """
@@ -181,55 +204,4 @@ class PromptGenerator:
 
         except Exception as e:
             bt.logging.error(f"An error occurred during moderation: {e}", exc_info=True)
-            return description
-
-    def enhance(self, description: str, max_new_tokens: int = 80) -> str:
-        """
-        Enhance a static image description to make it suitable for video generation
-        by adding dynamic elements and motion.
-
-        Args:
-            description: The static image description to enhance.
-            max_new_tokens: Maximum number of new tokens to generate in the enhanced text.
-
-        Returns:
-            An enhanced description suitable for video generation, or the original
-            description if enhancement fails.
-        """
-        messages = [
-            {
-                "role": "system",
-                "content": (
-                    "[INST]You are an expert at converting static image descriptions "
-                    "into dynamic video prompts. Enhance the given description by "
-                    "adding natural motion and temporal elements while preserving the "
-                    "core scene. Follow these rules:\n"
-                    "1. Maintain the essential elements of the original description\n"
-                    "2. Add smooth, continuous motions that work well in video\n"
-                    "3. For portraits: Add natural facial movements or expressions\n"
-                    "4. For non-portrait images with people: Add contextually appropriate "
-                    "actions (e.g., for a beach scene, people might be walking along "
-                    "the shoreline or playing in the waves; for a cafe scene, people "
-                    "might be sipping drinks or engaging in conversation)\n"
-                    "5. For landscapes: Add environmental motion like wind or water\n"
-                    "6. For urban scenes: Add dynamic elements like people or traffic\n"
-                    "7. Keep the description concise but descriptive\n"
-                    "8. Focus on gradual, natural transitions\n"
-                    "Only respond with the enhanced description.[/INST]"
-                ),
-            },
-            {"role": "user", "content": description},
-        ]
-
-        try:
-            enhanced_text = self.llm_pipeline(
-                messages,
-                max_new_tokens=max_new_tokens,
-                pad_token_id=self.llm_pipeline.tokenizer.eos_token_id,
-                return_full_text=False,
-            )
-            return enhanced_text[0]["generated_text"]
-
-        except Exception as e:
-            print(f"An error occurred during motion enhancement: {e}")
             return description
