@@ -135,7 +135,7 @@ async def forward(self):
     start = time.time()
     responses = await self.dendrite(axons=axons, synapse=synapse, deserialize=False, timeout=9)
     predictions = [x.prediction for x in responses]
-    bt.logging.debug(f"Predictions of synthetic challenge: {predictions}")
+    bt.logging.debug(f"Predictions of {source} challenge: {predictions}")
 
     # Check model URLs and collect invalid UIDs
     model_urls = [x.model_url for x in responses]
