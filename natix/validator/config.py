@@ -5,9 +5,6 @@ import numpy as np
 import torch
 from diffusers import (
     AutoPipelineForInpainting,
-    FluxPipeline,
-    IFPipeline,
-    IFSuperResolutionPipeline,
     StableDiffusionPipeline,
     StableDiffusionXLPipeline,
 )
@@ -59,7 +56,7 @@ IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
 
 
 # Prompt generation model configurations
-IMAGE_ANNOTATION_MODEL: str = "Salesforce/blip2-opt-6.7b-coco"
+IMAGE_ANNOTATION_MODEL: str = "Salesforce/blip2-opt-2.7b-coco"
 TEXT_MODERATION_MODEL: str = "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit" if torch.cuda.is_available() else "unsloth/Meta-Llama-3.1-8B-Instruct"
 
 # Text-to-image model configurations
@@ -68,80 +65,15 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
         "pipeline_cls": StableDiffusionXLPipeline,
         "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
         "use_autocast": False,
-    },
-    "SG161222/RealVisXL_V4.0": {
-        "pipeline_cls": StableDiffusionXLPipeline,
-        "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
-    },
-    "Corcelio/mobius": {
-        "pipeline_cls": StableDiffusionXLPipeline,
-        "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16},
-    },
-    "black-forest-labs/FLUX.1-dev": {
-        "pipeline_cls": FluxPipeline,
-        "from_pretrained_args": {
-            "use_safetensors": True,
-            "torch_dtype": torch.bfloat16,
-        },
+        "enable_model_cpu_offload": True,
+        "vae_enable_slicing": True,
+        "vae_enable_tiling": True,
         "generate_args": {
-            "guidance_scale": 2,
-            "num_inference_steps": {"min": 50, "max": 125},
+            "guidance_scale": 7.5,
+            "num_inference_steps": 50,
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
-            "resolution": [512, 768],
+            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, aerial view, bird's eye view, satellite view, top-down view, security camera angle, indoor scene, portrait, close-up face",
         },
-        "enable_model_cpu_offload": False,
-    },
-    "prompthero/openjourney-v4": {
-        "pipeline_cls": StableDiffusionPipeline,
-        "from_pretrained_args": {
-            "use_safetensors": True,
-            "torch_dtype": torch.float16,
-        },
-    },
-    "cagliostrolab/animagine-xl-3.1": {
-        "pipeline_cls": StableDiffusionXLPipeline,
-        "from_pretrained_args": {
-            "use_safetensors": True,
-            "torch_dtype": torch.float16,
-        },
-    },
-    "DeepFloyd/IF": {
-        "pipeline_cls": {"stage1": IFPipeline, "stage2": IFSuperResolutionPipeline},
-        "from_pretrained_args": {
-            "stage1": {
-                "base": "DeepFloyd/IF-I-XL-v1.0",
-                "torch_dtype": torch.float16,
-                "variant": "fp16",
-                "clean_caption": False,
-                "watermarker": None,
-                "requires_safety_checker": False,
-            },
-            "stage2": {
-                "base": "DeepFloyd/IF-II-L-v1.0",
-                "torch_dtype": torch.float16,
-                "variant": "fp16",
-                "text_encoder": None,
-                "watermarker": None,
-                "requires_safety_checker": False,
-            },
-        },
-        "pipeline_stages": [
-            {
-                "name": "stage1",
-                "args": {"output_type": "pt", "num_images_per_prompt": 1, "return_dict": True},
-                "output_attr": "images",
-                "output_transform": lambda x: x[0].unsqueeze(0),
-                "save_prompt_embeds": True,
-            },
-            {
-                "name": "stage2",
-                "input_key": "image",
-                "args": {"output_type": "pil", "num_images_per_prompt": 1},
-                "output_attr": "images",
-                "use_prompt_embeds": True,
-            },
-        ],
-        "clear_memory_on_stage_end": True,
     },
 }
 T2I_MODEL_NAMES: List[str] = list(T2I_MODELS.keys())
@@ -151,11 +83,15 @@ I2I_MODELS: Dict[str, Dict[str, Any]] = {
     "diffusers/stable-diffusion-xl-1.0-inpainting-0.1": {
         "pipeline_cls": AutoPipelineForInpainting,
         "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
+        "enable_model_cpu_offload": True,
+        "vae_enable_slicing": True,
+        "vae_enable_tiling": True,
         "generate_args": {
             "guidance_scale": 7.5,
             "num_inference_steps": 50,
             "strength": 0.99,
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
+            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, aerial view, bird's eye view, satellite view, top-down view, security camera angle, indoor scene, portrait, close-up face",
         },
     }
 }
@@ -193,7 +129,7 @@ def select_random_model(task: Optional[str] = None) -> str:
         NotImplementedError: If the specified modality is not supported.
     """
     if task is None or task == "random":
-        task = np.random.choice(["t2i", "i2i", "t2v"])
+        task = np.random.choice(["t2i", "i2i"])
 
     if task == "t2i":
         return np.random.choice(T2I_MODEL_NAMES)
