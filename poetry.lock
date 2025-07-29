@@ -325,15 +325,26 @@ tests = ["PyHamcrest (>=2.0.2)", "mypy", "pytest (>=4.6)", "pytest-benchmark", "
 
 [[package]]
 name = "bitsandbytes"
-version = "0.41.0"
+version = "0.46.1"
 description = "k-bit optimizers and matrix multiplication routines."
 optional = false
-python-versions = "*"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "bitsandbytes-0.41.0-py3-none-any.whl", hash = "sha256:dfaebbdcf48bff6628ca04880877a10b4da61e4fff62cdd3433764b1571ab3d1"},
-    {file = "bitsandbytes-0.41.0.tar.gz", hash = "sha256:5c7439f16b81e9379d648b2840c7efb7017a724f8cae2c9eab535addeb697192"},
+    {file = "bitsandbytes-0.46.1-py3-none-manylinux_2_24_aarch64.whl", hash = "sha256:21b349f776d04c6c1380405961081de29c84f49640b79d3d199b6d719818da84"},
+    {file = "bitsandbytes-0.46.1-py3-none-manylinux_2_24_x86_64.whl", hash = "sha256:b0ee4a204fb926d4eae02bc2f5468ae3c11c011cfa849a4c771d4c6b201f57ae"},
+    {file = "bitsandbytes-0.46.1-py3-none-win_amd64.whl", hash = "sha256:9f6f61376bd0e9780c5dc4ddee7d1f52cb10fe8034a1ea588611f4e8b87eb6a7"},
 ]
+
+[package.dependencies]
+numpy = ">=1.17"
+torch = ">=2.2,<3"
+
+[package.extras]
+benchmark = ["matplotlib", "pandas"]
+dev = ["bitsandbytes[test]", "build (>=1.0.0,<2)", "pre-commit (>=3.5.0,<4)", "ruff (==0.11.2)", "wheel (>=0.42,<1)"]
+docs = ["hf-doc-builder (==0.5.0)"]
+test = ["einops (>=0.8.0,<0.9.0)", "lion-pytorch (==0.2.3)", "pytest (>=8.3,<9.0)", "scipy (>=1.11.4,<2) ; python_version >= \"3.9\"", "transformers (>=4.30.1,<5)"]
 
 [[package]]
 name = "bittensor"
@@ -387,22 +398,27 @@ groups = ["main"]
 files = [
     {file = "bittensor_drand-0.5.0-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:00cb3b39405fd7ac90a31b21271669fc549ce91488b66c27cc4a85f071805ade"},
     {file = "bittensor_drand-0.5.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:42225191fe78c59997ef93e9e4284f82d02eafa322937f39c1d175d824b2efd9"},
+    {file = "bittensor_drand-0.5.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1e5fea87f3c5c47ddcbdbc35a5c35787146480a9a47b7041db2ec30631b3b7e4"},
     {file = "bittensor_drand-0.5.0-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:3cc31fe48580c3b54d480a7301b4874dbf7c7a223fe7e04e3ab8e73ffdccd7d6"},
     {file = "bittensor_drand-0.5.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:385488be142b98f37a62cdac99db0496d119c617abb675b9c71e3474cffb74da"},
     {file = "bittensor_drand-0.5.0-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:5819c54e01e8e80c9c353838cd83e2abe835f03d131afd61b9a87eb84d70a872"},
     {file = "bittensor_drand-0.5.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:988dfcdd74409b524bf378217c943631304994820fda2ef64da486aff17ae2d8"},
+    {file = "bittensor_drand-0.5.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2b5d4ba683c2dddd75e23617257efd181625fb05d7c17dc41ce32005660dcb55"},
     {file = "bittensor_drand-0.5.0-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8bf12da07322dc68b2d9faec97e648a3c2c6f54b8bc99aafb4ebbe9a3bf25ebe"},
     {file = "bittensor_drand-0.5.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f06f9fa894585ca2a9c6a521dfddde0cb1463ab0e778b63be665c386152aee1d"},
     {file = "bittensor_drand-0.5.0-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:3562489de37c3ac3d090626ee548be7718fb92eb9d1e6e3cbcbbb33fc00a77b1"},
     {file = "bittensor_drand-0.5.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:3ea5ca0f733793f20532e7254343df71367dc7839e6e7b18b5cd6600569cee82"},
+    {file = "bittensor_drand-0.5.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1b3e1a73fb8156cc15347cce8af8e562849f37161ca58ab984b06d769e5ca4b1"},
     {file = "bittensor_drand-0.5.0-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:0fe6607421fc176c114630ac21b6d13fc13a9d621f4d90abf94ce11dd5836659"},
     {file = "bittensor_drand-0.5.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:04a33f5eb28a43f9a86ec8447f155681f21c07364342d6d22b9c557bcc56502f"},
     {file = "bittensor_drand-0.5.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:25d862ab724160ff37b36c6649e12450a02b70f64ce55fe6d2d44ebe2eefa8b2"},
     {file = "bittensor_drand-0.5.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:c21805de5dda328689c15af08720aae70f68c21bb666916a40c07fa63a241ee1"},
+    {file = "bittensor_drand-0.5.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:43725e9c1bdb856f6cd256fab636a75244e5e25dc72a12b2022e8c0cfd44dc1a"},
     {file = "bittensor_drand-0.5.0-cp313-cp313-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:986221ec49fb15559f0ee186e9e6e358b7d1d90ff7ea66818b45e28d0341304e"},
     {file = "bittensor_drand-0.5.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:db3b4e5ffb0b9c378829bcdbb31c88ff6459ade94ed9641a42277824a008218a"},
     {file = "bittensor_drand-0.5.0-cp39-cp39-macosx_10_12_x86_64.whl", hash = "sha256:37b356b9a8f4df9468e4145487853ca6517718a4936da34e10062c5b7f29c352"},
     {file = "bittensor_drand-0.5.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:be3eb573ed282b1841c9e5caefad4e0c2e63e95e85c4006f8fa540bb40705adb"},
+    {file = "bittensor_drand-0.5.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:aec2467dcb285e64d492477e27ea8480bfa18b07b4874722726b62d93c54457d"},
     {file = "bittensor_drand-0.5.0-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7d2ad2aee390d428579800646b90aa69bf141874ff06b3b95f48ab713b356fb6"},
     {file = "bittensor_drand-0.5.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c0c26730fa0c07c2a30e139c0245de0dfe78d681f9e0f2fef9e70bcc3afcd0d5"},
     {file = "bittensor_drand-0.5.0.tar.gz", hash = "sha256:7ca107c1eb29b6c06fce95aec8ed44d6f8adb04cbcbccbfb46704dd01dfce23b"},
@@ -5986,4 +6002,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "0e397d9930183cb514fc5bcb22b157103dbc72d00d0aafc5bb0a44c79a3f9403"
+content-hash = "038051e2cca8cbce073c718e009ef8dec2e4b55d243ef0c533a27471df790fe9"
