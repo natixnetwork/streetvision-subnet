@@ -143,10 +143,11 @@ class SyntheticDataGenerator:
         else:
             # shuffle and interleave models to add stochasticity
             i2i_model_names = random.sample(I2I_MODEL_NAMES, len(I2I_MODEL_NAMES))
-            t2i_model_names = random.sample(T2I_MODEL_NAMES, len(T2I_MODEL_NAMES))
-            model_names = [
-                m for triple in zip_longest(t2i_model_names, i2i_model_names) for m in triple if m is not None
-            ]
+            # t2i_model_names = random.sample(T2I_MODEL_NAMES, len(T2I_MODEL_NAMES))
+            # model_names = [
+            #     m for triple in zip_longest(t2i_model_names, i2i_model_names) for m in triple if m is not None
+            # ]
+            model_names = i2i_model_names
 
         # Generate for each model/prompt combination
         for model_name in model_names:
