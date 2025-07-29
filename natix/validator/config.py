@@ -103,14 +103,16 @@ MODEL_NAMES: List[str] = list(MODELS.keys())
 
 
 def get_modality(model_name):
-    if model_name in T2I_MODEL_NAMES + I2I_MODEL_NAMES:
+    # if model_name in T2I_MODEL_NAMES + I2I_MODEL_NAMES:
+    if model_name in I2I_MODEL_NAMES:
         return "image"
 
 
 def get_task(model_name):
-    if model_name in T2I_MODEL_NAMES:
-        return "t2i"
-    elif model_name in I2I_MODEL_NAMES:
+    # if model_name in T2I_MODEL_NAMES:
+    #     return "t2i"
+    # elif model_name in I2I_MODEL_NAMES:
+    if model_name in I2I_MODEL_NAMES:
         return "i2i"
 
 
@@ -129,11 +131,13 @@ def select_random_model(task: Optional[str] = None) -> str:
         NotImplementedError: If the specified modality is not supported.
     """
     if task is None or task == "random":
-        task = np.random.choice(["t2i", "i2i"])
+        # task = np.random.choice(["t2i", "i2i"])
+        task = "i2i"
 
-    if task == "t2i":
-        return np.random.choice(T2I_MODEL_NAMES)
-    elif task == "i2i":
+    # if task == "t2i":
+    #     return np.random.choice(T2I_MODEL_NAMES)
+    # elif task == "i2i":
+    if task == "i2i":
         return np.random.choice(I2I_MODEL_NAMES)
     else:
         raise NotImplementedError(f"Unsupported task: {task}")

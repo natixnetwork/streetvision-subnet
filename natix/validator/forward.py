@@ -38,7 +38,8 @@ def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
     use_synthetic = np.random.rand() < fake_prob
     
     if use_synthetic:
-        task = 'i2i' if np.random.rand() < 0.5 else 't2i'
+        # task = 'i2i' if np.random.rand() < 0.5 else 't2i'
+        task = 'i2i'
         cache = synthetic_cache[modality][task]
         source = "synthetic"
     else:
