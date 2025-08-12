@@ -27,7 +27,7 @@ from PIL import Image
 import base_miner.detectors
 from base_miner.registry import DETECTOR_REGISTRY
 from natix.base.miner import BaseMinerNeuron
-from natix.protocol import ExtendedImageSynapse
+from natix.protocol import ExtendedImageSynapse, MinerPreferenceSynapse
 from natix.utils.config import get_device
 
 class Miner(BaseMinerNeuron):
@@ -39,6 +39,8 @@ class Miner(BaseMinerNeuron):
             forward_fn=self.forward_image,
             blacklist_fn=self.blacklist_image,
             priority_fn=self.priority_image,
+        ).attach(
+            forward_fn=self.forward_preferences,
         )
         bt.logging.info(f"Axon created: {self.axon}")
 
@@ -100,6 +102,11 @@ class Miner(BaseMinerNeuron):
 
     async def priority_image(self, synapse: ExtendedImageSynapse) -> float:
         return await self.priority(synapse)
+
+    async def forward_preferences(self, synapse: MinerPreferenceSynapse) -> MinerPreferenceSynapse:
+        bt.logging.info("Received preference query!")
+        synapse.preferred_challenges = self.config.neuron.preferred_challenges
+        return synapse
 
     def save_state(self):
         pass
