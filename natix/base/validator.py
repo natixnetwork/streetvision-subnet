@@ -35,6 +35,7 @@ from natix.base.utils.weight_utils import convert_weights_and_uids_for_emit, pro
 from natix.utils.config import add_validator_args
 from natix.utils.mock import MockDendrite
 from natix.validator.miner_performance_tracker import MinerPerformanceTracker
+from natix.validator.miner_preference_tracker import MinerPreferenceTracker
 
 class BaseValidatorNeuron(BaseNeuron):
     """
@@ -57,6 +58,11 @@ class BaseValidatorNeuron(BaseNeuron):
 
         self.image_history_cache_path = os.path.join(self.config.neuron.full_path, "image_miner_performance_tracker.pkl")
         self.load_miner_history()
+
+        self.preference_tracker = MinerPreferenceTracker()
+        self.preference_cache_path = os.path.join(self.config.neuron.full_path, "miner_preferences.pkl")
+        self.load_miner_preferences()
+        self.last_preference_collection = 0
 
         # Save a copy of the hotkeys to local memory.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
@@ -131,6 +137,45 @@ class BaseValidatorNeuron(BaseNeuron):
             bt.logging.info(f"Dendrite initialized: {self._dendrite}")
         return self._dendrite
 
+    async def collect_miner_preferences(self):
+        """
+        Collect preferences from all miners.
+        """
+        from natix.protocol import MinerPreferenceSynapse
+        from natix.validator.config import PREFERENCE_COLLECTION_INTERVAL_SECONDS
+        
+        current_time = time.time()
+        if current_time - self.last_preference_collection < PREFERENCE_COLLECTION_INTERVAL_SECONDS:
+            return
+
+        bt.logging.info("Collecting miner preferences...")
+        
+        # Get all miner UIDs
+        all_uids = list(range(len(self.metagraph.hotkeys)))
+        axons = [self.metagraph.axons[uid] for uid in all_uids]
+        
+        synapse = MinerPreferenceSynapse()
+        
+        try:
+            responses = await self.dendrite(axons=axons, synapse=synapse, deserialize=False, timeout=5)
+            
+            successful_collections = 0
+            for uid, response in zip(all_uids, responses):
+                if hasattr(response, 'preferred_challenges') and response.preferred_challenges:
+                    miner_hotkey = self.metagraph.hotkeys[uid]
+                    self.preference_tracker.update_preferences(
+                        uid, response.preferred_challenges, miner_hotkey
+                    )
+                    successful_collections += 1
+            
+            bt.logging.info(f"Successfully collected preferences from {successful_collections}/{len(all_uids)} miners")
+            self.last_preference_collection = current_time
+            
+            self.save_miner_preferences()
+            
+        except Exception as e:
+            bt.logging.error(f"Error collecting miner preferences: {e}")
+
     async def concurrent_forward(self):
         coroutines = [self.forward() for _ in range(self.config.neuron.num_concurrent_forwards)]
         await asyncio.gather(*coroutines)
@@ -204,6 +249,19 @@ class BaseValidatorNeuron(BaseNeuron):
                 except Exception as e:
                     bt.logging.warning(e)
                     bt.logging.warning("Warning, proxy can't ping to proxy-client.")
+
+            # Collect miner preferences periodically
+            try:
+                self.loop.run_until_complete(self.collect_miner_preferences())
+            except Exception as e:
+                bt.logging.error(f"Error collecting preferences: {e}")
+
+            # Report preferences to application server if proxy is enabled
+            if self.config.proxy.port and hasattr(self, 'validator_proxy'):
+                try:
+                    self.validator_proxy.report_miner_preferences()
+                except Exception as e:
+                    bt.logging.error(f"Error reporting preferences: {e}")
 
             # Run multiple forwards concurrently with error handling
             try:
@@ -476,6 +534,24 @@ class BaseValidatorNeuron(BaseNeuron):
             v1_history_cache_path = os.path.join(self.config.neuron.full_path, "miner_performance_tracker.pkl")
             self.performance_trackers["image"] = load(v1_history_cache_path)
 
+    def save_miner_preferences(self):
+        bt.logging.info(f"Saving miner preferences to {self.preference_cache_path}")
+        joblib.dump(self.preference_tracker, self.preference_cache_path)
+
+    def load_miner_preferences(self):
+        if os.path.exists(self.preference_cache_path):
+            bt.logging.info(f"Loading miner preferences from {self.preference_cache_path}")
+            try:
+                self.preference_tracker = joblib.load(self.preference_cache_path)
+                num_miners_preferences = len(self.preference_tracker.preferences)
+                bt.logging.info(f"Loaded preferences for {num_miners_preferences} miners")
+            except Exception as e:
+                bt.logging.error(f"Error loading miner preferences: {e}")
+                self.preference_tracker = MinerPreferenceTracker()
+        else:
+            bt.logging.info(f"No miner preferences found at {self.preference_cache_path} - starting fresh!")
+            self.preference_tracker = MinerPreferenceTracker()
+
     def save_state(self):
         """Saves the state of the validator to a file."""
         bt.logging.info("Saving validator state.")
@@ -488,6 +564,7 @@ class BaseValidatorNeuron(BaseNeuron):
             hotkeys=self.hotkeys,
         )
         self.save_miner_history()
+        self.save_miner_preferences()
 
     def load_state(self):
         """Loads the state of the validator from a file."""

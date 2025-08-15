@@ -19,9 +19,10 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from fastapi import Depends, FastAPI, HTTPException, Request
 from PIL import Image
 
+import natix
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import get_base_transforms
-from natix.validator.config import TARGET_IMAGE_SIZE
+from natix.validator.config import TARGET_IMAGE_SIZE, PREFERENCE_REPORTING_INTERVAL_SECONDS
 from natix.validator.proxy import ProxyCounter
 from natix.validator.organic_task_distributor import OrganicTaskDistributor
 
@@ -80,6 +81,8 @@ class ValidatorProxy:
         
         if self.validator.config.proxy.port:
             self.start_server()
+        
+        self.last_preference_report = 0
 
     def get_credentials(self):
         try:
@@ -229,6 +232,66 @@ class ValidatorProxy:
         self.proxy_counter.save()
         return HTTPException(status_code=500, detail="Unknown task status")
 
+
+    def report_miner_preferences(self):
+        """
+        Report miner preferences to the Natix application server using existing auth.
+        """
+        current_time = time.time()
+        if current_time - self.last_preference_report < PREFERENCE_REPORTING_INTERVAL_SECONDS:
+            return
+
+        try:
+            all_preferences = self.validator.preference_tracker.get_all_preferences()
+            
+            if not all_preferences:
+                bt.logging.debug("No miner preferences to report")
+                return
+
+            preferences_payload = []
+            for uid, pref_data in all_preferences.items():
+                preferences_payload.append({
+                    "miner_uid": uid,
+                    "miner_hotkey": pref_data['miner_hotkey'],
+                    "challenge_preferences": pref_data['preferred_challenges'],
+                    "last_updated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(pref_data['last_updated'])),
+                    "model_url": ""
+                })
+
+            payload = {
+                "validator_info": {
+                    "uid": self.validator.uid,
+                    "hotkey": self.validator.wallet.hotkey.ss58_address,
+                    "netuid": self.validator.config.netuid,
+                    "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(current_time))
+                },
+                "preferences": preferences_payload,
+                "collection_metadata": {
+                    "collection_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(current_time)),
+                    "total_miners_queried": len(self.validator.metagraph.hotkeys),
+                    "miners_with_preferences": len(all_preferences),
+                    "subnet_version": natix.__version__
+                }
+            }
+
+            with Client(timeout=Timeout(30)) as client:
+                response = client.post(
+                    f"{self.validator.config.proxy.proxy_client_url}/api/v1/miner-preferences",
+                    json=payload
+                )
+                response.raise_for_status()
+                
+                bt.logging.success(f"Successfully reported preferences for {len(all_preferences)} miners")
+                self.last_preference_report = current_time
+
+        except HTTPStatusError as e:
+            try:
+                error_detail = e.response.json()
+            except Exception:
+                error_detail = e.response.text
+            bt.logging.error(f"Failed to report preferences: {error_detail}")
+        except Exception as e:
+            bt.logging.error(f"Error reporting preferences: {e}")
 
     async def get_self(self):
         return self
