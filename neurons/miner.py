@@ -104,8 +104,9 @@ class Miner(BaseMinerNeuron):
         return await self.priority(synapse)
 
     async def forward_preferences(self, synapse: MinerPreferenceSynapse) -> MinerPreferenceSynapse:
-        bt.logging.info("Received preference query!")
+        bt.logging.info("Received preference query from validator!")
         synapse.preferred_challenges = self.config.neuron.preferred_challenges
+        bt.logging.info(f"Sending preferences to validator: {synapse.preferred_challenges}")
         return synapse
 
     def save_state(self):
