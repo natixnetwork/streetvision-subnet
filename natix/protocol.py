@@ -108,12 +108,12 @@ class ExtendedImageSynapse(ImageSynapse):
      model_url: str = ""
 
 class MinerPreferenceSynapse(bt.Synapse):
-    preferred_challenges: typing.List[str] = pydantic.Field(
+    preferred_challenges: typing.List[int] = pydantic.Field(
         title="Preferred Challenges",
-        description="List of challenge types this miner prefers to receive",
+        description="List of challenge type IDs this miner prefers to receive",
         default_factory=list,
         frozen=False,
     )
 
-    def deserialize(self) -> typing.List[str]:
+    def deserialize(self) -> typing.List[int]:
         return self.preferred_challenges

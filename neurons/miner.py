@@ -106,7 +106,13 @@ class Miner(BaseMinerNeuron):
     async def forward_preferences(self, synapse: MinerPreferenceSynapse) -> MinerPreferenceSynapse:
         bt.logging.info("Received preference query from validator!")
         synapse.preferred_challenges = self.config.neuron.preferred_challenges
-        bt.logging.info(f"Sending preferences to validator: {synapse.preferred_challenges}")
+        
+        # Convert IDs to names for human-readable logging
+        from natix.validator.config import CHALLENGE_TYPE
+        challenge_names = [CHALLENGE_TYPE.get(challenge_id, f"Unknown({challenge_id})") 
+                          for challenge_id in synapse.preferred_challenges]
+        
+        bt.logging.info(f"Sending preferences to validator: {challenge_names} (IDs: {synapse.preferred_challenges})")
         return synapse
 
     def save_state(self):

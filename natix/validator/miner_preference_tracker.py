@@ -10,11 +10,11 @@ class MinerPreferenceTracker:
     """
 
     def __init__(self):
-        self.preferences: Dict[int, List[str]] = {}
+        self.preferences: Dict[int, List[int]] = {}
         self.miner_hotkeys: Dict[int, str] = {}
         self.last_updated: Dict[int, float] = {}
 
-    def update_preferences(self, uid: int, preferences: List[str], miner_hotkey: str):
+    def update_preferences(self, uid: int, preferences: List[int], miner_hotkey: str):
         """
         Update the preferences for a miner.
         """
@@ -23,7 +23,11 @@ class MinerPreferenceTracker:
 
         self.preferences[uid] = preferences.copy()
         self.last_updated[uid] = time.time()
-        bt.logging.debug(f"Updated preferences for miner {uid}: {preferences}")
+        
+        # Convert IDs to names for human-readable logging
+        from natix.validator.config import CHALLENGE_TYPE
+        preference_names = [CHALLENGE_TYPE.get(pref_id, f"Unknown({pref_id})") for pref_id in preferences]
+        bt.logging.debug(f"Updated preferences for miner {uid}: {preference_names} (IDs: {preferences})")
 
     def reset_miner_preferences(self, uid: int, miner_hotkey: str):
         """
@@ -33,20 +37,20 @@ class MinerPreferenceTracker:
         self.miner_hotkeys[uid] = miner_hotkey
         self.last_updated[uid] = time.time()
 
-    def get_preferences(self, uid: int) -> List[str]:
+    def get_preferences(self, uid: int) -> List[int]:
         """
         Get the preferences for a miner.
         """
         return self.preferences.get(uid, [])
 
-    def has_preference(self, uid: int, challenge_type: str) -> bool:
+    def has_preference(self, uid: int, challenge_type: int) -> bool:
         """
         Check if a miner has a specific challenge type preference.
         """
         preferences = self.get_preferences(uid)
         return challenge_type in preferences
 
-    def get_miners_with_preference(self, challenge_type: str) -> List[int]:
+    def get_miners_with_preference(self, challenge_type: int) -> List[int]:
         """
         Get all miner UIDs that prefer a specific challenge type.
         """

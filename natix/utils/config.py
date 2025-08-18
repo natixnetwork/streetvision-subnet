@@ -231,10 +231,10 @@ def add_miner_args(cls, parser):
 
     parser.add_argument(
         "--neuron.preferred_challenges",
-        type=str,
+        type=int,
         nargs='+',
-        default=["Roadwork"],
-        help="List of preferred challenge types for this miner.",
+        default=[1],
+        help="List of preferred challenge type IDs for this miner (e.g., 1 for Roadwork).",
     )
 
 
