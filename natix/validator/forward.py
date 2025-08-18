@@ -52,7 +52,7 @@ def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
         cache = synthetic_cache[modality][task]
         source = "synthetic"
     else:
-        cache = media_cache["Roadwork"][modality]
+        cache = media_cache[challenge_name][modality]
         task = "real"
         source = "real"
     
