@@ -56,7 +56,7 @@ def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
         task = "real"
         source = "real"
     
-    return label, modality, task, cache, source
+    return label, modality, task, cache, source, challenge_type_id
 
 
 async def forward(self):
@@ -78,7 +78,7 @@ async def forward(self):
     """
     challenge_metadata = {}  # for bookkeeping
     challenge = {}  # for querying miners
-    label, modality, source_model_task, cache, source = determine_challenge_type(
+    label, modality, source_model_task, cache, source, challenge_type_id = determine_challenge_type(
         self.media_cache, self.synthetic_media_cache, self._fake_prob
     )
     challenge_metadata["label"] = label
@@ -132,7 +132,7 @@ async def forward(self):
     challenge_metadata["data_aug_level"] = level
 
     # sample miner uids for challenge
-    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size, challenge_type_id=challenge_type_id)
     bt.logging.debug(f"Miner UIDs to provide with {source} challenge: {miner_uids}")
     axons = [self.metagraph.axons[uid] for uid in miner_uids]
     challenge_metadata["miner_uids"] = miner_uids.tolist()

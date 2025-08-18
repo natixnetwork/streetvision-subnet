@@ -57,12 +57,17 @@ def get_available_challenge_types():
 
 CHALLENGE_TYPE = get_challenge_types()
 
-# Image datasets configuration
-IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
-    "Roadwork": [
-        {"path": f"{HUGGINGFACE_REPO}/roadwork"},
-    ],
-}
+def get_image_datasets() -> Dict[str, List[Dict[str, str]]]:
+    available_types = get_available_challenge_types()
+    datasets = {}
+    
+    for challenge_name in available_types:
+        dataset_path = challenge_name.lower().replace(' ', '_')
+        datasets[challenge_name] = [{"path": f"{HUGGINGFACE_REPO}/{dataset_path}"}]
+    
+    return datasets
+
+IMAGE_DATASETS = get_image_datasets()
 
 
 # Prompt generation model configurations
