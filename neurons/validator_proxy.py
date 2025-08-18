@@ -276,7 +276,7 @@ class ValidatorProxy:
 
             with Client(timeout=Timeout(30)) as client:
                 response = client.post(
-                    f"{self.validator.config.proxy.proxy_client_url}/api/v1/miner-preferences",
+                    f"{self.validator.config.proxy.proxy_client_url}/task_preferences/miners",
                     json=payload
                 )
                 response.raise_for_status()
