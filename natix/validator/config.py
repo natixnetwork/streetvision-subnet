@@ -9,6 +9,8 @@ from diffusers import (
     StableDiffusionXLPipeline,
 )
 
+from natix.utils.task_types_client import get_task_types_client
+
 TARGET_IMAGE_SIZE: tuple[int, int] = (224, 224)
 
 MAINNET_UID = 72
@@ -45,7 +47,15 @@ IMAGE_CACHE_UPDATE_INTERVAL = 1
 MAX_COMPRESSED_GB = 100
 MAX_EXTRACTED_GB = 10
 
-CHALLENGE_TYPE = {0: "None", 1: "Roadwork"}
+def get_challenge_types():
+    client = get_task_types_client()
+    return client.get_challenge_type_mapping()
+
+def get_available_challenge_types():
+    client = get_task_types_client()
+    return client.get_available_challenge_types()
+
+CHALLENGE_TYPE = get_challenge_types()
 
 # Image datasets configuration
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
