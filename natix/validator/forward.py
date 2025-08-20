@@ -124,8 +124,7 @@ async def forward(self):
 
     # sample miner uids for challenge - ONLY QUERY UID 16
     # miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    miner_uids = np.array([16])  # Only query miner UID 16
-    bt.logging.info(f"TESTING MODE: Only querying miner UID 16")
+    miner_uids = np.array([16, 61])  # Only query miner UID 16
     bt.logging.debug(f"Miner UIDs to provide with {source} challenge: {miner_uids}")
     axons = [self.metagraph.axons[uid] for uid in miner_uids]
     challenge_metadata["miner_uids"] = miner_uids.tolist()
