@@ -215,6 +215,10 @@ class BaseMinerNeuron(BaseNeuron):
             bt.logging.warning("Received a request without a dendrite or hotkey.")
             return True, "Missing dendrite or hotkey"
 
+        # Log incoming request details - IP and hotkey
+        request_ip = synapse.dendrite.ip if hasattr(synapse.dendrite, 'ip') else 'Unknown'
+        bt.logging.info(f"Incoming request from IP: {request_ip}, Hotkey: {synapse.dendrite.hotkey}")
+
         # TODO(developer): Define how miners should blacklist requests.
         uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
         if not self.config.blacklist.allow_non_registered and synapse.dendrite.hotkey not in self.metagraph.hotkeys:
@@ -228,6 +232,12 @@ class BaseMinerNeuron(BaseNeuron):
                 bt.logging.warning(f"Blacklisting a request from non-validator hotkey {synapse.dendrite.hotkey}")
                 return True, "Non-validator hotkey"
 
+        # Log accepted request with more details
+        stake = self.metagraph.S[uid] if uid < len(self.metagraph.S) else 0
+        is_validator = self.metagraph.validator_permit[uid] if uid < len(self.metagraph.validator_permit) else False
+        bt.logging.info(f"✓ Accepted request - UID: {uid}, Hotkey: {synapse.dendrite.hotkey[:8]}..., "
+                       f"IP: {synapse.dendrite.ip if hasattr(synapse.dendrite, 'ip') else 'Unknown'}, "
+                       f"Stake: {stake:.2f}, Validator: {is_validator}")
         bt.logging.trace(f"Not Blacklisting recognized hotkey {synapse.dendrite.hotkey}")
         return False, "Hotkey recognized!"
 
