@@ -8,14 +8,13 @@ import bittensor as bt
 
 from natix.synthetic_data_generation import SyntheticDataGenerator
 from natix.validator.cache import ImageCache
-from natix.validator.config import MODEL_NAMES, ROADWORK_IMAGE_CACHE_DIR, SYNTH_CACHE_DIR, get_task
+from natix.validator.config import MODEL_NAMES, SYNTH_CACHE_DIR, get_task
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--image-cache-dir",
         type=str,
-        default=ROADWORK_IMAGE_CACHE_DIR,
         help="Directory containing real images to use as reference",
     )
     parser.add_argument("--output-dir", type=str, default=SYNTH_CACHE_DIR, help="Directory to save generated data")

@@ -30,10 +30,7 @@ NATIX_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 VALIDATOR_INFO_PATH: Path = NATIX_CACHE_DIR / "validator.yaml"
 
-ROADWORK_CACHE_DIR: Path = NATIX_CACHE_DIR / "Roadwork"
 SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / "Synthetic"
-
-ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / "image"
 
 
 T2V_CACHE_DIR: Path = SYNTH_CACHE_DIR / "t2v"
