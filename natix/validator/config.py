@@ -36,8 +36,20 @@ SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / "Synthetic"
 ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / "image"
 
 
+def get_real_image_cache_dirs() -> Dict[str, Path]:
+    client = get_task_types_client()
+    challenge_types = client.get_available_challenge_types()
+    cache_dirs = {}
+    
+    for challenge_type in challenge_types:
+        challenge_dir = challenge_type.replace(' ', '_').lower()
+        cache_dir = NATIX_CACHE_DIR / challenge_dir / "image"
+        cache_dirs[challenge_type] = cache_dir
+    
+    return cache_dirs
+
+
 def get_synthetic_cache_dirs() -> Dict[str, Dict[str, Path]]:
-    """Get synthetic cache directories for all available challenge types."""
     client = get_task_types_client()
     challenge_types = client.get_available_challenge_types()
     cache_dirs = {}

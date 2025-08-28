@@ -72,6 +72,7 @@ class SyntheticDataGenerator:
         output_dir: Optional[Union[str, Path]] = None,
         image_cache: Optional[ImageCache] = None,
         device: str = "cuda",
+        task_type: Optional[str] = None,
     ) -> None:
         """
         Initialize the SyntheticDataGenerator.
@@ -83,6 +84,7 @@ class SyntheticDataGenerator:
             output_dir: Directory to write generated data.
             device: Device identifier.
             image_cache: Optional image cache instance.
+            task_type: The task type for generation (e.g., "Roadwork", "Traffic Signs")
 
         Raises:
             ValueError: If an invalid model name is provided.
@@ -95,6 +97,7 @@ class SyntheticDataGenerator:
         self.model_name = model_name
         self.model = None
         self.device = device
+        self.task_type = task_type
 
         if self.use_random_model and model_name is not None:
             bt.logging.warning("model_name will be ignored (use_random_model=True)")
@@ -105,7 +108,7 @@ class SyntheticDataGenerator:
         if self.prompt_type == "annotation" and self.image_cache is None:
             raise ValueError("image_cache cannot be None if prompt_type == 'annotation'")
 
-        self.prompt_generator = PromptGenerator(vlm_name=IMAGE_ANNOTATION_MODEL, llm_name=TEXT_MODERATION_MODEL)
+        self.prompt_generator = PromptGenerator(vlm_name=IMAGE_ANNOTATION_MODEL, llm_name=TEXT_MODERATION_MODEL, task_type=self.task_type)
 
         self.output_dir = Path(output_dir) if output_dir else None
         if self.output_dir:
@@ -162,10 +165,10 @@ class SyntheticDataGenerator:
                 # Clear GPU memory after generation
                 self.clear_gpu()
                 
-                # Add label to output metadata
                 output["label"] = labels[i]
-                # Add scene_description field expected by the image cache
                 output["scene_description"] = prompt if labels[i] == 1 else ""
+                if self.task_type:
+                    output["task_type"] = self.task_type
 
                 bt.logging.info(f"Writing to cache {self.output_dir}")
                 base_path = self.output_dir / task / str(output["time"])

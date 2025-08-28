@@ -78,6 +78,14 @@ class TaskTypesClient:
             return list(data["challenge_types"].values())
 
         return ["Roadwork"]
+    
+    def get_prompt_config(self, task_type: str) -> Dict:
+        data = self.fetch_task_types()
+        
+        if "prompt_configs" in data and task_type in data["prompt_configs"]:
+            return data["prompt_configs"][task_type]
+        
+        return {"prompts": ["A dashcam view of", "The road scene shows", "The traffic situation is", "The driving conditions are"]}
 
     def refresh_cache(self) -> Dict:
         return self.fetch_task_types(force_refresh=True)
