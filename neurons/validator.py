@@ -31,11 +31,12 @@ from natix.validator.config import (
     I2I_CACHE_DIR,
     MAINNET_UID,
     MAINNET_WANDB_PROJECT,
-    ROADWORK_IMAGE_CACHE_DIR,
+    NATIX_CACHE_DIR,
     T2I_CACHE_DIR,
     TESTNET_WANDB_PROJECT,
     VALIDATOR_INFO_PATH,
     WANDB_ENTITY,
+    get_available_challenge_types,
 )
 from natix.validator.forward import forward
 from neurons.validator_proxy import ValidatorProxy
@@ -62,23 +63,31 @@ class Validator(BaseValidatorNeuron):
         self.last_responding_miner_uids = []
         self.validator_proxy = ValidatorProxy(self)
 
-        # real media caches are updated by the natix_cache_updater process (started by start_validator.sh)
-        self.roadwork_media_cache = {
-            "image": ImageCache(ROADWORK_IMAGE_CACHE_DIR),
-        }
-
-        # synthetic media caches are populated by the SyntheticDataGenerator process (started by start_validator.sh)
         self.synthetic_media_cache = {
             "image": {"t2i": ImageCache(T2I_CACHE_DIR), "i2i": ImageCache(I2I_CACHE_DIR)},
         }
 
-        self.media_cache = {
-            "Roadwork": self.roadwork_media_cache,
-        }
+        self.media_cache = self._initialize_media_caches()
 
         self.init_wandb()
         self.store_vali_info()
         self._fake_prob = self.config.get("fake_prob", 0.5)
+
+    def _initialize_media_caches(self):
+        available_challenges = get_available_challenge_types()
+        media_cache = {}
+        
+        for challenge_name in available_challenges:
+            cache_dir = NATIX_CACHE_DIR / challenge_name.replace(' ', '_').lower()
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            
+            image_cache_dir = cache_dir / "image"
+            media_cache[challenge_name] = {
+                "image": ImageCache(image_cache_dir)
+            }
+            bt.logging.info(f"Initialized cache for challenge '{challenge_name}' at {image_cache_dir}")
+        
+        return media_cache
 
     async def forward(self):
         """

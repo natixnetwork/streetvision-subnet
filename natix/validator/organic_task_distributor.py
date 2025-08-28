@@ -215,13 +215,14 @@ class OrganicTaskDistributor:
         timestamp, _ = self._recent_tasks[task_hash]
         return time.time() - timestamp < self.deduplication_window_seconds
     
-    def _get_available_miners(self, task_hash: str, exclude_uids: Optional[List[int]] = None) -> List[int]:
+    def _get_available_miners(self, task_hash: str, exclude_uids: Optional[List[int]] = None, challenge_type_id: Optional[int] = None) -> List[int]:
         """Get miners that haven't been assigned similar tasks recently."""
         current_time = time.time()
         all_available_uids = get_random_uids(
             self.validator, 
             k=self.validator.metagraph.n.item(),
-            exclude=exclude_uids or []
+            exclude=exclude_uids or [],
+            challenge_type_id=challenge_type_id
         )
 
         available_miners = []
@@ -239,9 +240,9 @@ class OrganicTaskDistributor:
         
         return available_miners
     
-    def _select_miners_for_task(self, task_hash: str, exclude_uids: Optional[List[int]] = None) -> List[int]:
+    def _select_miners_for_task(self, task_hash: str, exclude_uids: Optional[List[int]] = None, challenge_type_id: Optional[int] = None) -> List[int]:
         """Select N random miners for a task, avoiding recent assignments."""
-        available_miners = self._get_available_miners(task_hash, exclude_uids)
+        available_miners = self._get_available_miners(task_hash, exclude_uids, challenge_type_id)
         
         if len(available_miners) < self.miners_per_task:
             bt.logging.warning(

@@ -26,14 +26,23 @@ import numpy as np
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.utils.uids import get_random_uids
-from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
+from natix.validator.config import get_challenge_types, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
 from natix.validator.verify_models import check_miner_model
 from natix.utils.wandb_utils import log_to_wandb
 
 def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
     modality = "image"
-    label = np.random.choice(list(CHALLENGE_TYPE.keys()))
+    challenge_types = get_challenge_types()
+    bt.logging.debug(f"Available challenge types: {challenge_types}")
+    
+    # Randomly select a challenge type ID
+    challenge_type_id = np.random.choice(list(challenge_types.keys()))
+    challenge_name = challenge_types[challenge_type_id]
+    bt.logging.info(f"Selected challenge type: ID={challenge_type_id} ('{challenge_name}')")
+    
+    # Randomly assign binary label (0 or 1) for whether image contains the challenge criteria
+    label = np.random.choice([0, 1])
     
     use_synthetic = np.random.rand() < fake_prob
     
@@ -43,11 +52,11 @@ def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
         cache = synthetic_cache[modality][task]
         source = "synthetic"
     else:
-        cache = media_cache["Roadwork"][modality]
+        cache = media_cache[challenge_name][modality]
         task = "real"
         source = "real"
     
-    return label, modality, task, cache, source
+    return label, modality, task, cache, source, challenge_type_id
 
 
 async def forward(self):
@@ -69,7 +78,7 @@ async def forward(self):
     """
     challenge_metadata = {}  # for bookkeeping
     challenge = {}  # for querying miners
-    label, modality, source_model_task, cache, source = determine_challenge_type(
+    label, modality, source_model_task, cache, source, challenge_type_id = determine_challenge_type(
         self.media_cache, self.synthetic_media_cache, self._fake_prob
     )
     challenge_metadata["label"] = label
@@ -123,7 +132,7 @@ async def forward(self):
     challenge_metadata["data_aug_level"] = level
 
     # sample miner uids for challenge
-    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size, challenge_type_id=challenge_type_id)
     bt.logging.debug(f"Miner UIDs to provide with {source} challenge: {miner_uids}")
     axons = [self.metagraph.axons[uid] for uid in miner_uids]
     challenge_metadata["miner_uids"] = miner_uids.tolist()

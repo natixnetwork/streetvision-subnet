@@ -9,6 +9,8 @@ from diffusers import (
     StableDiffusionXLPipeline,
 )
 
+from natix.utils.task_types_client import get_task_types_client
+
 TARGET_IMAGE_SIZE: tuple[int, int] = (224, 224)
 
 MAINNET_UID = 72
@@ -28,10 +30,7 @@ NATIX_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 VALIDATOR_INFO_PATH: Path = NATIX_CACHE_DIR / "validator.yaml"
 
-ROADWORK_CACHE_DIR: Path = NATIX_CACHE_DIR / "Roadwork"
 SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / "Synthetic"
-
-ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / "image"
 
 
 T2V_CACHE_DIR: Path = SYNTH_CACHE_DIR / "t2v"
@@ -45,14 +44,27 @@ IMAGE_CACHE_UPDATE_INTERVAL = 1
 MAX_COMPRESSED_GB = 100
 MAX_EXTRACTED_GB = 10
 
-CHALLENGE_TYPE = {0: "None", 1: "Roadwork"}
+def get_challenge_types():
+    client = get_task_types_client()
+    return client.get_challenge_type_mapping()
 
-# Image datasets configuration
-IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
-    "Roadwork": [
-        {"path": f"{HUGGINGFACE_REPO}/roadwork"},
-    ],
-}
+def get_available_challenge_types():
+    client = get_task_types_client()
+    return client.get_available_challenge_types()
+
+CHALLENGE_TYPE = get_challenge_types()
+
+def get_image_datasets() -> Dict[str, List[Dict[str, str]]]:
+    available_types = get_available_challenge_types()
+    datasets = {}
+    
+    for challenge_name in available_types:
+        dataset_path = challenge_name.lower().replace(' ', '_')
+        datasets[challenge_name] = [{"path": f"{HUGGINGFACE_REPO}/{dataset_path}"}]
+    
+    return datasets
+
+IMAGE_DATASETS = get_image_datasets()
 
 
 # Prompt generation model configurations
