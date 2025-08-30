@@ -18,4 +18,5 @@ poetry run python neurons/miner.py \
   --wallet.hotkey $WALLET_HOTKEY \
   --axon.port $MINER_AXON_PORT \
   --blacklist.force_validator_permit $BLACKLIST_FORCE_VALIDATOR_PERMIT \
+  --neuron.preferred_challenges $PREFERRED_CHALLENGES \
   --logging.debug

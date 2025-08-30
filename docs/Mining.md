@@ -130,6 +130,9 @@ BLACKLIST_FORCE_VALIDATOR_PERMIT=True # Force validator permit for blacklisting
 
 # Miner details
 MODEL_URL= # The URL to your Hugging-face repository
+
+# Challenge Preferences (optional)
+PREFERRED_CHALLENGES="1"  # Space-separated challenge type IDs
 ```
 
 Then, start your miner with:
@@ -140,6 +143,33 @@ chmod +x ./start_miner.sh
 ```
 
 This will launch `run_neuron.py` using Poetry.
+
+### Challenge Preferences
+
+Miners can declare their preferred challenge types to validators. This helps the network understand what types of tasks your miner specializes in.
+
+**Configure Challenge Preferences:**
+
+In your `miner.env` file, set the `PREFERRED_CHALLENGES` variable with space-separated challenge type IDs:
+
+```bash
+# Currently only Roadwork is supported
+PREFERRED_CHALLENGES="1"        # Roadwork (currently the only active challenge)
+```
+
+**Available Challenge Types:**
+- `1` = Roadwork *(currently supported)*
+- `2-8` = Other challenge types *(not yet implemented)*
+
+**Note:** Currently, only Roadwork (ID=1) is actively supported in the network. Additional challenge types will be added in future updates.
+
+When validators query your miner, it will respond with your declared preferences. This information is reported to the Natix application server to help optimize task distribution.
+
+**Logging:** Your miner will log preference queries like:
+```
+Received preference query from validator!
+Sending preferences to validator: ['Roadwork'] (IDs: [1])
+```
 
 You can also optionally run a cache updater service to improve image caching performance:
 
