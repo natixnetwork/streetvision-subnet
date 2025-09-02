@@ -8,6 +8,7 @@ from transformers import logging as transformers_logging
 from transformers import pipeline
 
 from natix.validator.config import HUGGINGFACE_CACHE_DIR
+from natix.utils.task_types_client import get_task_types_client
 
 
 
@@ -25,6 +26,7 @@ class PromptGenerator:
         vlm_name: str,
         llm_name: str,
         device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
+        task_type: str = None,
     ) -> None:
         """
         Initialize the ImageAnnotationGenerator with specific models and device settings.
@@ -34,6 +36,7 @@ class PromptGenerator:
             text_moderation_model_name: The name of the model used for moderating
                 text descriptions.
             device: The device to use.
+            task_type: The task type (e.g., "Roadwork", "Traffic Signs")
             apply_moderation: Flag to determine whether text moderation should be
                 applied to captions.
         """
@@ -43,6 +46,7 @@ class PromptGenerator:
         self.vlm = None
         self.llm_pipeline = None
         self.device = device
+        self.task_type = task_type
 
     def are_models_loaded(self) -> bool:
         return (self.vlm is not None) and (self.llm_pipeline is not None)
@@ -133,7 +137,10 @@ class PromptGenerator:
             transformers_logging.set_verbosity_error()
 
         description = ""
-        prompts = ["A dashcam view of", "The road scene shows", "The traffic situation is", "The driving conditions are"]
+        
+        client = get_task_types_client()
+        prompt_config = client.get_prompt_config(self.task_type or "default")
+        prompts = prompt_config.get("prompts", ["A dashcam view of", "The road scene shows", "The traffic situation is", "The driving conditions are"])
 
         for i, prompt in enumerate(prompts):
             description += prompt + " "

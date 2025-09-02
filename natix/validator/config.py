@@ -9,6 +9,8 @@ from diffusers import (
     StableDiffusionXLPipeline,
 )
 
+from natix.utils.task_types_client import get_task_types_client
+
 TARGET_IMAGE_SIZE: tuple[int, int] = (224, 224)
 
 MAINNET_UID = 72
@@ -34,7 +36,36 @@ SYNTH_CACHE_DIR: Path = NATIX_CACHE_DIR / "Synthetic"
 ROADWORK_IMAGE_CACHE_DIR: Path = ROADWORK_CACHE_DIR / "image"
 
 
-T2V_CACHE_DIR: Path = SYNTH_CACHE_DIR / "t2v"
+def get_real_image_cache_dirs() -> Dict[str, Path]:
+    client = get_task_types_client()
+    challenge_types = client.get_available_challenge_types()
+    cache_dirs = {}
+    
+    for challenge_type in challenge_types:
+        challenge_dir = challenge_type.replace(' ', '_').lower()
+        cache_dir = NATIX_CACHE_DIR / challenge_dir / "image"
+        cache_dirs[challenge_type] = cache_dir
+    
+    return cache_dirs
+
+
+def get_synthetic_cache_dirs() -> Dict[str, Dict[str, Path]]:
+    client = get_task_types_client()
+    challenge_types = client.get_available_challenge_types()
+    cache_dirs = {}
+    
+    for challenge_type in challenge_types:
+        challenge_dir = challenge_type.replace(' ', '_').lower()
+        base_dir = SYNTH_CACHE_DIR / challenge_dir
+        
+        cache_dirs[challenge_type] = {
+            "t2i": base_dir / "t2i",
+            "i2i": base_dir / "i2i"
+        }
+    
+    return cache_dirs
+
+# Legacy paths for backward compatibility
 T2I_CACHE_DIR: Path = SYNTH_CACHE_DIR / "t2i"
 I2I_CACHE_DIR: Path = SYNTH_CACHE_DIR / "i2i"
 
