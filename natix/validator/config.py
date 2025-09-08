@@ -4,9 +4,9 @@ import os
 import numpy as np
 import torch
 from diffusers import (
-    AutoPipelineForInpainting,
     StableDiffusionPipeline,
     StableDiffusionXLPipeline,
+    StableDiffusionXLImg2ImgPipeline,
 )
 
 TARGET_IMAGE_SIZE: tuple[int, int] = (224, 224)
@@ -72,7 +72,7 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
             "guidance_scale": 8.0,
             "num_inference_steps": 25,
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
-            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion, movie scene, film still",
+            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion",
         },
     },
 }
@@ -80,8 +80,8 @@ T2I_MODEL_NAMES: List[str] = list(T2I_MODELS.keys())
 
 # Image-to-image model configurations
 I2I_MODELS: Dict[str, Dict[str, Any]] = {
-    "diffusers/stable-diffusion-xl-1.0-inpainting-0.1": {
-        "pipeline_cls": AutoPipelineForInpainting,
+    "stabilityai/stable-diffusion-xl-base-1.0": {
+        "pipeline_cls": StableDiffusionXLImg2ImgPipeline,
         "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
         "enable_model_cpu_offload": True,
         "vae_enable_slicing": True,
@@ -89,9 +89,9 @@ I2I_MODELS: Dict[str, Dict[str, Any]] = {
         "generate_args": {
             "guidance_scale": 8.0,
             "num_inference_steps": 25,
-            "strength": 0.99,
+            "strength": 0.7,
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
-            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion, movie scene, film still",
+            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion",
         },
     }
 }

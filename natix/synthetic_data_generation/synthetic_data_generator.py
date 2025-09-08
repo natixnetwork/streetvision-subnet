@@ -253,14 +253,13 @@ class SyntheticDataGenerator:
         gen_args = model_config.get("generate_args", {}).copy()
         mask_center = None
 
-        # prep inpainting-specific generation args
+        # prep img2img-specific generation args
         if task == "i2i":
-            # Use larger image size for better inpainting quality
+            # Use larger image size for better img2img quality
             target_size = (1024, 1024)
             if image.size[0] > target_size[0] or image.size[1] > target_size[1]:
                 image = image.resize(target_size, Image.Resampling.LANCZOS)
 
-            gen_args["mask_image"], mask_center = create_random_mask(image.size)
             gen_args["image"] = image
 
         # Prepare generation arguments
