@@ -15,7 +15,6 @@ from diffusers.utils import export_to_video
 from PIL import Image
 
 
-from natix.synthetic_data_generation.image_utils import create_random_mask
 from natix.synthetic_data_generation.prompt_generator import PromptGenerator
 from natix.synthetic_data_generation.prompt_utils import truncate_prompt_if_too_long
 from natix.validator.cache import ImageCache
@@ -253,9 +252,7 @@ class SyntheticDataGenerator:
         gen_args = model_config.get("generate_args", {}).copy()
         mask_center = None
 
-        # prep img2img-specific generation args
         if task == "i2i":
-            # Use larger image size for better img2img quality
             target_size = (1024, 1024)
             if image.size[0] > target_size[0] or image.size[1] > target_size[1]:
                 image = image.resize(target_size, Image.Resampling.LANCZOS)

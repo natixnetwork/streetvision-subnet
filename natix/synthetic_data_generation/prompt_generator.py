@@ -131,7 +131,6 @@ class PromptGenerator:
         if not verbose:
             transformers_logging.set_verbosity_error()
 
-        # Use no prompt for pure image captioning
         inputs = self.vlm_processor(image, return_tensors="pt").to(self.device)
         
         generated_ids = self.vlm.generate(**inputs, max_new_tokens=max_new_tokens)
@@ -143,11 +142,9 @@ class PromptGenerator:
         if not verbose:
             transformers_logging.set_verbosity_info()
 
-        # Add period if missing
         if caption and not caption.endswith("."):
             caption += "."
 
-        # Return empty caption fallback if needed
         if not caption:
             caption = "Dashcam view of road scene."
 
