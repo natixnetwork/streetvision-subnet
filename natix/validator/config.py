@@ -69,10 +69,10 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
         "vae_enable_slicing": True,
         "vae_enable_tiling": True,
         "generate_args": {
-            "guidance_scale": 7.5,
-            "num_inference_steps": 50,
+            "guidance_scale": 8.0,
+            "num_inference_steps": 25,
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
-            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, aerial view, bird's eye view, satellite view, top-down view, security camera angle, indoor scene, portrait, close-up face",
+            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion, movie scene, film still",
         },
     },
 }
@@ -87,11 +87,11 @@ I2I_MODELS: Dict[str, Dict[str, Any]] = {
         "vae_enable_slicing": True,
         "vae_enable_tiling": True,
         "generate_args": {
-            "guidance_scale": 7.5,
-            "num_inference_steps": 50,
+            "guidance_scale": 8.0,
+            "num_inference_steps": 25,
             "strength": 0.99,
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
-            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, aerial view, bird's eye view, satellite view, top-down view, security camera angle, indoor scene, portrait, close-up face",
+            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion, movie scene, film still",
         },
     }
 }
@@ -103,16 +103,14 @@ MODEL_NAMES: List[str] = list(MODELS.keys())
 
 
 def get_modality(model_name):
-    # if model_name in T2I_MODEL_NAMES + I2I_MODEL_NAMES:
-    if model_name in I2I_MODEL_NAMES:
+    if model_name in T2I_MODEL_NAMES + I2I_MODEL_NAMES:
         return "image"
 
 
 def get_task(model_name):
-    # if model_name in T2I_MODEL_NAMES:
-    #     return "t2i"
-    # elif model_name in I2I_MODEL_NAMES:
-    if model_name in I2I_MODEL_NAMES:
+    if model_name in T2I_MODEL_NAMES:
+        return "t2i"
+    elif model_name in I2I_MODEL_NAMES:
         return "i2i"
 
 
@@ -131,13 +129,11 @@ def select_random_model(task: Optional[str] = None) -> str:
         NotImplementedError: If the specified modality is not supported.
     """
     if task is None or task == "random":
-        # task = np.random.choice(["t2i", "i2i"])
-        task = "i2i"
+        task = np.random.choice(["t2i", "i2i"])
 
-    # if task == "t2i":
-    #     return np.random.choice(T2I_MODEL_NAMES)
-    # elif task == "i2i":
-    if task == "i2i":
+    if task == "t2i":
+        return np.random.choice(T2I_MODEL_NAMES)
+    elif task == "i2i":
         return np.random.choice(I2I_MODEL_NAMES)
     else:
         raise NotImplementedError(f"Unsupported task: {task}")

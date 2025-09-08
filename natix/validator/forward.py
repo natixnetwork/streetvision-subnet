@@ -31,15 +31,14 @@ from natix.validator.reward import get_rewards
 from natix.validator.verify_models import check_miner_model
 from natix.utils.wandb_utils import log_to_wandb
 
-def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
+def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.8):
     modality = "image"
     label = np.random.choice(list(CHALLENGE_TYPE.keys()))
     
     use_synthetic = np.random.rand() < fake_prob
     
     if use_synthetic:
-        # task = 'i2i' if np.random.rand() < 0.5 else 't2i'
-        task = 'i2i'
+        task = 'i2i' if np.random.rand() < 0.5 else 't2i'
         cache = synthetic_cache[modality][task]
         source = "synthetic"
     else:

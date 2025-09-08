@@ -134,7 +134,7 @@ class SyntheticDataGenerator:
             images.append(image_sample["image"])
             labels.append(label)
             bt.logging.info(f"Sampled image {i+1}/{batch_size} for captioning (label={label}): {image_sample['path']}")
-            prompts.append(self.generate_prompt(image=image_sample["image"], clear_gpu=True))
+            prompts.append(self.generate_prompt(image=image_sample["image"], label=label, clear_gpu=True))
             bt.logging.info(f"Caption {i+1}/{batch_size} generated: {prompts[-1]}")
 
         # If specific model is set, use only that model
@@ -143,11 +143,10 @@ class SyntheticDataGenerator:
         else:
             # shuffle and interleave models to add stochasticity
             i2i_model_names = random.sample(I2I_MODEL_NAMES, len(I2I_MODEL_NAMES))
-            # t2i_model_names = random.sample(T2I_MODEL_NAMES, len(T2I_MODEL_NAMES))
-            # model_names = [
-            #     m for triple in zip_longest(t2i_model_names, i2i_model_names) for m in triple if m is not None
-            # ]
-            model_names = i2i_model_names
+            t2i_model_names = random.sample(T2I_MODEL_NAMES, len(T2I_MODEL_NAMES))
+            model_names = [
+                m for triple in zip_longest(t2i_model_names, i2i_model_names) for m in triple if m is not None
+            ]
 
         # Generate for each model/prompt combination
         for model_name in model_names:
@@ -207,14 +206,14 @@ class SyntheticDataGenerator:
         self.clear_gpu()
         return gen_data
 
-    def generate_prompt(self, image: Optional[Image.Image] = None, clear_gpu: bool = True) -> str:
+    def generate_prompt(self, image: Optional[Image.Image] = None, label: int = None, clear_gpu: bool = True) -> str:
         """Generate a prompt based on the specified strategy."""
         bt.logging.info("Generating prompt")
         if self.prompt_type == "annotation":
             if image is None:
                 raise ValueError("image can't be None if self.prompt_type is 'annotation'")
             self.prompt_generator.load_models()
-            prompt = self.prompt_generator.generate(image)
+            prompt = self.prompt_generator.generate(image, label)
             if clear_gpu:
                 self.prompt_generator.clear_gpu()
         else:

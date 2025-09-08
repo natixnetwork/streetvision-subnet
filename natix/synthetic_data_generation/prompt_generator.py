@@ -115,15 +115,14 @@ class PromptGenerator:
         
         bt.logging.info("GPU memory cleared")
 
-    def generate(self, image: Image.Image, max_new_tokens: int = 20, verbose: bool = False) -> str:
+    def generate(self, image: Image.Image, label: int = None, max_new_tokens: int = 80, verbose: bool = False) -> str:
         """
-        Generate a string description for a given image using prompt-based
-        captioning and building conversational context.
+        Generate a string description for a given image using BLIP2 with no prompt.
 
         Args:
             image: The image for which the description is to be generated.
-            max_new_tokens: The maximum number of tokens to generate for each
-                prompt.
+            label: 0 for no roadwork, 1 for roadwork present, None for generic.
+            max_new_tokens: The maximum number of tokens to generate.
             verbose: If True, additional logging information is printed.
 
         Returns:
@@ -132,64 +131,64 @@ class PromptGenerator:
         if not verbose:
             transformers_logging.set_verbosity_error()
 
-        description = ""
-        prompts = ["A dashcam view of", "The road scene shows", "The traffic situation is", "The driving conditions are"]
+        # Use no prompt for pure image captioning
+        inputs = self.vlm_processor(image, return_tensors="pt").to(self.device)
+        
+        generated_ids = self.vlm.generate(**inputs, max_new_tokens=max_new_tokens)
+        caption = self.vlm_processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
 
-        for i, prompt in enumerate(prompts):
-            description += prompt + " "
-            inputs = self.vlm_processor(image, text=description, return_tensors="pt").to(self.device)
-
-            generated_ids = self.vlm.generate(**inputs, max_new_tokens=max_new_tokens)
-            answer = self.vlm_processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
-
-            if verbose:
-                bt.logging.info(f"{i}. Prompt: {prompt}")
-                bt.logging.info(f"{i}. Answer: {answer}")
-
-            if answer:
-                answer = answer.rstrip(" ,;!?")
-                if not answer.endswith("."):
-                    answer += "."
-                description += answer + " "
-            else:
-                description = description[: -len(prompt) - 1]
+        if verbose:
+            bt.logging.info(f"Generated caption: {caption}")
 
         if not verbose:
             transformers_logging.set_verbosity_info()
 
-        if description.startswith(prompts[0]):
-            description = description[len(prompts[0]) :]  # noqa: E203
+        # Add period if missing
+        if caption and not caption.endswith("."):
+            caption += "."
 
-        description = description.strip()
-        if not description.endswith("."):
-            description += "."
+        # Return empty caption fallback if needed
+        if not caption:
+            caption = "Dashcam view of road scene."
 
-        moderated_description = self.moderate(description)
+        moderated_description = self.moderate(caption, label)
         return moderated_description
 
-    def moderate(self, description: str, max_new_tokens: int = 80) -> str:
+    def moderate(self, description: str, label: int = None, max_new_tokens: int = 80) -> str:
         """
         Use the text moderation pipeline to make the description more concise
-        and neutral.
+        and tailored to the specific label.
 
         Args:
             description: The text description to be moderated.
-            max_new_tokens: Maximum number of new tokens to generate in the
-                moderated text.
+            label: 0 for no roadwork, 1 for roadwork present, None for generic.
+            max_new_tokens: Maximum number of new tokens to generate.
 
         Returns:
             The moderated description text, or the original description if
             moderation fails.
         """
+        if label == 1:
+            system_content = (
+                "[INST]Rewrite as concise dashcam footage description. "
+                "Start with 'Photorealistic dashcam footage', emphasize roadwork, and keep factual.[/INST]"
+            )
+        elif label == 0:
+            system_content = (
+                "[INST]Rewrite as concise dashcam footage description. "
+                "Focus on clear roads and regular traffic. "
+                "Start with 'Photorealistic dashcam footage' of normal road and keep factual.[/INST]"
+            )
+        else:
+            system_content = (
+                "[INST]Rewrite as concise dashcam footage description. "
+                "Start with 'Photorealistic dashcam footage' and keep factual.[/INST]"
+            )
+            
         messages = [
             {
                 "role": "system",
-                "content": (
-                    "[INST]You always concisely rephrase given descriptions, "
-                    "eliminate redundancy, and remove all specific references to "
-                    "individuals by name. You do not respond with anything other "
-                    "than the revised description.[/INST]"
-                ),
+                "content": system_content,
             },
             {"role": "user", "content": description},
         ]
