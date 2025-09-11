@@ -80,9 +80,9 @@ T2I_MODEL_NAMES: List[str] = list(T2I_MODELS.keys())
 
 # Image-to-image model configurations
 I2I_MODELS: Dict[str, Dict[str, Any]] = {
-    "stabilityai/stable-diffusion-xl-base-1.0": {
+    "stabilityai/stable-diffusion-xl-base-1.0-img2img": {
         "pipeline_cls": StableDiffusionXLImg2ImgPipeline,
-        "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
+        "from_pretrained_args": {"model_id": "stabilityai/stable-diffusion-xl-base-1.0", "use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
         "enable_model_cpu_offload": True,
         "vae_enable_slicing": True,
         "vae_enable_tiling": True,
