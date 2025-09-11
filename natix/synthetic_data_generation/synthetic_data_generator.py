@@ -130,6 +130,10 @@ class SyntheticDataGenerator:
             if image_sample is None:
                 bt.logging.warning(f"No image found for label {label}, skipping")
                 continue
+            
+            bt.logging.info(f"Debug: image_sample keys: {image_sample.keys()}")
+            bt.logging.info(f"Debug: image type from cache: {type(image_sample['image'])}")
+            
             images.append(image_sample["image"])
             labels.append(label)
             bt.logging.info(f"Sampled image {i+1}/{batch_size} for captioning (label={label}): {image_sample['path']}")
@@ -253,11 +257,26 @@ class SyntheticDataGenerator:
         mask_center = None
 
         if task == "i2i":
+            bt.logging.info(f"Debug: Image type received: {type(image)}")
+            bt.logging.info(f"Debug: Image value: {image}")
+            
+            if not isinstance(image, Image.Image):
+                bt.logging.error(f"ERROR: Expected PIL Image, got {type(image)}")
+                if isinstance(image, str):
+                    bt.logging.info(f"Attempting to load image from string path: {image}")
+                    try:
+                        image = Image.open(image)
+                        bt.logging.info(f"Successfully loaded image from path")
+                    except Exception as e:
+                        bt.logging.error(f"Failed to load image: {e}")
+                        raise
+            
             target_size = (1024, 1024)
             if image.size[0] > target_size[0] or image.size[1] > target_size[1]:
                 image = image.resize(target_size, Image.Resampling.LANCZOS)
 
             gen_args["image"] = image
+            bt.logging.info(f"Debug: Final image type in gen_args: {type(gen_args['image'])}")
 
         # Prepare generation arguments
         for k, v in gen_args.items():
