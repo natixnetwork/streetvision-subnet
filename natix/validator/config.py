@@ -72,7 +72,7 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
             "guidance_scale": 8.0,
             "num_inference_steps": 25,
             "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
-            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion",
+            "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion, motion blur, blurry, out of focus, unfocused, soft focus, speed blur, camera shake, movement blur",
         },
     },
 }

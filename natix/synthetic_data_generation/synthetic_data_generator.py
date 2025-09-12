@@ -253,6 +253,18 @@ class SyntheticDataGenerator:
         mask_center = None
 
         if task == "i2i":
+            # Ensure image is a valid PIL Image
+            if not isinstance(image, Image.Image):
+                if isinstance(image, str):
+                    try:
+                        image = Image.open(image)
+                    except Exception as e:
+                        bt.logging.error(f"Failed to load image from path {image}: {e}")
+                        raise
+                else:
+                    bt.logging.error(f"Expected PIL Image or path string, got {type(image)}")
+                    raise ValueError(f"Invalid image type: {type(image)}")
+            
             target_size = (1024, 1024)
             if image.size[0] > target_size[0] or image.size[1] > target_size[1]:
                 image = image.resize(target_size, Image.Resampling.LANCZOS)
