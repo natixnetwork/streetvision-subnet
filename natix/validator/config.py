@@ -83,6 +83,7 @@ I2I_MODELS: Dict[str, Dict[str, Any]] = {
     "stabilityai/stable-diffusion-xl-base-1.0-img2img": {
         "pipeline_cls": StableDiffusionXLImg2ImgPipeline,
         "from_pretrained_args": {"model_id": "stabilityai/stable-diffusion-xl-base-1.0", "use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
+        "use_autocast": False,
         "enable_model_cpu_offload": True,
         "vae_enable_slicing": True,
         "vae_enable_tiling": True,
