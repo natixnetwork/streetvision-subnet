@@ -167,10 +167,10 @@ class PromptGenerator:
         """
         if label == 1:
             system_content = (
-                "[INST]Rewrite as concise dashcam footage description. "
-                "Start with 'Photorealistic dashcam footage' and MUST include specific roadwork elements like: "
-                "construction zones, orange cones, barriers, construction vehicles, road crews, lane closures, "
-                "construction signs, or construction equipment. The description must clearly indicate active roadwork.[/INST]"
+                "[INST]Enhance this dashcam footage description to include active roadwork. "
+                "Start with 'Photorealistic dashcam footage' and ADD roadwork elements to the existing scene: "
+                "orange traffic cones, construction barriers, construction vehicles, road crews in safety vests, "
+                "lane closure signs, construction equipment, or construction zones. The scene MUST show active roadwork.[/INST]"
             )
         elif label == 0:
             system_content = (
