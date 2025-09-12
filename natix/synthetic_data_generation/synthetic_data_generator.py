@@ -254,22 +254,32 @@ class SyntheticDataGenerator:
 
         if task == "i2i":
             # Ensure image is a valid PIL Image
+            bt.logging.info(f"I2I Debug: Input image type: {type(image)}")
             if not isinstance(image, Image.Image):
                 if isinstance(image, str):
                     try:
                         image = Image.open(image)
+                        bt.logging.info(f"I2I Debug: Loaded image from path, size: {image.size}")
                     except Exception as e:
                         bt.logging.error(f"Failed to load image from path {image}: {e}")
                         raise
                 else:
                     bt.logging.error(f"Expected PIL Image or path string, got {type(image)}")
                     raise ValueError(f"Invalid image type: {type(image)}")
+            else:
+                bt.logging.info(f"I2I Debug: PIL Image received, size: {image.size}, mode: {image.mode}")
             
             target_size = (1024, 1024)
             if image.size[0] > target_size[0] or image.size[1] > target_size[1]:
                 image = image.resize(target_size, Image.Resampling.LANCZOS)
+                bt.logging.info(f"I2I Debug: Resized to {image.size}")
 
+            # Check if image has actual content
+            extrema = image.getextrema()
+            bt.logging.info(f"I2I Debug: Image color extrema: {extrema}")
+            
             gen_args["image"] = image
+            bt.logging.info(f"I2I Debug: Added image to gen_args, gen_args keys: {list(gen_args.keys())}")
 
         # Prepare generation arguments
         for k, v in gen_args.items():
@@ -305,6 +315,16 @@ class SyntheticDataGenerator:
                     gen_output = generate(truncated_prompt, **gen_args)
             else:
                 gen_output = generate(truncated_prompt, **gen_args)
+            
+            if task == "i2i":
+                bt.logging.info(f"I2I Debug: Generation complete, output type: {type(gen_output)}")
+                if hasattr(gen_output, 'images') and len(gen_output.images) > 0:
+                    output_image = gen_output.images[0]
+                    bt.logging.info(f"I2I Debug: Output image size: {output_image.size}, mode: {output_image.mode}")
+                    output_extrema = output_image.getextrema()
+                    bt.logging.info(f"I2I Debug: Output image color extrema: {output_extrema}")
+                else:
+                    bt.logging.error(f"I2I Debug: No images in generation output or unexpected format")
 
             gen_time = time.time() - start_time
 
