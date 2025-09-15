@@ -78,7 +78,7 @@ class Validator(BaseValidatorNeuron):
 
         self.init_wandb()
         self.store_vali_info()
-        self._fake_prob = self.config.get("fake_prob", 0.8)
+        self._fake_prob = self.config.get("fake_prob", 0.5)
 
     async def forward(self):
         """
