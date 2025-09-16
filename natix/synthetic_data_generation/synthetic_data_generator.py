@@ -15,7 +15,6 @@ from diffusers.utils import export_to_video
 from PIL import Image
 
 
-from natix.synthetic_data_generation.image_utils import create_random_mask
 from natix.synthetic_data_generation.prompt_generator import PromptGenerator
 from natix.synthetic_data_generation.prompt_utils import truncate_prompt_if_too_long
 from natix.validator.cache import ImageCache
@@ -134,7 +133,7 @@ class SyntheticDataGenerator:
             images.append(image_sample["image"])
             labels.append(label)
             bt.logging.info(f"Sampled image {i+1}/{batch_size} for captioning (label={label}): {image_sample['path']}")
-            prompts.append(self.generate_prompt(image=image_sample["image"], clear_gpu=True))
+            prompts.append(self.generate_prompt(image=image_sample["image"], label=label, clear_gpu=True))
             bt.logging.info(f"Caption {i+1}/{batch_size} generated: {prompts[-1]}")
 
         # If specific model is set, use only that model
@@ -143,11 +142,10 @@ class SyntheticDataGenerator:
         else:
             # shuffle and interleave models to add stochasticity
             i2i_model_names = random.sample(I2I_MODEL_NAMES, len(I2I_MODEL_NAMES))
-            # t2i_model_names = random.sample(T2I_MODEL_NAMES, len(T2I_MODEL_NAMES))
-            # model_names = [
-            #     m for triple in zip_longest(t2i_model_names, i2i_model_names) for m in triple if m is not None
-            # ]
-            model_names = i2i_model_names
+            t2i_model_names = random.sample(T2I_MODEL_NAMES, len(T2I_MODEL_NAMES))
+            model_names = [
+                m for triple in zip_longest(t2i_model_names, i2i_model_names) for m in triple if m is not None
+            ]
 
         # Generate for each model/prompt combination
         for model_name in model_names:
@@ -207,14 +205,14 @@ class SyntheticDataGenerator:
         self.clear_gpu()
         return gen_data
 
-    def generate_prompt(self, image: Optional[Image.Image] = None, clear_gpu: bool = True) -> str:
+    def generate_prompt(self, image: Optional[Image.Image] = None, label: int = None, clear_gpu: bool = True) -> str:
         """Generate a prompt based on the specified strategy."""
         bt.logging.info("Generating prompt")
         if self.prompt_type == "annotation":
             if image is None:
                 raise ValueError("image can't be None if self.prompt_type is 'annotation'")
             self.prompt_generator.load_models()
-            prompt = self.prompt_generator.generate(image)
+            prompt = self.prompt_generator.generate(image, label)
             if clear_gpu:
                 self.prompt_generator.clear_gpu()
         else:
@@ -254,15 +252,34 @@ class SyntheticDataGenerator:
         gen_args = model_config.get("generate_args", {}).copy()
         mask_center = None
 
-        # prep inpainting-specific generation args
         if task == "i2i":
-            # Use larger image size for better inpainting quality
+            # Ensure image is a valid PIL Image
+            bt.logging.info(f"I2I Debug: Input image type: {type(image)}")
+            if not isinstance(image, Image.Image):
+                if isinstance(image, str):
+                    try:
+                        image = Image.open(image)
+                        bt.logging.info(f"I2I Debug: Loaded image from path, size: {image.size}")
+                    except Exception as e:
+                        bt.logging.error(f"Failed to load image from path {image}: {e}")
+                        raise
+                else:
+                    bt.logging.error(f"Expected PIL Image or path string, got {type(image)}")
+                    raise ValueError(f"Invalid image type: {type(image)}")
+            else:
+                bt.logging.info(f"I2I Debug: PIL Image received, size: {image.size}, mode: {image.mode}")
+            
             target_size = (1024, 1024)
             if image.size[0] > target_size[0] or image.size[1] > target_size[1]:
                 image = image.resize(target_size, Image.Resampling.LANCZOS)
+                bt.logging.info(f"I2I Debug: Resized to {image.size}")
 
-            gen_args["mask_image"], mask_center = create_random_mask(image.size)
+            # Check if image has actual content
+            extrema = image.getextrema()
+            bt.logging.info(f"I2I Debug: Image color extrema: {extrema}")
+            
             gen_args["image"] = image
+            bt.logging.info(f"I2I Debug: Added image to gen_args, gen_args keys: {list(gen_args.keys())}")
 
         # Prepare generation arguments
         for k, v in gen_args.items():
@@ -298,6 +315,16 @@ class SyntheticDataGenerator:
                     gen_output = generate(truncated_prompt, **gen_args)
             else:
                 gen_output = generate(truncated_prompt, **gen_args)
+            
+            if task == "i2i":
+                bt.logging.info(f"I2I Debug: Generation complete, output type: {type(gen_output)}")
+                if hasattr(gen_output, 'images') and len(gen_output.images) > 0:
+                    output_image = gen_output.images[0]
+                    bt.logging.info(f"I2I Debug: Output image size: {output_image.size}, mode: {output_image.mode}")
+                    output_extrema = output_image.getextrema()
+                    bt.logging.info(f"I2I Debug: Output image color extrema: {output_extrema}")
+                else:
+                    bt.logging.error(f"I2I Debug: No images in generation output or unexpected format")
 
             gen_time = time.time() - start_time
 
