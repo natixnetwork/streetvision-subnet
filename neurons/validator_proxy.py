@@ -83,6 +83,8 @@ class ValidatorProxy:
             self.start_server()
         
         self.last_preference_report = 0
+        self.challenge_type_mapping = {}
+        self._fetch_challenge_types()
 
     def get_credentials(self):
         try:
@@ -233,10 +235,36 @@ class ValidatorProxy:
         return HTTPException(status_code=500, detail="Unknown task status")
 
 
+    def get_challenge_uuid_mapping(self):
+        try:
+            with Client(timeout=Timeout(30)) as client:
+                response = client.get(f"{self.validator.config.proxy.proxy_client_url}/challenges/")
+                response.raise_for_status()
+                challenges = response.json()
+                
+                name_to_uuid = {}
+                for challenge in challenges:
+                    name_to_uuid[challenge['name'].lower()] = challenge['id']
+                
+                return name_to_uuid
+        except Exception as e:
+            bt.logging.error(f"Failed to fetch challenge UUIDs: {e}")
+            return {}
+
+    def convert_preferences_to_uuids(self, integer_preferences, challenge_mapping):
+        from natix.validator.config import CHALLENGE_TYPE
+        
+        uuid_preferences = []
+        for int_pref in integer_preferences:
+            challenge_name = CHALLENGE_TYPE.get(int_pref, "").lower()
+            if challenge_name and challenge_name in challenge_mapping:
+                uuid_preferences.append(challenge_mapping[challenge_name])
+            else:
+                bt.logging.warning(f"Could not map challenge ID {int_pref} ({challenge_name}) to UUID")
+        
+        return uuid_preferences
+
     def report_miner_preferences(self):
-        """
-        Report miner preferences to the Natix application server using existing auth.
-        """
         current_time = time.time()
         if current_time - self.last_preference_report < PREFERENCE_REPORTING_INTERVAL_SECONDS:
             return
@@ -248,26 +276,30 @@ class ValidatorProxy:
                 bt.logging.debug("No miner preferences to report")
                 return
 
+            challenge_mapping = self.get_challenge_uuid_mapping()
+            if not challenge_mapping:
+                bt.logging.error("Could not fetch challenge UUIDs, skipping preference reporting")
+                return
+
             preferences_payload = []
             for uid, pref_data in all_preferences.items():
-                preferences_payload.append({
-                    "miner_uid": uid,
-                    "miner_hotkey": pref_data['miner_hotkey'],
-                    "challenge_preferences": pref_data['preferred_challenges'],
-                    "last_updated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(pref_data['last_updated'])),
-                    "model_url": ""
-                })
+                uuid_preferences = self.convert_preferences_to_uuids(
+                    pref_data['preferred_challenges'], challenge_mapping
+                )
+                if uuid_preferences:
+                    preferences_payload.append({
+                        "miner_uid": uid,
+                        "challenge_preferences": uuid_preferences
+                    })
 
             payload = {
                 "validator_info": {
                     "uid": self.validator.uid,
-                    "hotkey": self.validator.wallet.hotkey.ss58_address,
-                    "netuid": self.validator.config.netuid,
-                    "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(current_time))
+                    "netuid": self.validator.config.netuid
                 },
                 "preferences": preferences_payload,
                 "collection_metadata": {
-                    "collection_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(current_time)),
+                    "collection_timestamp": int(current_time),
                     "total_miners_queried": len(self.validator.metagraph.hotkeys),
                     "miners_with_preferences": len(all_preferences),
                     "subnet_version": natix.__version__
@@ -276,7 +308,7 @@ class ValidatorProxy:
 
             with Client(timeout=Timeout(30)) as client:
                 response = client.post(
-                    f"{self.validator.config.proxy.proxy_client_url}/task_preferences/miners",
+                    f"{self.validator.config.proxy.proxy_client_url}/preferences/set-preferences",
                     json=payload
                 )
                 response.raise_for_status()

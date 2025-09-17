@@ -48,13 +48,7 @@ MAX_EXTRACTED_GB = 10
 CHALLENGE_TYPE = {
     0: "None", 
     1: "Roadwork",
-    2: "Traffic_Signs",
-    3: "Pedestrians", 
-    4: "Vehicles",
-    5: "Construction",
-    6: "Weather_Conditions",
-    7: "Street_Lights",
-    8: "Crosswalks"
+    2: "Street_Signs",
 }
 
 CHALLENGE_TYPE_REVERSE = {v: k for k, v in CHALLENGE_TYPE.items()}
