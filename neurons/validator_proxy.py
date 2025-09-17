@@ -83,8 +83,6 @@ class ValidatorProxy:
             self.start_server()
         
         self.last_preference_report = 0
-        self.challenge_type_mapping = {}
-        self._fetch_challenge_types()
 
     def get_credentials(self):
         try:
