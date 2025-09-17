@@ -229,6 +229,14 @@ def add_miner_args(cls, parser):
         help="The URL to the model submitted on hugging-face.",
     )
 
+    parser.add_argument(
+        "--neuron.preferred_challenges",
+        type=int,
+        nargs='+',
+        default=[1],
+        help="List of preferred challenge type IDs for this miner (e.g., 1 for Roadwork).",
+    )
+
 
 def add_validator_args(cls, parser):
     """Add validator specific arguments to the parser."""

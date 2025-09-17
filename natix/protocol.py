@@ -16,6 +16,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import base64
+import typing
 from io import BytesIO
 
 import bittensor as bt
@@ -105,3 +106,14 @@ class ImageSynapse(bt.Synapse):
 
 class ExtendedImageSynapse(ImageSynapse):
      model_url: str = ""
+
+class MinerPreferenceSynapse(bt.Synapse):
+    preferred_challenges: typing.List[int] = pydantic.Field(
+        title="Preferred Challenges",
+        description="List of challenge type IDs this miner prefers to receive",
+        default_factory=list,
+        frozen=False,
+    )
+
+    def deserialize(self) -> typing.List[int]:
+        return self.preferred_challenges

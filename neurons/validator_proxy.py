@@ -19,9 +19,10 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from fastapi import Depends, FastAPI, HTTPException, Request
 from PIL import Image
 
+import natix
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import get_base_transforms
-from natix.validator.config import TARGET_IMAGE_SIZE
+from natix.validator.config import TARGET_IMAGE_SIZE, PREFERENCE_REPORTING_INTERVAL_SECONDS
 from natix.validator.proxy import ProxyCounter
 from natix.validator.organic_task_distributor import OrganicTaskDistributor
 
@@ -80,6 +81,8 @@ class ValidatorProxy:
         
         if self.validator.config.proxy.port:
             self.start_server()
+        
+        self.last_preference_report = 0
 
     def get_credentials(self):
         try:
@@ -229,6 +232,96 @@ class ValidatorProxy:
         self.proxy_counter.save()
         return HTTPException(status_code=500, detail="Unknown task status")
 
+
+    def get_challenge_uuid_mapping(self):
+        try:
+            with Client(timeout=Timeout(30)) as client:
+                response = client.get(f"{self.validator.config.proxy.proxy_client_url}/challenges/")
+                response.raise_for_status()
+                challenges = response.json()
+                
+                name_to_uuid = {}
+                for challenge in challenges:
+                    name_to_uuid[challenge['name'].lower()] = challenge['id']
+                
+                return name_to_uuid
+        except Exception as e:
+            bt.logging.error(f"Failed to fetch challenge UUIDs: {e}")
+            return {}
+
+    def convert_preferences_to_uuids(self, integer_preferences, challenge_mapping):
+        from natix.validator.config import CHALLENGE_TYPE
+        
+        uuid_preferences = []
+        for int_pref in integer_preferences:
+            challenge_name = CHALLENGE_TYPE.get(int_pref, "").lower()
+            if challenge_name and challenge_name in challenge_mapping:
+                uuid_preferences.append(challenge_mapping[challenge_name])
+            else:
+                bt.logging.warning(f"Could not map challenge ID {int_pref} ({challenge_name}) to UUID")
+        
+        return uuid_preferences
+
+    def report_miner_preferences(self):
+        current_time = time.time()
+        if current_time - self.last_preference_report < PREFERENCE_REPORTING_INTERVAL_SECONDS:
+            return
+
+        try:
+            all_preferences = self.validator.preference_tracker.get_all_preferences()
+            
+            if not all_preferences:
+                bt.logging.debug("No miner preferences to report")
+                return
+
+            challenge_mapping = self.get_challenge_uuid_mapping()
+            if not challenge_mapping:
+                bt.logging.error("Could not fetch challenge UUIDs, skipping preference reporting")
+                return
+
+            preferences_payload = []
+            for uid, pref_data in all_preferences.items():
+                uuid_preferences = self.convert_preferences_to_uuids(
+                    pref_data['preferred_challenges'], challenge_mapping
+                )
+                if uuid_preferences:
+                    preferences_payload.append({
+                        "miner_uid": uid,
+                        "challenge_preferences": uuid_preferences
+                    })
+
+            payload = {
+                "validator_info": {
+                    "uid": self.validator.uid,
+                    "netuid": self.validator.config.netuid
+                },
+                "preferences": preferences_payload,
+                "collection_metadata": {
+                    "collection_timestamp": int(current_time),
+                    "total_miners_queried": len(self.validator.metagraph.hotkeys),
+                    "miners_with_preferences": len(all_preferences),
+                    "subnet_version": natix.__version__
+                }
+            }
+
+            with Client(timeout=Timeout(30)) as client:
+                response = client.post(
+                    f"{self.validator.config.proxy.proxy_client_url}/preferences/set-preferences",
+                    json=payload
+                )
+                response.raise_for_status()
+                
+                bt.logging.success(f"Successfully reported preferences for {len(all_preferences)} miners")
+                self.last_preference_report = current_time
+
+        except HTTPStatusError as e:
+            try:
+                error_detail = e.response.json()
+            except Exception:
+                error_detail = e.response.text
+            bt.logging.error(f"Failed to report preferences: {error_detail}")
+        except Exception as e:
+            bt.logging.error(f"Error reporting preferences: {e}")
 
     async def get_self(self):
         return self

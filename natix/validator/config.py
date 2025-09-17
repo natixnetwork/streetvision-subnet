@@ -45,7 +45,16 @@ IMAGE_CACHE_UPDATE_INTERVAL = 1
 MAX_COMPRESSED_GB = 100
 MAX_EXTRACTED_GB = 10
 
-CHALLENGE_TYPE = {0: "None", 1: "Roadwork"}
+CHALLENGE_TYPE = {
+    0: "None", 
+    1: "Roadwork",
+    2: "Street_Signs",
+}
+
+CHALLENGE_TYPE_REVERSE = {v: k for k, v in CHALLENGE_TYPE.items()}
+AVAILABLE_CHALLENGE_TYPES = list(CHALLENGE_TYPE.values())[1:]
+PREFERENCE_COLLECTION_INTERVAL_SECONDS = 300
+PREFERENCE_REPORTING_INTERVAL_SECONDS = 900
 
 # Image datasets configuration
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
