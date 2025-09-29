@@ -120,7 +120,7 @@ MAX_ATTEMPTS=$(( TIMEOUT_SECONDS / POLL_INTERVAL ))
 
 # POST request
 echo -e "${GREEN}Sending registration request to Natix...${RESET}"
-ENQUEUE_RES="$(curl -sS -X POST "$BASE_URL/participant/register" \
+ENQUEUE_RES="$(curl -sS -X POST "$BASE_URL/participants/register" \
   -H "Content-Type: application/json" \
   -d "$JSON")"
 
@@ -148,7 +148,7 @@ echo -e "  We will now periodically check your registration status."
 echo -e "  If the registration doesn't complete during this script run,"
 echo -e "  you can manually check it later with this command:"
 echo
-echo -e "    ${BOLD}curl -s ${BASE_URL}/participant/registration-status/${uid} | jq${RESET}"
+echo -e "    ${BOLD}curl -s ${BASE_URL}/participants/registration-status/${uid} | jq${RESET}"
 echo
 echo -e "  Replace 'jq' with 'python -m json.tool' if you don't have jq installed."
 echo
@@ -162,7 +162,7 @@ echo -e "${CYAN}Polling registration status for UID ${YELLOW}$BT_UID${CYAN} (eve
 attempt=0
 while (( attempt < MAX_ATTEMPTS )); do
   ((attempt++))
-  STATUS_RES="$(curl -sS "$BASE_URL/participant/registration-status/$BT_UID")"
+  STATUS_RES="$(curl -sS "$BASE_URL/participants/registration-status/$BT_UID")"
 
   echo $STATUS_RES
 
