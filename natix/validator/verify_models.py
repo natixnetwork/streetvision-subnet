@@ -12,7 +12,7 @@ from natix.validator.config import IMAGE_ANNOTATION_MODEL, MODEL_NAMES, TEXT_MOD
 
 def check_miner_model(proxy_client_url: str, miner_uids: List[int]):
     try:
-        url = f"{proxy_client_url}/participant/model-validity"
+        url = f"{proxy_client_url}/participants/model-validity"
         uid_list = [str(uid) for uid in miner_uids]
         response = requests.post(url, json={"uid_list": uid_list}, timeout=30)
         response.raise_for_status()

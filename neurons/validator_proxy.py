@@ -85,7 +85,7 @@ class ValidatorProxy:
         try:
             with Client(timeout=Timeout(30)) as client:
                 response = client.post(
-                    f"{self.validator.config.proxy.proxy_client_url}/credentials/get",
+                    f"{self.validator.config.proxy.proxy_client_url}/credentials",
                     json={
                         "postfix": (
                             f":{self.validator.config.proxy.port}/validator_proxy" if self.validator.config.proxy.port else ""
@@ -121,6 +121,7 @@ class ValidatorProxy:
         except Exception as e:
             bt.logging.exception(f"Unexpected error while getting credentials: {e}")
             return None
+
     def start_server(self):
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.executor.submit(uvicorn.run, self.app, host="0.0.0.0", port=self.validator.config.proxy.port)
@@ -128,7 +129,7 @@ class ValidatorProxy:
     def authenticate_token(self, public_key_bytes):
         public_key_bytes = base64.b64decode(public_key_bytes)
         try:
-            self.verify_credentials(public_key_bytes)
+            self.get_credentials(public_key_bytes)
             bt.logging.info("Successfully authenticated token")
             return public_key_bytes
         except Exception as e:
