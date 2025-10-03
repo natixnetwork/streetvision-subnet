@@ -105,3 +105,9 @@ class ImageSynapse(bt.Synapse):
 
 class ExtendedImageSynapse(ImageSynapse):
      model_url: str = ""
+     explanation: str = pydantic.Field(
+        title="Explanation",
+        description="Textual explanation of visual indicators for roadwork detection. Required if prediction > 0.5. Example: 'orange traffic cones in left lane, construction barriers across road'",
+        default="",
+        frozen=False,
+    )

@@ -1,14 +1,20 @@
 import asyncio
+import base64
 import hashlib
 import random
 import time
 import threading
 from collections import defaultdict, deque
+from io import BytesIO
 from typing import Dict, List, Optional, Set, Tuple
 
 import bittensor as bt
+from PIL import Image
 
 from natix.utils.uids import get_random_uids
+from natix.validator.organic_validator import OrganicValidator
+from natix.validator.organic_evaluator import OrganicEvaluator
+from natix.validator.config import ORGANIC_EVAL_CONFIG
 
 
 class OrganicTaskDistributor:
@@ -34,16 +40,21 @@ class OrganicTaskDistributor:
         self.miner_cooldown_seconds = miner_cooldown_seconds
         self.max_concurrent_tasks = max_concurrent_tasks
         self.stagger_delay_range = stagger_delay_range
-        
+
         # State tracking
         self._lock = asyncio.Lock()
         self._recent_tasks = {}
         self._miner_recent_assignments = defaultdict(lambda: deque(maxlen=100))
         self._active_tasks = set()
         self._completed_tasks = {}
-        
+
         # Dendrite will be initialized when first needed in async context
         self._dendrite = None
+
+        # Organic evaluation components
+        self._organic_validator = None
+        self._organic_evaluator = None
+        self.eval_config = ORGANIC_EVAL_CONFIG
     
     @property
     def dendrite(self):
@@ -56,6 +67,36 @@ class OrganicTaskDistributor:
                 self._dendrite = bt.dendrite(wallet=self.validator.wallet)
             bt.logging.info(f"OrganicTaskDistributor dendrite initialized: {self._dendrite}")
         return self._dendrite
+
+    @property
+    def organic_validator(self):
+        """Lazy initialization of Florence-2 validator."""
+        if self._organic_validator is None and self.eval_config["enabled"]:
+            bt.logging.info("Initializing OrganicValidator...")
+            self._organic_validator = OrganicValidator(
+                model_name=self.eval_config["florence"]["model_name"],
+                device=self.eval_config["florence"]["device"],
+                torch_dtype=self.eval_config["florence"]["torch_dtype"]
+            )
+        return self._organic_validator
+
+    @property
+    def organic_evaluator(self):
+        """Lazy initialization of organic evaluator."""
+        if self._organic_evaluator is None and self.eval_config["enabled"]:
+            if self.organic_validator is None:
+                return None
+            bt.logging.info("Initializing OrganicEvaluator...")
+            self._organic_evaluator = OrganicEvaluator(
+                organic_validator=self.organic_validator,
+                performance_trackers=self.validator.performance_trackers,
+                sample_rate=self.eval_config["sample_rate"],
+                similarity_threshold=self.eval_config["similarity_threshold"],
+                explanation_required_threshold=self.eval_config["explanation_required_threshold"],
+                weights=self.eval_config["weights"],
+                penalties=self.eval_config["penalties"]
+            )
+        return self._organic_evaluator
     
     async def distribute_task(
         self, 
@@ -134,16 +175,49 @@ class OrganicTaskDistributor:
             }
 
             results = await self._staggered_distribution(selected_miners, task_data)
-            
+
             valid_results = []
             invalid_results = []
-            
+
             for result in results:
                 if result.get('result') is not None and result['result'] != -1.0:
                     valid_results.append(result)
                 else:
                     invalid_results.append(result)
-            
+
+            rewards = None
+            metrics = None
+            evaluation_type = None
+
+            if self.eval_config["enabled"] and self.organic_evaluator:
+                try:
+                    image = Image.open(BytesIO(image_data))
+                    axons = [self.validator.metagraph.axons[uid] for uid in selected_miners]
+
+                    if self.organic_evaluator.should_validate(task_hash):
+                        bt.logging.info(f"[ORGANIC] Deep validation for task {task_hash}")
+                        rewards, metrics = self.organic_evaluator.evaluate_responses(
+                            image=image,
+                            responses=results,
+                            uids=selected_miners,
+                            axons=axons
+                        )
+                        evaluation_type = "deep"
+
+                        self.validator.update_scores(rewards, selected_miners)
+                        bt.logging.info(f"[ORGANIC] Updated scores for {len(selected_miners)} miners")
+                    else:
+                        bt.logging.debug(f"[ORGANIC] Lightweight validation for task {task_hash}")
+                        rewards, metrics = self.organic_evaluator.evaluate_lightweight(
+                            responses=results,
+                            uids=selected_miners
+                        )
+                        evaluation_type = "lightweight"
+
+                except Exception as e:
+                    bt.logging.error(f"[ORGANIC] Evaluation error for task {task_hash}: {e}")
+                    evaluation_type = "failed"
+
             task_result = {
                 'task_hash': task_hash,
                 'status': 'completed',
@@ -153,18 +227,20 @@ class OrganicTaskDistributor:
                 'total_miners_queried': len(selected_miners),
                 'valid_responses': len(valid_results),
                 'timestamp': current_time,
-                'completion_time': time.time()
+                'completion_time': time.time(),
+                'evaluation_type': evaluation_type,
+                'rewards': rewards.tolist() if rewards is not None else None,
+                'metrics': metrics
             }
-            
-            # Store completed task
+
             async with self._lock:
                 self._completed_tasks[task_hash] = task_result
                 self._active_tasks.discard(task_hash)
-            
+
             bt.logging.success(
-                f"[ORGANIC] Task {task_hash} completed: {len(valid_results)}/{len(selected_miners)} valid responses"
+                f"[ORGANIC] Task {task_hash} completed: {len(valid_results)}/{len(selected_miners)} valid responses (eval: {evaluation_type})"
             )
-            
+
             return task_result
             
         except Exception as e:

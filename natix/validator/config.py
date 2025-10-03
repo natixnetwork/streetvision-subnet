@@ -138,3 +138,27 @@ def select_random_model(task: Optional[str] = None) -> str:
         return np.random.choice(I2I_MODEL_NAMES)
     else:
         raise NotImplementedError(f"Unsupported task: {task}")
+
+
+ORGANIC_EVAL_CONFIG = {
+    "enabled": True,
+    "sample_rate": 0.15,
+    "similarity_threshold": 0.9,
+    "explanation_required_threshold": 0.5,
+    "weights": {
+        "prediction_accuracy": 0.4,
+        "object_verification": 0.3,
+        "explanation_quality": 0.2,
+        "diversity_bonus": 0.1
+    },
+    "penalties": {
+        "missing_explanation": 0.0,
+        "false_claim": -0.3,
+        "high_similarity": -0.2
+    },
+    "florence": {
+        "model_name": "microsoft/Florence-2-large",
+        "device": "cuda" if torch.cuda.is_available() else "cpu",
+        "torch_dtype": torch.float16 if torch.cuda.is_available() else torch.float32
+    }
+}
