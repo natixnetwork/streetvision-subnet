@@ -458,8 +458,3 @@ class SyntheticDataGenerator:
                 allocated = torch.cuda.memory_allocated() / 1024**3
                 reserved = torch.cuda.memory_reserved() / 1024**3
                 bt.logging.info(f"After unload - GPU Memory Allocated: {allocated:.2f}GB, Reserved: {reserved:.2f}GB")
-
-    def unload_models(self) -> None:
-        self.unload_model()
-        if hasattr(self, 'prompt_generator') and self.prompt_generator:
-            self.prompt_generator.clear_gpu()
