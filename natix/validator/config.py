@@ -47,6 +47,9 @@ MAX_EXTRACTED_GB = 10
 
 CHALLENGE_TYPE = {0: "None", 1: "Roadwork"}
 
+# Reward curve steepness parameter (1.0 = no change, >1.0 = steeper curve)
+REWARD_CURVE_EXPONENT = 3.0
+
 # Image datasets configuration
 IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
     "Roadwork": [
@@ -57,13 +60,21 @@ IMAGE_DATASETS: Dict[str, List[Dict[str, str]]] = {
 
 # Prompt generation model configurations
 IMAGE_ANNOTATION_MODEL: str = "Salesforce/blip2-opt-2.7b-coco"
-TEXT_MODERATION_MODEL: str = "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit" if torch.cuda.is_available() else "unsloth/Meta-Llama-3.1-8B-Instruct"
+TEXT_MODERATION_MODEL: str = (
+    "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit"
+    if torch.cuda.is_available()
+    else "unsloth/Meta-Llama-3.1-8B-Instruct"
+)
 
 # Text-to-image model configurations
 T2I_MODELS: Dict[str, Dict[str, Any]] = {
     "stabilityai/stable-diffusion-xl-base-1.0": {
         "pipeline_cls": StableDiffusionXLPipeline,
-        "from_pretrained_args": {"use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
+        "from_pretrained_args": {
+            "use_safetensors": True,
+            "torch_dtype": torch.float16,
+            "variant": "fp16",
+        },
         "use_autocast": False,
         "enable_model_cpu_offload": True,
         "vae_enable_slicing": True,
@@ -71,7 +82,9 @@ T2I_MODELS: Dict[str, Dict[str, Any]] = {
         "generate_args": {
             "guidance_scale": 8.0,
             "num_inference_steps": 25,
-            "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
+            "generator": torch.Generator(
+                "cuda" if torch.cuda.is_available() else "cpu"
+            ),
             "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion, motion blur, blurry, out of focus, unfocused, soft focus, speed blur, camera shake, movement blur",
         },
     },
@@ -82,7 +95,12 @@ T2I_MODEL_NAMES: List[str] = list(T2I_MODELS.keys())
 I2I_MODELS: Dict[str, Dict[str, Any]] = {
     "stabilityai/stable-diffusion-xl-base-1.0-img2img": {
         "pipeline_cls": StableDiffusionXLImg2ImgPipeline,
-        "from_pretrained_args": {"model_id": "stabilityai/stable-diffusion-xl-base-1.0", "use_safetensors": True, "torch_dtype": torch.float16, "variant": "fp16"},
+        "from_pretrained_args": {
+            "model_id": "stabilityai/stable-diffusion-xl-base-1.0",
+            "use_safetensors": True,
+            "torch_dtype": torch.float16,
+            "variant": "fp16",
+        },
         "use_autocast": False,
         "enable_model_cpu_offload": True,
         "vae_enable_slicing": True,
@@ -91,7 +109,9 @@ I2I_MODELS: Dict[str, Dict[str, Any]] = {
             "guidance_scale": 8.0,
             "num_inference_steps": 25,
             "strength": 0.7,
-            "generator": torch.Generator("cuda" if torch.cuda.is_available() else "cpu"),
+            "generator": torch.Generator(
+                "cuda" if torch.cuda.is_available() else "cpu"
+            ),
             "negative_prompt": "cartoon, anime, painting, drawing, artistic, stylized, illustration, sketch, unrealistic, fake, artificial, 3d render, cgi, video game, fantasy, sci-fi, aerial view, bird's eye view, satellite view, drone footage, helicopter view, top-down view, security camera, cctv, surveillance camera, indoor scene, interior, portrait, face, person close-up, selfie, vibrant colors, oversaturated, neon, glowing, night vision, thermal imaging, fisheye lens, wide angle distortion",
         },
     }

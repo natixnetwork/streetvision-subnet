@@ -21,6 +21,8 @@ from typing import Any, Dict, List, Tuple
 import bittensor as bt
 import numpy as np
 
+from natix.validator.config import REWARD_CURVE_EXPONENT
+
 
 def compute_penalty(y_pred: float) -> float:
     """
@@ -87,6 +89,8 @@ def get_rewards(
             else:
                 reward = 0.5 * metrics_100["mcc"] + 0.5 * metrics_10["accuracy"]
                 reward *= compute_penalty(pred_prob)
+                # Apply reward curve steepness transformation
+                reward = reward ** REWARD_CURVE_EXPONENT
 
             miner_modality_rewards[modality] = reward
             miner_modality_metrics[modality] = metrics_100
