@@ -171,6 +171,11 @@ if __name__ == "__main__":
         default=10,
         help="Maximum age of synthetic images in days before cleanup (default: 10 days)",
     )
+    parser.add_argument(
+        "--run-once",
+        action="store_true",
+        help="Run generation once and exit (for testing or manual runs)",
+    )
     args = parser.parse_args()
 
     if args.model:
@@ -198,6 +203,20 @@ if __name__ == "__main__":
         output_dir=args.output_dir,
     )
 
+    # Run-once mode for testing
+    if args.run_once:
+        bt.logging.info("Running in single-run mode (--run-once)")
+        bt.logging.info(f"Weekly target: {args.weekly_target} images per model")
+        bt.logging.info(f"Max age: {args.max_age_days} days")
+        try:
+            run_weekly_generation(args, sdg, image_cache)
+            bt.logging.info("Single run completed successfully")
+        except Exception as e:
+            bt.logging.error(f"Error in generation: {e}")
+            exit(1)
+        exit(0)
+
+    # Normal scheduled mode
     bt.logging.info("Starting weekly data generator service with APScheduler")
     bt.logging.info(f"Scheduled to run every Sunday at 2:00 AM")
     bt.logging.info(f"Weekly target: {args.weekly_target} images per model")
