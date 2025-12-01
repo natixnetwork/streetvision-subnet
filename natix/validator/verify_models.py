@@ -1,26 +1,7 @@
 import os
-import requests
-import time
-import re
-from datetime import datetime
-from typing import List
-
 import bittensor as bt
 from natix.synthetic_data_generation import SyntheticDataGenerator
 from natix.validator.config import IMAGE_ANNOTATION_MODEL, MODEL_NAMES, TEXT_MODERATION_MODEL
-
-
-def check_miner_model(proxy_client_url: str, miner_uids: List[int]):
-    try:
-        url = f"{proxy_client_url}/participant/model-validity"
-        uid_list = [str(uid) for uid in miner_uids]
-        response = requests.post(url, json={"uid_list": uid_list}, timeout=30)
-        response.raise_for_status()
-        model_validity = response.json()
-        return model_validity
-    except requests.RequestException as e:
-        bt.logging.warning(f"Error fetching model cards: {e}")
-        return [False] * len(miner_uids)
 
 
 def is_model_cached(model_name):

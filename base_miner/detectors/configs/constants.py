@@ -7,7 +7,3 @@ WEIGHTS_DIR = os.path.join(BASE_PATH, "weights")
 CONFIG_PATHS = {
     "Roadwork": os.path.join(CONFIGS_DIR, "roadwork.yaml"),
 }
-
-HF_REPOS = {
-    "Roadwork": os.getenv("MODEL_URL", "")
-}

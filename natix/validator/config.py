@@ -1,10 +1,8 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import os
 import numpy as np
 import torch
 from diffusers import (
-    StableDiffusionPipeline,
     StableDiffusionXLPipeline,
     StableDiffusionXLImg2ImgPipeline,
 )
