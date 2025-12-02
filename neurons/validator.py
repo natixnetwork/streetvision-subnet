@@ -19,6 +19,7 @@
 
 import os
 import time
+import threading
 
 import bittensor as bt
 import wandb
@@ -76,6 +77,10 @@ class Validator(BaseValidatorNeuron):
             "Roadwork": self.roadwork_media_cache,
         }
 
+        # Initialize wandb run and restart timer
+        self.wandb_run = None
+        self.wandb_restart_timer = None
+
         self.init_wandb()
         self.store_vali_info()
         self._fake_prob = self.config.get("fake_prob", 0.5)
@@ -95,41 +100,72 @@ class Validator(BaseValidatorNeuron):
         if self.config.wandb.off:
             return
 
-        run_name = f"validator-{self.uid}-{natix.__version__}"
-        self.config.run_name = run_name
-        self.config.uid = self.uid
-        self.config.hotkey = self.wallet.hotkey.ss58_address
-        self.config.version = natix.__version__
-        self.config.type = self.neuron_type
+        def _start_wandb_run():
+            """Start or restart a wandb run with auto-restart timer."""
+            # Finish existing run if present
+            if self.wandb_run:
+                try:
+                    self.wandb_run.finish()
+                    bt.logging.info("Finished previous wandb run")
+                except Exception as err:
+                    bt.logging.warning(f"Failed to finish existing Wandb run: {err}")
 
-        wandb_project = TESTNET_WANDB_PROJECT
-        if self.config.netuid == MAINNET_UID:
-            wandb_project = MAINNET_WANDB_PROJECT
+            run_name = f"validator-{self.uid}-{natix.__version__}"
+            self.config.run_name = run_name
+            self.config.uid = self.uid
+            self.config.hotkey = self.wallet.hotkey.ss58_address
+            self.config.version = natix.__version__
+            self.config.type = self.neuron_type
 
-        # Initialize the wandb run for the single project
-        bt.logging.info(f"Initializing W&B run for '{WANDB_ENTITY}/{wandb_project}'")
-        try:
-            run = wandb.init(
-                name=run_name,
-                project=wandb_project,
-                entity=WANDB_ENTITY,
-                config=self.config,
-                resume="auto",
-                tags=[self.config.neuron.name],
-                dir=self.config.full_path,
-                reinit=True,
-            )
-        except wandb.UsageError as e:
-            bt.logging.warning(e)
-            bt.logging.warning("Did you run wandb login?")
-            return
+            wandb_project = TESTNET_WANDB_PROJECT
+            if self.config.netuid == MAINNET_UID:
+                wandb_project = MAINNET_WANDB_PROJECT
 
-        # Sign the run to ensure it's from the correct hotkey
-        signature = self.wallet.hotkey.sign(run.id.encode()).hex()
-        self.config.signature = signature
-        wandb.config.update(self.config, allow_val_change=True)
+            # Initialize the wandb run for the single project
+            bt.logging.info(f"Initializing W&B run for '{WANDB_ENTITY}/{wandb_project}'")
+            try:
+                self.wandb_run = wandb.init(
+                    name=run_name,
+                    project=wandb_project,
+                    entity=WANDB_ENTITY,
+                    config=self.config,
+                    resume="auto",
+                    tags=[self.config.neuron.name],
+                    dir=self.config.full_path,
+                    reinit=True,
+                )
+            except wandb.UsageError as e:
+                bt.logging.warning(e)
+                bt.logging.warning("Did you run wandb login?")
+                self.wandb_run = None
+                return
 
-        bt.logging.success(f"Started wandb run {run_name}")
+            # Sign the run to ensure it's from the correct hotkey
+            signature = self.wallet.hotkey.sign(self.wandb_run.id.encode()).hex()
+            self.config.signature = signature
+            wandb.config.update(self.config, allow_val_change=True)
+
+            bt.logging.success(f"Started wandb run {run_name}")
+
+            # Schedule auto-restart if interval is set
+            if self.config.wandb.restart_interval > 0:
+                # Cancel existing timer if any
+                if self.wandb_restart_timer:
+                    self.wandb_restart_timer.cancel()
+
+                # Create new timer for restart
+                self.wandb_restart_timer = threading.Timer(
+                    self.config.wandb.restart_interval * 3600,  # Convert hours to seconds
+                    _start_wandb_run
+                )
+                self.wandb_restart_timer.daemon = True
+                self.wandb_restart_timer.start()
+                bt.logging.info(
+                    f"Wandb auto-restart timer scheduled in {self.config.wandb.restart_interval} hours."
+                )
+
+        # Start the initial wandb run
+        _start_wandb_run()
 
     def store_vali_info(self):
         """
@@ -146,6 +182,27 @@ class Validator(BaseValidatorNeuron):
             yaml.safe_dump(validator_info, f, indent=4)
 
         bt.logging.info(f"Wrote validator info to {VALIDATOR_INFO_PATH}")
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Cleanup wandb run and timer on validator shutdown."""
+        # Cancel restart timer if active
+        if self.wandb_restart_timer:
+            try:
+                self.wandb_restart_timer.cancel()
+                bt.logging.info("Cancelled wandb restart timer")
+            except Exception as e:
+                bt.logging.warning(f"Error cancelling wandb restart timer: {e}")
+
+        # Finish wandb run if active
+        if self.wandb_run:
+            try:
+                self.wandb_run.finish()
+                bt.logging.info("Finished wandb run on shutdown")
+            except Exception as e:
+                bt.logging.warning(f"Error finishing wandb run on shutdown: {e}")
+
+        # Call parent cleanup
+        super().__exit__(exc_type, exc_value, traceback)
 
 
 # The main function parses the configuration and runs the validator.
