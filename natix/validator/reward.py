@@ -21,6 +21,8 @@ from typing import Any, Dict, List, Tuple
 import bittensor as bt
 import numpy as np
 
+from natix.validator.config import REWARD_CURVE_EXPONENT
+
 
 def compute_penalty(y_pred: float) -> float:
     """
@@ -41,7 +43,6 @@ def get_rewards(
     uids: List[int],
     axons: List[bt.axon],
     performance_trackers: Dict[str, Any],
-    invalid_uids: set = None
 ) -> Tuple[np.ndarray, List[Dict[str, Dict[str, float]]]]:
     """
     Calculate rewards for miner responses based on performance metrics.
@@ -52,14 +53,12 @@ def get_rewards(
         uids: List of miner UIDs
         axons: List of miner axons
         performance_trackers: Dict mapping modality to performance tracker
-        invalid_uids: Set of UIDs that failed model validation
 
     Returns:
         Tuple containing:
             - np.ndarray: Array of rewards for each miner
             - List[Dict]: List of performance metrics for each miner
     """
-    invalid_uids = invalid_uids or set()
     miner_rewards = []
     miner_metrics = []
     
@@ -82,11 +81,13 @@ def get_rewards(
             metrics_10 = tracker[modality].get_metrics(uid, window=10)
 
             # Calculate reward based on prediction validity AND model validation
-            if pred_prob == -1 or uid in invalid_uids:
+            if pred_prob == -1:
                 reward = 0.0
             else:
                 reward = 0.5 * metrics_100["mcc"] + 0.5 * metrics_10["accuracy"]
                 reward *= compute_penalty(pred_prob)
+                # Apply reward curve steepness transformation
+                reward = reward ** REWARD_CURVE_EXPONENT
 
             miner_modality_rewards[modality] = reward
             miner_modality_metrics[modality] = metrics_100

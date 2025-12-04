@@ -232,14 +232,6 @@ def add_miner_args(cls, parser):
         help="Wandb entity to log to.",
     )
 
-    bt.logging.info("--model_url add argument")
-    parser.add_argument(
-        "--model_url",
-        type=str,
-        default="",
-        help="The URL to the model submitted on hugging-face.",
-    )
-
 
 def add_validator_args(cls, parser):
     """Add validator specific arguments to the parser."""

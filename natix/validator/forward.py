@@ -28,7 +28,6 @@ from natix.utils.image_transforms import apply_augmentation_by_level
 from natix.utils.uids import get_random_uids
 from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
-from natix.validator.verify_models import check_miner_model
 from natix.utils.wandb_utils import log_to_wandb
 
 def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
@@ -137,28 +136,16 @@ async def forward(self):
     predictions = [x.prediction for x in responses]
     bt.logging.debug(f"Predictions of {source} challenge: {predictions}")
 
-    # Check model URLs and collect invalid UIDs
-    model_urls = [x.model_url for x in responses]
-    invalid_uids = set()
-    model_validity = check_miner_model(self.config.proxy.proxy_client_url, miner_uids)
-
-    for uid, validity in zip(miner_uids, model_validity):
-        if not validity:
-            bt.logging.warning(f"Miner UID {uid} missing or invalid model_url.")
-            invalid_uids.add(uid)
-
     bt.logging.info(f"Responses received in {time.time() - start}s")
     bt.logging.success(f"Roadwork {modality} challenge complete!")
     bt.logging.info("Scoring responses")
 
-    # Pass invalid_uids to get_rewards
     rewards, metrics = get_rewards(
         label=label, 
         responses=predictions, 
         uids=miner_uids, 
         axons=axons, 
         performance_trackers=self.performance_trackers,
-        invalid_uids=invalid_uids
     )
 
     self.update_scores(rewards, miner_uids)
@@ -169,7 +156,6 @@ async def forward(self):
     challenge_metadata["predictions"] = predictions
     challenge_metadata["rewards"] = rewards.tolist()
     challenge_metadata["scores"] = list(self.scores)
-    challenge_metadata["model_urls"] = model_urls
 
     for uid, pred, reward in zip(miner_uids, predictions, rewards):
         if pred != -1:
