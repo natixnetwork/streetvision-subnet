@@ -112,7 +112,7 @@ else
 fi
 
 # POST request
-BASE_URL="http://localhost:8000"
+BASE_URL="${BASE_URL:-https://hydra.natix.network}"
 
 POLL_INTERVAL="${POLL_INTERVAL_SECONDS:-3}"   # seconds
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-180}"     # total timeout
