@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Set, Tuple
 import bittensor as bt
 
 from natix.utils.uids import get_random_uids
+from natix.validator.forward import assign_task_statistics
 
 
 class OrganicTaskDistributor:
@@ -130,7 +131,8 @@ class OrganicTaskDistributor:
                 'task_hash': task_hash,
                 'synapse': synapse,
                 'selected_miners': selected_miners,
-                'timestamp': current_time
+                'timestamp': current_time,
+                'payload_ref': image_data
             }
 
             results = await self._staggered_distribution(selected_miners, task_data)
@@ -270,7 +272,19 @@ class OrganicTaskDistributor:
             try:
                 axon = self.validator.metagraph.axons[miner_uid]
                 bt.logging.info(f"[ORGANIC] Sending task {task_data['task_hash']} to miner UID {miner_uid}")
-                
+                try:
+                    assign_task_statistics(
+                        self.validator,
+                        miner_uid_list=[miner_uid],
+                        type=1,
+                        label=0,
+                        payload_ref=task_data.get('payload_ref')
+                    )
+                except Exception as e:
+                    bt.logging.error(
+                        f"[ORGANIC] Failed to report task assignment to statistics for miner UID {miner_uid}: {e}"
+                    )
+
                 result = await self.dendrite(
                     axons=[axon],
                     synapse=task_data['synapse'],

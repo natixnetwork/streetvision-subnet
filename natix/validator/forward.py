@@ -22,6 +22,7 @@ import time
 
 import bittensor as bt
 import numpy as np
+from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
 
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
@@ -29,6 +30,54 @@ from natix.utils.uids import get_random_uids
 from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
 from natix.utils.wandb_utils import log_to_wandb
+
+def assign_task_statistics(self, miner_uid_list, type: int, label: int, payload_ref: str):
+    """
+    Notify the statistics service about an assigned task/challenge.
+
+    Args:
+        miner_uid_list (List[int]): UIDs of the miners who received this task.
+        label (int): Task label (0: None, 1: Roadwork).
+        payload_ref (str): Reference to the task payload (e.g., image string).
+    """
+    try:
+        payload = {
+            "validator_uid": int(self.validator.uid),
+            "miner_uid_list": [int(uid) for uid in miner_uid_list],
+            "type": type,
+            "label": int(label),
+            "payload_ref": str(payload_ref),
+        }
+
+        with Client(timeout=Timeout(30)) as client:
+            response = client.post(
+                f"{self.validator.config.proxy.proxy_client_url}/statistics/assign",
+                json=payload,
+            )
+
+        response.raise_for_status()
+        bt.logging.info("Successfully reported task assignment to /statistics/assign")
+        return response.json()
+
+    except ReadTimeout:
+        bt.logging.warning("Statistics assignment request timed out")
+        return None
+
+    except HTTPStatusError as e:
+        try:
+            error_detail = e.response.json()
+        except Exception:
+            error_detail = e.response.text
+
+        bt.logging.warning(f"Statistics assignment request failed: {error_detail}")
+        return None
+
+    except Exception as e:
+        bt.logging.exception(
+            f"Unexpected error while assigning task statistics: {e}"
+        )
+        return None
+
 
 def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
     modality = "image"
@@ -132,7 +181,22 @@ async def forward(self):
 
     bt.logging.info(f"Sending {modality} challenge to {len(miner_uids)} miners")
     start = time.time()
+
+    try:
+        assign_task_statistics(
+            self,
+            miner_uid_list=miner_uids.tolist(),
+            type=0,
+            label=int(label),
+            payload_ref=challenge.get("payload_ref", challenge.get("image", challenge.get("path", None)))
+        )
+    except Exception as e:
+        bt.logging.error(f"Failed to report task assignment to statistics: {e}")
+
+    # Here are responses from miners
     responses = await self.dendrite(axons=axons, synapse=synapse, deserialize=False, timeout=9)
+    # Their predictions here
+    # Here he have to call the statistics endpoint
     predictions = [x.prediction for x in responses]
     bt.logging.debug(f"Predictions of {source} challenge: {predictions}")
 
