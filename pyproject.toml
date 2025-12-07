@@ -1,6 +1,6 @@
 [project]
 name = "natix"
-version = "2.0.1"
+version = "2.0.2"
 description = ""
 authors = [
     {name = "hayden-yuma",email = "hayden@yumaai.com"}
@@ -119,6 +119,3 @@ max-line-length = 130
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.requires-plugins]
-poetry-plugin-export = ">=1.8"
