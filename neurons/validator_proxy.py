@@ -3,15 +3,11 @@ import base64
 import os
 import random
 import socket
-import threading
-import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
-from typing import Dict, List, Optional
 import bittensor as bt
 from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
-import numpy as np
 import uvicorn
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
