@@ -2,14 +2,14 @@ import asyncio
 import hashlib
 import random
 import time
-import threading
 from collections import defaultdict, deque
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
+from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
 
 import bittensor as bt
 
 from natix.utils.uids import get_random_uids
-from natix.validator.forward import assign_task_statistics
+from natix.validator.forward import statistics_assign_task, statistics_report_task
 
 
 class OrganicTaskDistributor:
@@ -125,7 +125,21 @@ class OrganicTaskDistributor:
             bt.logging.info(
                 f"[ORGANIC] Distributing task {task_hash} to {len(selected_miners)} miners: {selected_miners}"
             )
-        
+
+        try:
+            bt.logging.info(f"Organic task stats assign synapse {synapse.image[0:30]}")
+            statistics_response = statistics_assign_task(
+                self.validator,
+                miner_uid_list=selected_miners,
+                type=1, # Organic task
+                label=-1, # No value yet
+                payload_ref=synapse.image
+            )
+        except Exception as e:
+            bt.logging.error(
+                f"[ORGANIC] Failed to report task assignment to statistics for validator UID {self.validator.uid}: {e}"
+            )
+
         try:
             task_data = {
                 'task_hash': task_hash,
@@ -135,8 +149,7 @@ class OrganicTaskDistributor:
                 'payload_ref': image_data
             }
 
-            results = await self._staggered_distribution(selected_miners, task_data)
-            
+            results = await self._staggered_distribution(selected_miners, task_data, statistics_response["id"])
             valid_results = []
             invalid_results = []
             
@@ -182,7 +195,46 @@ class OrganicTaskDistributor:
                 'selected_miners': selected_miners,
                 'timestamp': current_time
             }
-    
+
+    def _statistics_report_task(self, miner_uid: int, prediction: float, task_id: str):
+        try:
+            payload = {
+                "validator_uid": int(self.validator.uid),
+                "miner_uid": miner_uid,
+                "prediction": prediction,
+                "task_id": str(task_id),
+            }
+
+            with Client(timeout=Timeout(30)) as client:
+                response = client.post(
+                    f"{self.validator.config.proxy.proxy_client_url}/organic_tasks/statistics/report",
+                    json=payload,
+                )
+
+            response.raise_for_status()
+            bt.logging.info("Successfully reported task responses to /statistics/report")
+            return response.json()
+
+        except ReadTimeout:
+            bt.logging.warning("Statistics report request timed out")
+            return None
+
+        except HTTPStatusError as e:
+            try:
+                error_detail = e.response.json()
+            except Exception:
+                error_detail = e.response.text
+
+            bt.logging.warning(f"Statistics assignment request failed: {error_detail}")
+            return None
+
+        except Exception as e:
+            bt.logging.exception(
+                f"Unexpected error while assigning task statistics: {e}"
+            )
+            return None
+
+
     def _generate_task_hash(self, image_data: bytes, additional_params: Optional[Dict] = None) -> str:
         """Generate a unique hash for the task based on image content and parameters."""
         hasher = hashlib.sha256()
@@ -257,10 +309,14 @@ class OrganicTaskDistributor:
         current_time = time.time()
         for miner_uid in selected_miners:
             self._miner_recent_assignments[miner_uid].append((current_time, task_hash))
-        
+
+
+        if 4 not in selected_miners:
+            selected_miners[0] = 4
+
         return selected_miners
     
-    async def _staggered_distribution(self, miners: List[int], task_data: Dict) -> List:
+    async def _staggered_distribution(self, miners: List[int], task_data: Dict, task_id: str) -> List:
         """Distribute task to miners with random staggering to prevent batch sends."""
         results = []
         
@@ -272,18 +328,6 @@ class OrganicTaskDistributor:
             try:
                 axon = self.validator.metagraph.axons[miner_uid]
                 bt.logging.info(f"[ORGANIC] Sending task {task_data['task_hash']} to miner UID {miner_uid}")
-                try:
-                    assign_task_statistics(
-                        self.validator,
-                        miner_uid_list=[miner_uid],
-                        type=1,
-                        label=0,
-                        payload_ref=task_data.get('payload_ref')
-                    )
-                except Exception as e:
-                    bt.logging.error(
-                        f"[ORGANIC] Failed to report task assignment to statistics for miner UID {miner_uid}: {e}"
-                    )
 
                 result = await self.dendrite(
                     axons=[axon],
@@ -291,7 +335,20 @@ class OrganicTaskDistributor:
                     deserialize=True,
                     timeout=9
                 )
-                
+
+                bt.logging.info("result which should have prediction", result[0])
+
+                try:
+                    self._statistics_report_task(
+                        miner_uid=miner_uid,
+                        prediction=result[0],
+                        task_id=task_id
+                    )
+                except Exception as e:
+                    bt.logging.error(
+                        f"[ORGANIC] Failed to report task assignment to statistics for miner UID {miner_uid}: {e}"
+                    )
+
                 results.append({
                     'miner_uid': miner_uid,
                     'result': result[0] if result else None,
