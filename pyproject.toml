@@ -1,6 +1,6 @@
 [project]
 name = "natix"
-version = "2.0.3"
+version = "2.0.4"
 description = ""
 authors = [
     {name = "hayden-yuma",email = "hayden@yumaai.com"}
