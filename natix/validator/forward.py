@@ -32,7 +32,10 @@ from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
 from natix.utils.wandb_utils import log_to_wandb
 
-def statistics_assign_task(self, miner_uid_list, type: int, label: int, payload_ref: str):
+
+def statistics_assign_task(
+    self, miner_uid_list, type: int, label: int, payload_ref: str
+):
     """
     Notify the statistics service about an assigned task/challenge.
     This will help us easily have reports on the subnet activity
@@ -76,13 +79,13 @@ def statistics_assign_task(self, miner_uid_list, type: int, label: int, payload_
         return None
 
     except Exception as e:
-        bt.logging.exception(
-            f"Unexpected error while assigning task statistics: {e}"
-        )
+        bt.logging.exception(f"Unexpected error while assigning task statistics: {e}")
         return None
 
 
-def statistics_report_task(self, miner_uid_list: List[int], predictions: List[float], task_id: str):
+def statistics_report_task(
+    self, miner_uid_list: List[int], predictions: List[float], task_id: str
+):
     """
     Notify the statistics service about an responses of task/challenge.
     This will help us gain insights about the overal network behaviour
@@ -126,27 +129,25 @@ def statistics_report_task(self, miner_uid_list: List[int], predictions: List[fl
         return None
 
     except Exception as e:
-        bt.logging.exception(
-            f"Unexpected error while assigning task statistics: {e}"
-        )
+        bt.logging.exception(f"Unexpected error while assigning task statistics: {e}")
         return None
 
 
 def determine_challenge_type(media_cache, synthetic_cache, fake_prob=0.5):
     modality = "image"
     label = np.random.choice(list(CHALLENGE_TYPE.keys()))
-    
+
     use_synthetic = np.random.rand() < fake_prob
-    
+
     if use_synthetic:
-        task = 'i2i' if np.random.rand() < 0.5 else 't2i'
+        task = "i2i" if np.random.rand() < 0.5 else "t2i"
         cache = synthetic_cache[modality][task]
         source = "synthetic"
     else:
         cache = media_cache["Roadwork"][modality]
         task = "real"
         source = "real"
-    
+
     return label, modality, task, cache, source
 
 
@@ -177,7 +178,9 @@ async def forward(self):
     challenge_metadata["source_model_task"] = source_model_task
     challenge_metadata["source"] = source
 
-    bt.logging.info(f"Sampling {source} {modality} from {source_model_task if source == 'synthetic' else 'real'} cache")
+    bt.logging.info(
+        f"Sampling {source} {modality} from {source_model_task if source == 'synthetic' else 'real'} cache"
+    )
 
     if modality != "image":
         bt.logging.error(f"Unexpected modality: {modality}")
@@ -188,14 +191,15 @@ async def forward(self):
     if challenge is None:
         bt.logging.warning("Waiting for cache to populate. Challenge skipped.")
         return
-    
-    # Log challenge details
-    scene_desc = challenge.get("metadata", {}).get("scene_description", "N/A")
-    image_path = challenge.get("path", "N/A")
-    bt.logging.info(f"Challenge details - Label: {label}, Scene description: {scene_desc}, Image path: {image_path}")
 
     # update logging dict with everything except image data
-    challenge_metadata.update({k: v for k, v in challenge.items() if re.match(r"^(?!image$|video$|videos$|video_\d+$).+", k)})
+    challenge_metadata.update(
+        {
+            k: v
+            for k, v in challenge.items()
+            if re.match(r"^(?!image$|video$|videos$|video_\d+$).+", k)
+        }
+    )
     input_data = challenge[modality]  # extract image
 
     # apply data augmentation pipeline
@@ -225,9 +229,9 @@ async def forward(self):
         statistics_response = statistics_assign_task(
             self,
             miner_uid_list=miner_uid_list,
-            type=0, # Challenge
+            type=0,  # Challenge
             label=int(label),
-            payload_ref=synapse.image
+            payload_ref=synapse.image,
         )
     except Exception as e:
         bt.logging.error(f"Failed to report task assignment to statistics: {e}")
@@ -235,7 +239,9 @@ async def forward(self):
     bt.logging.info(f"Sending {modality} challenge to {len(miner_uids)} miners")
     start = time.time()
     # Here are responses from miners to the challenges (type: 0)
-    responses = await self.dendrite(axons=axons, synapse=synapse, deserialize=False, timeout=9)
+    responses = await self.dendrite(
+        axons=axons, synapse=synapse, deserialize=False, timeout=9
+    )
     predictions = [x.prediction for x in responses]
     bt.logging.debug(f"Predictions of {source} challenge: {predictions}")
 
@@ -244,7 +250,7 @@ async def forward(self):
             self,
             miner_uid_list=miner_uid_list,
             predictions=predictions,
-            task_id=statistics_response['id']
+            task_id=statistics_response["id"],
         )
     except Exception as e:
         bt.logging.error(f"Failed to report task assignment to statistics: {e}")
@@ -254,17 +260,19 @@ async def forward(self):
     bt.logging.info("Scoring responses")
 
     rewards, metrics = get_rewards(
-        label=label, 
-        responses=predictions, 
-        uids=miner_uids, 
-        axons=axons, 
+        label=label,
+        responses=predictions,
+        uids=miner_uids,
+        axons=axons,
         performance_trackers=self.performance_trackers,
     )
 
     self.update_scores(rewards, miner_uids)
 
     for metric_name in list(metrics[0][modality].keys()):
-        challenge_metadata[f"miner_{modality}_{metric_name}"] = [m[modality][metric_name] for m in metrics]
+        challenge_metadata[f"miner_{modality}_{metric_name}"] = [
+            m[modality][metric_name] for m in metrics
+        ]
 
     challenge_metadata["predictions"] = predictions
     challenge_metadata["rewards"] = rewards.tolist()
@@ -273,7 +281,7 @@ async def forward(self):
     for uid, pred, reward in zip(miner_uids, predictions, rewards):
         if pred != -1:
             bt.logging.success(f"UID: {uid} | Prediction: {pred} | Reward: {reward}")
-    
+
     if not self.config.wandb.off:
         log_to_wandb(
             challenge_metadata=challenge_metadata,
