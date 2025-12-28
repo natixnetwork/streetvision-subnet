@@ -9,7 +9,7 @@ from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
 import bittensor as bt
 
 from natix.utils.uids import get_random_uids
-from natix.validator.forward import statistics_assign_task, statistics_report_task
+from natix.validator.forward import statistics_assign_task, fix_ip_format
 
 
 class OrganicTaskDistributor:
@@ -326,7 +326,7 @@ class OrganicTaskDistributor:
                 await asyncio.sleep(delay)
             
             try:
-                axon = self.validator.metagraph.axons[miner_uid]
+                axon = fix_ip_format(self.validator.metagraph.axons[miner_uid])
                 bt.logging.info(f"[ORGANIC] Sending task {task_data['task_hash']} to miner UID {miner_uid}")
 
                 result = await self.dendrite(

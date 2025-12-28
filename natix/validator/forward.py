@@ -20,6 +20,8 @@
 import re
 import time
 from typing import List
+import copy
+import ipaddress
 
 import bittensor as bt
 import numpy as np
@@ -32,10 +34,18 @@ from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
 from natix.utils.wandb_utils import log_to_wandb
 
+def fix_ip_format(axon):
+    ax = copy.copy(axon)
+    ip = ax.ip.strip()
+    if not (ip.startswith("[") and ip.endswith("]")):
+        try:
+            if ipaddress.ip_address(ip).version == 6:
+                ax.ip = f"[{ip}]"
+        except ValueError:
+            pass
+    return ax
 
-def statistics_assign_task(
-    self, miner_uid_list, type: int, label: int, payload_ref: str
-):
+def statistics_assign_task(self, miner_uid_list, type: int, label: int, payload_ref: str):
     """
     Notify the statistics service about an assigned task/challenge.
     This will help us easily have reports on the subnet activity
@@ -218,7 +228,7 @@ async def forward(self):
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
     miner_uid_list = miner_uids
     bt.logging.debug(f"Miner UIDs to provide with {source} challenge: {miner_uids}")
-    axons = [self.metagraph.axons[uid] for uid in miner_uids]
+    axons = [fix_ip_format(self.metagraph.axons[uid]) for uid in miner_uids]
     challenge_metadata["miner_uids"] = miner_uids
     challenge_metadata["miner_hotkeys"] = list([axon.hotkey for axon in axons])
 
