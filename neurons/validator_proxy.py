@@ -191,21 +191,21 @@ class ValidatorProxy:
                 f"[ORGANIC] Duplicate task {task_result['task_hash']}")
             self.proxy_counter.update(is_success=False)
             self.proxy_counter.save()
-            return HTTPException(status_code=429, detail="Duplicate task within time window")
+            raise HTTPException(status_code=429, detail="Duplicate task within time window")
 
         elif task_result['status'] == 'rejected':
             bt.logging.warning(
                 f"[ORGANIC] Task rejected: {task_result.get('reason', 'unknown')}")
             self.proxy_counter.update(is_success=False)
             self.proxy_counter.save()
-            return HTTPException(status_code=503, detail=f"Task rejected: {task_result.get('reason', 'unknown')}")
+            raise HTTPException(status_code=503, detail=f"Task rejected: {task_result.get('reason', 'unknown')}")
 
         elif task_result['status'] == 'error':
             bt.logging.error(
                 f"[ORGANIC] Task error: {task_result.get('error', 'unknown')}")
             self.proxy_counter.update(is_success=False)
             self.proxy_counter.save()
-            return HTTPException(status_code=500, detail="Internal server error")
+            raise HTTPException(status_code=500, detail="Internal server error")
 
         elif task_result['status'] == 'completed':
             valid_results = task_result['valid_results']
@@ -249,12 +249,12 @@ class ValidatorProxy:
             else:
                 self.proxy_counter.update(is_success=False)
                 self.proxy_counter.save()
-                return HTTPException(status_code=500, detail="No valid responses received")
+                raise HTTPException(status_code=500, detail="No valid responses received")
 
         # Fallback
         self.proxy_counter.update(is_success=False)
         self.proxy_counter.save()
-        return HTTPException(status_code=500, detail="Unknown task status")
+        raise HTTPException(status_code=500, detail="Unknown task status")
 
     async def get_self(self):
         return self
