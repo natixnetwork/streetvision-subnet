@@ -29,7 +29,6 @@ from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
 
 from natix.protocol import prepare_synapse
 from natix.utils.image_transforms import apply_augmentation_by_level
-from natix.utils.uids import get_random_uids
 from natix.validator.config import CHALLENGE_TYPE, TARGET_IMAGE_SIZE
 from natix.validator.reward import get_rewards
 from natix.utils.wandb_utils import log_to_wandb
@@ -225,7 +224,12 @@ async def forward(self):
     challenge_metadata["data_aug_level"] = level
 
     # sample miner uids for challenge
-    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    miner_uids = self.uid_deck.next_k(
+        k=self.config.neuron.sample_size,
+        metagraph=self.metagraph,
+        vpermit_tao_limit=self.config.neuron.vpermit_tao_limit,
+        exclude=None,
+    )
     miner_uid_list = miner_uids
     bt.logging.debug(f"Miner UIDs to provide with {source} challenge: {miner_uids}")
     axons = [fix_ip_format(self.metagraph.axons[uid]) for uid in miner_uids]
