@@ -40,6 +40,7 @@ from natix.validator.config import (
 )
 from natix.validator.forward import forward
 from neurons.validator_proxy import ValidatorProxy
+from natix.utils.uids import UIDDeck
 
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
@@ -59,6 +60,9 @@ class Validator(BaseValidatorNeuron):
 
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
+
+        self.uid_deck = UIDDeck()          # challenges
+        self.organic_uid_deck = UIDDeck()  # organic tasks
 
         self.last_responding_miner_uids = []
         self.validator_proxy = ValidatorProxy(self)
