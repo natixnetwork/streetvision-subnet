@@ -1,59 +1,89 @@
+from dataclasses import dataclass, field
 import random
-from typing import List
+from typing import Iterable, List, Optional, Set
 
 import bittensor as bt
 import numpy as np
 
-
 def check_uid_availability(metagraph: "bt.metagraph.Metagraph", uid: int, vpermit_tao_limit: int) -> bool:
-    """Check if uid is available. The UID should be available if it is serving and has less than vpermit_tao_limit stake
-    Args:
-        metagraph (:obj: bt.metagraph.Metagraph): Metagraph object
-        uid (int): uid to be checked
-        vpermit_tao_limit (int): Validator permit tao limit
-    Returns:
-        bool: True if uid is available, False otherwise
-    """
-    # Filter non serving axons.
     if not metagraph.axons[uid].is_serving:
         return False
-    # Filter validator permit > 1024 stake.
-    if metagraph.validator_permit[uid]:
-        if metagraph.S[uid] > vpermit_tao_limit:
-            return False
-    # Available otherwise.
+    if metagraph.validator_permit[uid] and metagraph.S[uid] > vpermit_tao_limit:
+        return False
     return True
 
+@dataclass
+class UIDDeck:
+    rng: random.Random = field(default_factory=random.Random)
+    deck: List[int] = field(default_factory=list)
+    idx: int = 0
 
-def get_random_uids(self, k: int, exclude: List[int] = None) -> np.ndarray:
-    """Returns k available random uids from the metagraph.
-    Args:
-        k (int): Number of uids to return.
-        exclude (List[int]): List of uids to exclude from the random sampling.
-    Returns:
-        uids (np.ndarray): Randomly sampled available uids.
-    Notes:
-        If `k` is larger than the number of available `uids`, set `k` to the number of available `uids`.
-    """
-    candidate_uids = []
-    avail_uids = []
+    def _build_eligible(self, metagraph, vpermit_tao_limit: int, exclude: Optional[Set[int]] = None) -> List[int]:
+        exclude = exclude or set()
+        out: List[int] = []
+        for uid in range(metagraph.n.item()):
+            if uid in exclude:
+                continue
+            if check_uid_availability(metagraph, uid, vpermit_tao_limit):
+                out.append(uid)
+        return out
 
-    for uid in range(self.metagraph.n.item()):
-        uid_is_available = check_uid_availability(self.metagraph, uid, self.config.neuron.vpermit_tao_limit)
-        uid_is_not_excluded = exclude is None or uid not in exclude
+    def refill(self, metagraph, vpermit_tao_limit: int, exclude: Optional[Iterable[int]] = None) -> None:
+        eligible = self._build_eligible(metagraph, vpermit_tao_limit, set(exclude or []))
+        self.deck = eligible
+        self.rng.shuffle(self.deck)
+        self.idx = 0
 
-        if uid_is_available:
-            avail_uids.append(uid)
-            if uid_is_not_excluded:
-                candidate_uids.append(uid)
-    # If k is larger than the number of available uids, set k to the number of available uids.
-    k = min(k, len(avail_uids))
-    # Check if candidate_uids contain enough for querying, if not grab all avaliable uids
-    available_uids = candidate_uids
-    if len(candidate_uids) < k:
-        available_uids += random.sample(
-            [uid for uid in avail_uids if uid not in candidate_uids],
-            k - len(candidate_uids),
-        )
-    uids = np.array(random.sample(available_uids, k))
-    return uids
+    def next_order(
+        self,
+        metagraph,
+        vpermit_tao_limit: int,
+        exclude: Optional[Iterable[int]] = None,
+    ) -> List[int]:
+        # Ensure deck exists and is not exhausted
+        if not self.deck or self.idx >= len(self.deck):
+            self.refill(metagraph, vpermit_tao_limit, exclude)
+
+        # Return remaining order for this cycle
+        return self.deck[self.idx:].copy()
+
+    # organic selection will “scan” candidates and then advance by how many it consumed from the deck.
+    def advance(self, n: int) -> None:
+        self.idx = min(self.idx + n, len(self.deck))
+
+    def next_k(
+        self,
+        k: int,
+        metagraph,
+        vpermit_tao_limit: int,
+        exclude: Optional[Iterable[int]] = None,
+    ) -> np.ndarray:
+        # Refill if empty or exhausted
+        if not self.deck or self.idx >= len(self.deck):
+            self.refill(metagraph, vpermit_tao_limit, exclude)
+
+        if not self.deck:
+            return np.array([], dtype=np.int64)
+
+        out: List[int] = []
+        exclude_set = set(exclude or [])
+
+        # Fill up to k, reshuffling as needed
+        while len(out) < k:
+            if self.idx >= len(self.deck):
+                self.refill(metagraph, vpermit_tao_limit, exclude_set)
+                if not self.deck:
+                    break
+
+            uid = self.deck[self.idx]
+            self.idx += 1
+
+            # re-check availability at draw time to handle churn
+            if uid in exclude_set:
+                continue
+            if not check_uid_availability(metagraph, uid, vpermit_tao_limit):
+                continue
+
+            out.append(uid)
+
+        return np.array(out, dtype=np.int64)

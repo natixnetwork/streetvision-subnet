@@ -8,7 +8,6 @@ from httpx import HTTPStatusError, Client, Timeout, ReadTimeout
 
 import bittensor as bt
 
-from natix.utils.uids import get_random_uids
 from natix.validator.forward import statistics_assign_task, fix_ip_format
 
 
@@ -270,16 +269,21 @@ class OrganicTaskDistributor:
         return time.time() - timestamp < self.deduplication_window_seconds
     
     def _get_available_miners(self, task_hash: str, exclude_uids: Optional[List[int]] = None) -> List[int]:
-        """Get miners that haven't been assigned similar tasks recently."""
         current_time = time.time()
-        all_available_uids = get_random_uids(
-            self.validator, 
-            k=self.validator.metagraph.n.item(),
-            exclude=exclude_uids or []
+        exclude_uids = exclude_uids or []
+
+        # Get shuffled order for remaining deck cycle (organic deck)
+        ordered = self.validator.organic_uid_deck.next_order(
+            metagraph=self.validator.metagraph,
+            vpermit_tao_limit=self.validator.config.neuron.vpermit_tao_limit,
+            exclude=exclude_uids,
         )
 
-        available_miners = []
-        for uid in all_available_uids:
+        available_miners: List[int] = []
+        scanned = 0
+
+        for uid in ordered:
+            scanned += 1
             uid = int(uid)
             recent_assignments = self._miner_recent_assignments[uid]
 
@@ -287,32 +291,30 @@ class OrganicTaskDistributor:
                 task_hash == assigned_hash and current_time - timestamp < self.miner_cooldown_seconds
                 for timestamp, assigned_hash in recent_assignments
             )
-            
+
             if not has_recent_assignment:
                 available_miners.append(uid)
-        
+
+            # Optional micro-optimization: if we already have enough candidates, stop scanning.
+            if len(available_miners) >= self.miners_per_task:
+                break
+
+        # Advance the deck by how many we scanned so the next task continues where we left off.
+        self.validator.organic_uid_deck.advance(scanned)
+
         return available_miners
     
     def _select_miners_for_task(self, task_hash: str, exclude_uids: Optional[List[int]] = None) -> List[int]:
-        """Select N random miners for a task, avoiding recent assignments."""
         available_miners = self._get_available_miners(task_hash, exclude_uids)
-        
-        if len(available_miners) < self.miners_per_task:
-            bt.logging.warning(
-                f"[ORGANIC] Only {len(available_miners)} miners available for task {task_hash}, "
-                f"requested {self.miners_per_task}. Using all available miners."
-            )
-            return available_miners
 
-        selected_miners = random.sample(available_miners, self.miners_per_task)
-        
+        if not available_miners:
+            return []
+
+        selected_miners = available_miners[: self.miners_per_task]
+
         current_time = time.time()
         for miner_uid in selected_miners:
             self._miner_recent_assignments[miner_uid].append((current_time, task_hash))
-
-
-        if 4 not in selected_miners:
-            selected_miners[0] = 4
 
         return selected_miners
     
