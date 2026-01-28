@@ -151,7 +151,7 @@ class PromptGenerator:
         moderated_description = self.moderate(caption, label)
         return moderated_description
 
-    def moderate(self, description: str, label: int = None, max_new_tokens: int = 80) -> str:
+    def moderate(self, description: str, label: int = None, max_new_tokens: int = 60) -> str:
         """
         Use the text moderation pipeline to make the description more concise
         and tailored to the specific label.
@@ -167,21 +167,22 @@ class PromptGenerator:
         """
         if label == 1:
             system_content = (
-                "[INST]Enhance this dashcam footage description to include active roadwork. "
-                "Start with 'Photorealistic dashcam footage' and ADD roadwork elements to the existing scene: "
-                "orange traffic cones, construction barriers, construction vehicles, road crews in safety vests, "
-                "lane closure signs, construction equipment, or construction zones. The scene MUST show active roadwork.[/INST]"
+                "[INST]Write a SINGLE sentence under 40 words. "
+                "Start with 'Photorealistic dashcam footage of' and describe the road scene with roadwork elements: "
+                "traffic cones, barriers, construction vehicles, workers in vests, or lane closures. "
+                "No paragraphs, no filler text.[/INST]"
             )
         elif label == 0:
             system_content = (
-                "[INST]Rewrite as concise dashcam footage description. "
-                "Focus on clear roads and regular traffic. "
-                "Start with 'Photorealistic dashcam footage' of normal road and keep factual.[/INST]"
+                "[INST]Write a SINGLE sentence under 40 words. "
+                "Start with 'Photorealistic dashcam footage of' and describe a normal road scene. "
+                "Focus on road type, traffic, weather. No paragraphs, no filler text.[/INST]"
             )
         else:
             system_content = (
-                "[INST]Rewrite as concise dashcam footage description. "
-                "Start with 'Photorealistic dashcam footage' and keep factual.[/INST]"
+                "[INST]Write a SINGLE sentence under 40 words. "
+                "Start with 'Photorealistic dashcam footage of' and describe the road scene. "
+                "No paragraphs, no filler text.[/INST]"
             )
             
         messages = [
